@@ -278,13 +278,14 @@
   function api(qs, ms) {
     var ctl = new AbortController();
     var t = setTimeout(function () { ctl.abort(); }, ms || 9000);
-    var fullUrl = API + '?token=' + enc(TOKEN) + (qs ? '&' + qs : '');
+    
+    // The cache-buster: adding Date.now() prevents iOS from blocking the request as a duplicate
+    var cacheBuster = '&_cb=' + Date.now();
+    var fullUrl = API + '?token=' + enc(TOKEN) + (qs ? '&' + qs : '') + cacheBuster;
     
     return fetch(fullUrl, { 
-      signal: ctl.signal,
-      redirect: 'follow',
-      credentials: 'omit',
-      headers: { 'Accept': 'application/json' }
+      signal: ctl.signal
+      // Notice: No custom headers here, so Google Apps Script allows the connection through
     })
       .then(function (r) { return r.json(); })
       .then(function (j) { clearTimeout(t); if (j && j.error) throw new Error(j.error); return j; },
