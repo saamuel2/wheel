@@ -7,10 +7,12 @@
 <title>Assignments + Wheel</title>
 <style>
   :root {
-    --W: 100vw;       /* DIAL 1: widget width. Wheel/cards cut off at the right or bottom? Try 90vw, then 80vw. */
-    --RATIO: 0.467;   /* DIAL 2: widget height / width. A medium widget is about 0.467. */
+    --W: 100vw;       /* DIAL 1: widget width. */
+    --RATIO: 0.467;   /* DIAL 2: widget height / width. */
     --u: calc(var(--W) / 100);
-    --bg:#2b2b33; --card:#1e1e24; --line:#3f3f4a; --text:#f0f0f5; --sub:#a0a0ab;
+    
+    /* Darkened to match Screenshot 1 */
+    --bg:#1c1c1e; --card:#2c2c2e; --line:#3a3a3c; --text:#f2f2f7; --sub:#ebebf599;
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { margin:0; background:var(--bg); color:var(--text); overflow:hidden;
@@ -21,53 +23,53 @@
 
   .tap {
     --wweb2-overlay-btn-color: rgba(0,0,0,0);
-    --wweb2-overlay-btn-press-color: rgba(255,255,255,0.25);
-    --wweb2-overlay-btn-corner-radius: 30%;
-    --wweb2-overlay-btn-padding: -3px;
+    --wweb2-overlay-btn-press-color: rgba(255,255,255,0.15);
+    --wweb2-overlay-btn-padding: 0px;
   }
 
-  .arrow { position:absolute; top:calc(var(--u)*2.6); width:calc(var(--u)*7.5); height:calc(var(--u)*7.5);
-    border-radius:50%; background:var(--line); display:flex; align-items:center; justify-content:center;
-    font-weight:800; font-size:calc(var(--u)*5.4); padding-bottom:calc(var(--u)*0.5);
-    --wweb2-overlay-btn-corner-radius:50%; }
-  #prev { left:calc(var(--u)*2.5); }
-  #next { left:calc(var(--u)*33.4); }
-  .label { position:absolute; left:calc(var(--u)*11); width:calc(var(--u)*21); top:calc(var(--u)*0.6); height:calc(var(--u)*5.6);
-    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:calc(var(--u)*3.4); }
-  .wheel { position:absolute; left:calc(var(--u)*2.5); top:calc(var(--u)*6.4); width:calc(var(--u)*38.3); height:calc(var(--u)*38.3); }
-  .wheel svg { position:absolute; inset:0; width:100%; height:100%; }
+  /* Header centered at the top */
+  .hdr { position:absolute; left:0; width:100%; top:calc(var(--u)*1.5); height:calc(var(--u)*5);
+    display:flex; align-items:center; justify-content:center; }
+  .htitle { font-weight:700; font-size:calc(var(--u)*3.6); }
+  .badge { position:absolute; right:calc(var(--u)*4); background:var(--line); color:#e4e4e7; border-radius:calc(var(--u)*1.2);
+    padding:calc(var(--u)*0.5) calc(var(--u)*1.4); font-weight:700; font-size:calc(var(--u)*2.2); }
+  
+  .toast { border-radius:calc(var(--u)*1.6); padding:calc(var(--u)*0.8) calc(var(--u)*2.6); font-weight:800;
+    font-size:calc(var(--u)*2.8); color:#1c1c1e; white-space:nowrap; }
+  .toast.good { background:#b2e2b6; }
+  .toast.bad  { background:#e4b39b; }
+
+  /* Wheel moved slightly down and left */
+  .wheel { position:absolute; left:calc(var(--u)*4); top:calc(var(--u)*7.5); width:calc(var(--u)*38); height:calc(var(--u)*38); }
+  .wheel svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .fill { transition: stroke-dasharray .8s cubic-bezier(.165,.84,.44,1); }
   .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; padding:0 calc(var(--u)*6); text-align:center; }
   .pct  { font-weight:800; font-size:calc(var(--u)*7); line-height:1; }
   .frac { font-weight:700; font-size:calc(var(--u)*2.4); color:var(--sub); margin-top:calc(var(--u)*0.4); }
 
-  .hdr { position:absolute; left:calc(var(--u)*45.3); width:calc(var(--u)*51.7); top:calc(var(--u)*0.6); height:calc(var(--u)*5.6);
-    display:flex; align-items:center; justify-content:center; }
-  .htitle { font-weight:800; font-size:calc(var(--u)*3.4); }
-  .badge { position:absolute; right:0; background:var(--line); color:#e4e4e7; border-radius:calc(var(--u)*0.9);
-    padding:calc(var(--u)*0.4) calc(var(--u)*1.2); font-weight:700; font-size:calc(var(--u)*2); }
-  .toast { border-radius:calc(var(--u)*1.6); padding:calc(var(--u)*0.8) calc(var(--u)*2.6); font-weight:800;
-    font-size:calc(var(--u)*2.8); color:var(--card); white-space:nowrap; }
-  .toast.good { background:#b2e2b6; }
-  .toast.bad  { background:#e4b39b; }
+  /* Invisible tap targets overlaying left/right halves of the wheel */
+  .arrow { position:absolute; top:0; height:100%; width:50%; z-index:10; background:transparent; display:block; }
+  #prev { left:0; border-top-left-radius: 50%; border-bottom-left-radius: 50%; }
+  #next { right:0; border-top-right-radius: 50%; border-bottom-right-radius: 50%; }
 
-  .list { position:absolute; left:calc(var(--u)*45.3); width:calc(var(--u)*51.7); top:calc(var(--u)*6.9); height:calc(var(--u)*37);
-    display:flex; flex-direction:column; gap:calc(var(--u)*0.9); }
-  .row { flex:1 1 0; min-height:0; display:flex; align-items:stretch; background:var(--card); border:1px solid var(--line);
-    border-radius:calc(var(--u)*1.8); overflow:hidden; font-size:calc(var(--u)*2.6*var(--k,1)); }
+  /* List pushed to the right side */
+  .list { position:absolute; left:calc(var(--u)*46); right:calc(var(--u)*4); top:calc(var(--u)*7.5); height:calc(var(--u)*37);
+    display:flex; flex-direction:column; gap:calc(var(--u)*1.2); }
+  .row { flex:1 1 0; min-height:0; display:flex; align-items:stretch; background:var(--card); 
+    border-radius:calc(var(--u)*2.2); overflow:hidden; font-size:calc(var(--u)*2.6*var(--k,1)); }
   .chk { flex:0 0 calc(var(--u)*5.6); display:flex; align-items:center; justify-content:center; }
   .chk i { display:block; width:calc(var(--u)*2.6*var(--k,1)); height:calc(var(--u)*2.6*var(--k,1));
     border:calc(var(--u)*0.35) solid var(--sub); border-radius:50%; }
   .pill { align-self:center; flex:0 0 auto; border-radius:calc(var(--u)*0.9); padding:calc(var(--u)*0.35) calc(var(--u)*1.1);
-    color:var(--card); font-weight:800; font-size:0.8em; line-height:1.2; margin-right:calc(var(--u)*1); }
+    color:#1c1c1e; font-weight:800; font-size:0.8em; line-height:1.2; margin-right:calc(var(--u)*1); }
   .title { align-self:center; flex:1 1 0; min-width:0; text-align:left; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .type { align-self:center; flex:0 0 auto; margin-left:calc(var(--u)*0.8); background:var(--line); color:var(--sub);
+  .type { align-self:center; flex:0 0 auto; margin-left:calc(var(--u)*0.8); background:var(--line); color:var(--text);
     border-radius:calc(var(--u)*0.7); padding:calc(var(--u)*0.3) calc(var(--u)*0.9); font-weight:800; font-size:0.72em; }
   .due { align-self:center; flex:0 0 auto; margin:0 calc(var(--u)*1.4) 0 calc(var(--u)*1); color:var(--sub); font-weight:600; font-size:0.8em; white-space:nowrap; }
   .empty { flex:1; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line);
     border-radius:calc(var(--u)*1.8); color:var(--sub); font-weight:700; font-size:calc(var(--u)*3); }
 
-  .pop { position:absolute; inset:0; z-index:10; background:rgba(30,30,36,0.94); display:none; align-items:center; justify-content:center; }
+  .pop { position:absolute; inset:0; z-index:20; background:rgba(28,28,30,0.94); display:none; align-items:center; justify-content:center; }
   .dialog { width:calc(var(--u)*62); background:var(--bg); border:1px solid var(--line); border-radius:calc(var(--u)*3); padding:calc(var(--u)*3); text-align:center; }
   .q { color:var(--sub); font-weight:700; font-size:calc(var(--u)*2.6); }
   .who { display:flex; align-items:center; justify-content:center; gap:calc(var(--u)*1.2); margin:calc(var(--u)*1.8) 0 calc(var(--u)*2.8); }
@@ -82,16 +84,17 @@
 </head>
 <body>
 <div class="box">
-  <a class="tap arrow" id="prev"  data-act href="#action=prev">‹</a>
-  <a class="tap label" id="label" data-act href="#action=today">this week</a>
-  <a class="tap arrow" id="next"  data-act href="#action=next">›</a>
+  <div class="hdr" id="hdr"></div>
 
   <div class="wheel">
     <svg id="svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="center"><div class="pct" id="pct">–</div><div class="frac" id="frac">loading</div></div>
+    
+    <!-- Invisible nav overlays over the wheel halves -->
+    <a class="tap arrow" id="prev"  data-act href="#action=prev"></a>
+    <a class="tap arrow" id="next"  data-act href="#action=next"></a>
   </div>
 
-  <div class="hdr" id="hdr"></div>
   <div class="list" id="list"></div>
   <div class="pop" id="pop"></div>
 </div>
@@ -137,7 +140,7 @@
 
   window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
 
-  ['prev', 'label', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
+  ['prev', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
 
   function valid(d) { return d && Array.isArray(d.assignments) && Array.isArray(d.courses); }
 
@@ -163,7 +166,7 @@
     list.forEach(function (g, i) {
       var start = animate ? (prev[i] ? prev[i].pct : 0) : g.pct;
       var base = '<circle cx="100" cy="100" r="' + g.rad + '" fill="none" stroke-width="' + g.w + '"';
-      html += base + ' stroke="#3f3f4a"/>' +
+      html += base + ' stroke="#3a3a3c"/>' +
               base + ' class="fill" stroke="' + g.color + '" stroke-dasharray="' + dashFor(g.rad, start) +
               '" transform="rotate(-90 100 100)"/>';
     });
@@ -177,14 +180,15 @@
   }
 
   function renderInner(animate) {
-    $('label').textContent = weekLabel();
+    var wLabel = weekLabel();
+    var titleHtml = '<span class="htitle">assignments ' + wLabel + '</span>';
 
-    // No usable data: draw an empty ring and say why
+    // No usable data
     if (!valid(data)) {
       drawRings([{ rad: R - 9, w: 18, pct: 0, color: '#fff' }], false);
       $('pct').textContent = '–';
       $('frac').textContent = loadErr ? 'can\u2019t load: ' + loadErr : 'loading';
-      $('hdr').innerHTML = '<span class="htitle">assignments</span>';
+      $('hdr').innerHTML = titleHtml;
       $('list').innerHTML = '<div class="empty">' + (loadErr ? 'can\u2019t load' : 'loading\u2026') + '</div>';
       $('pop').style.display = 'none';
       return;
@@ -218,7 +222,7 @@
     $('hdr').innerHTML = toast
       ? '<span class="toast ' + (toast.ok ? 'good' : 'bad') + '">' +
         (toast.ok ? '\u2713 marked done' : 'couldn\u2019t save' + (toast.why ? ': ' + esc(toast.why) : '')) + '</span>'
-      : '<span class="htitle">assignments</span><span class="badge">' + badge + '</span>';
+      : titleHtml + '<span class="badge">' + badge + '</span>';
 
     var k = 1 + (MAX_ROWS - Math.max(shown.length, 1)) * 0.08;
     var html = '';
@@ -252,13 +256,12 @@
     } else {
       pop.innerHTML = ''; pop.style.display = 'none';
     }
-    ['prev', 'label', 'next'].forEach(function (id) {
+    ['prev', 'next'].forEach(function (id) {
       var el = $(id);
       if (confirmItem) el.removeAttribute('href'); else el.setAttribute('href', el.getAttribute('data-h'));
     });
   }
 
-  // Never fail silently: any drawing error is shown in the wheel's center
   function render(animate) {
     try { renderInner(animate); }
     catch (e) {
@@ -307,7 +310,7 @@
   function doDone(item, interactive) {
     if (!valid(data)) { var c = readCache(); if (c) data = c.data; }
     var m = findItem(item);
-    if (m) m.d = true;                     // card disappears and the wheel moves right away
+    if (m) m.d = true;                     
     if (interactive) render(true);
 
     api('action=done&row=' + enc(item.r) + '&n=' + enc(item.n) + '&c=' + enc(item.c), 12000)
