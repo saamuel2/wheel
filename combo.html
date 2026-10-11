@@ -37,7 +37,7 @@
   .wheel { position:absolute; left:calc(var(--u)*2.5); top:calc(var(--u)*6.4); width:calc(var(--u)*38.3); height:calc(var(--u)*38.3); }
   .wheel svg { position:absolute; inset:0; width:100%; height:100%; }
   .fill { transition: stroke-dasharray .8s cubic-bezier(.165,.84,.44,1); }
-  .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+  .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; padding:0 calc(var(--u)*6); text-align:center; }
   .pct  { font-weight:800; font-size:calc(var(--u)*7); line-height:1; }
   .frac { font-weight:700; font-size:calc(var(--u)*2.4); color:var(--sub); margin-top:calc(var(--u)*0.4); }
 
@@ -88,7 +88,7 @@
 
   <div class="wheel">
     <svg id="svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"></svg>
-    <div class="center"><div class="pct" id="pct">–</div><div class="frac" id="frac"></div></div>
+    <div class="center"><div class="pct" id="pct">–</div><div class="frac" id="frac">loading</div></div>
   </div>
 
   <div class="hdr" id="hdr"></div>
@@ -101,7 +101,7 @@
   var API   = 'https://script.google.com/macros/s/AKfycbxzDb4jpmzj2rf5wNCncRVA1B6dkNYPQGWTPcEGlGotFaezxDpsLGW9P5pf_Toeew7g/exec';
   var TOKEN = 'wheel-7k2m9q';
 
-  var CACHE_KEY = 'combo_cache_v1', CACHE_TTL = 10 * 60 * 1000;
+  var CACHE_KEY = 'combo_cache_v2', CACHE_TTL = 10 * 60 * 1000;
   var CUTOUT = 0.6, MAX_THICK = 18, GAP = 2.5, R = 96, MAX_ROWS = 5;
 
   var COLORS = {
@@ -121,6 +121,7 @@
   function esc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function enc(s) { return encodeURIComponent(s == null ? '' : s); }
   function log(m) { try { if (typeof __wweb2Log === 'function') __wweb2Log(m); } catch (e) {} }
+  function msgOf(e) { return String((e && e.message) || e || 'unknown').slice(0, 26); }
 
   function getCookie(k) {
     var m = document.cookie.match(new RegExp('(?:^|; )' + k + '=([^;]*)'));
@@ -132,11 +133,13 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var offset = parseInt(getCookie('comboOffset') || '0', 10) || 0;
-  var data = null, ready = false, confirmItem = null, toast = null, lastRings = [];
+  var data = null, ready = false, confirmItem = null, toast = null, lastRings = [], loadErr = '';
 
   window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
 
   ['prev', 'label', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
+
+  function valid(d) { return d && Array.isArray(d.assignments) && Array.isArray(d.courses); }
 
   function weekRange() {
     var now = new Date(); now.setDate(now.getDate() + offset * 7);
@@ -150,7 +153,7 @@
     if (offset === 1) return 'next week';
     return offset > 1 ? 'in ' + offset + ' wks' : Math.abs(offset) + ' wks ago';
   }
-  function belongs(course, a) { return a.c && course.toLowerCase().indexOf(a.c.toLowerCase()) !== -1; }
+  function belongs(course, a) { return a.c && course.toLowerCase().indexOf(String(a.c).toLowerCase()) !== -1; }
 
   function dashFor(r, pct) { var c = 2 * Math.PI * r, d = pct / 100 * c; return d + ' ' + (c - d); }
 
@@ -173,13 +176,25 @@
     }
   }
 
-  function render(animate) {
+  function renderInner(animate) {
     $('label').textContent = weekLabel();
+
+    // No usable data: draw an empty ring and say why
+    if (!valid(data)) {
+      drawRings([{ rad: R - 9, w: 18, pct: 0, color: '#fff' }], false);
+      $('pct').textContent = '–';
+      $('frac').textContent = loadErr ? 'can\u2019t load: ' + loadErr : 'loading';
+      $('hdr').innerHTML = '<span class="htitle">assignments</span>';
+      $('list').innerHTML = '<div class="empty">' + (loadErr ? 'can\u2019t load' : 'loading\u2026') + '</div>';
+      $('pop').style.display = 'none';
+      return;
+    }
+
     var rg = weekRange();
-    var week = data ? data.assignments.filter(function (a) { return a.t >= rg.s && a.t <= rg.e; }) : [];
+    var week = data.assignments.filter(function (a) { return a.t >= rg.s && a.t <= rg.e; });
     var done = week.filter(function (a) { return a.d; }).length;
 
-    var courses = data ? data.courses.filter(function (c) { return week.some(function (a) { return belongs(c, a); }); }) : [];
+    var courses = data.courses.filter(function (c) { return week.some(function (a) { return belongs(c, a); }); });
     var rings = [];
     if (!courses.length) {
       rings.push({ rad: R - 9, w: 18, pct: 0, color: '#fff' });
@@ -192,8 +207,8 @@
       });
     }
     drawRings(rings, animate);
-    $('pct').textContent = data ? (week.length ? Math.round(done / week.length * 100) : 0) + '%' : '–';
-    $('frac').textContent = data ? done + '/' + week.length + ' done' : 'can\u2019t load';
+    $('pct').textContent = (week.length ? Math.round(done / week.length * 100) : 0) + '%';
+    $('frac').textContent = done + '/' + week.length + ' done';
 
     var open = week.filter(function (a) { return !a.d; })
                    .sort(function (x, y) { return (x.t - y.t) || (x.r - y.r); });
@@ -203,13 +218,11 @@
     $('hdr').innerHTML = toast
       ? '<span class="toast ' + (toast.ok ? 'good' : 'bad') + '">' +
         (toast.ok ? '\u2713 marked done' : 'couldn\u2019t save' + (toast.why ? ': ' + esc(toast.why) : '')) + '</span>'
-      : '<span class="htitle">assignments</span>' + (data ? '<span class="badge">' + badge + '</span>' : '');
+      : '<span class="htitle">assignments</span><span class="badge">' + badge + '</span>';
 
     var k = 1 + (MAX_ROWS - Math.max(shown.length, 1)) * 0.08;
     var html = '';
-    if (!data) {
-      html = '<div class="empty">can\u2019t load</div>';
-    } else if (!shown.length) {
+    if (!shown.length) {
       html = '<div class="empty">' + (week.length ? 'all done \u2713' : 'nothing due') + '</div>';
     } else {
       shown.forEach(function (a) {
@@ -245,7 +258,18 @@
     });
   }
 
-  function readCache() { try { return JSON.parse(localStorage.getItem(CACHE_KEY)); } catch (e) { return null; } }
+  // Never fail silently: any drawing error is shown in the wheel's center
+  function render(animate) {
+    try { renderInner(animate); }
+    catch (e) {
+      log('render error: ' + e);
+      try { $('pct').textContent = '!'; $('frac').textContent = 'error: ' + msgOf(e); } catch (e2) {}
+    }
+  }
+
+  function readCache() {
+    try { var c = JSON.parse(localStorage.getItem(CACHE_KEY)); return c && valid(c.data) ? c : null; } catch (e) { return null; }
+  }
   function writeCache(d) { try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data: d })); } catch (e) {} }
 
   function api(qs, ms) {
@@ -253,7 +277,7 @@
     var t = setTimeout(function () { ctl.abort(); }, ms || 9000);
     return fetch(API + '?token=' + enc(TOKEN) + (qs ? '&' + qs : ''), { signal: ctl.signal })
       .then(function (r) { return r.json(); })
-      .then(function (j) { clearTimeout(t); if (j.error) throw new Error(j.error); return j; },
+      .then(function (j) { clearTimeout(t); if (j && j.error) throw new Error(j.error); return j; },
             function (e) { clearTimeout(t); throw e; });
   }
 
@@ -261,13 +285,19 @@
     var cached = readCache();
     if (allowCache && cached && Date.now() - cached.at < CACHE_TTL) { data = cached.data; return then(); }
     api('', 9000)
-      .then(function (j) { data = j; writeCache(j); })
-      .catch(function (e) { log('fetch failed: ' + e); if (cached) data = cached.data; })
+      .then(function (j) {
+        if (!valid(j)) throw new Error('bad data');
+        data = j; loadErr = ''; writeCache(j);
+      })
+      .catch(function (e) {
+        log('fetch failed: ' + e);
+        if (cached) data = cached.data; else loadErr = msgOf(e);
+      })
       .then(then);
   }
 
   function findItem(item) {
-    if (!data) return null;
+    if (!valid(data)) return null;
     var list = data.assignments, i;
     for (i = 0; i < list.length; i++) if (String(list[i].r) === String(item.r) && list[i].n === item.n && list[i].c === item.c) return list[i];
     for (i = 0; i < list.length; i++) if (list[i].n === item.n && list[i].c === item.c && !list[i].d) return list[i];
@@ -275,12 +305,58 @@
   }
 
   function doDone(item, interactive) {
-    if (!data) { var c = readCache(); if (c) data = c.data; }
+    if (!valid(data)) { var c = readCache(); if (c) data = c.data; }
     var m = findItem(item);
     if (m) m.d = true;                     // card disappears and the wheel moves right away
     if (interactive) render(true);
 
     api('action=done&row=' + enc(item.r) + '&n=' + enc(item.n) + '&c=' + enc(item.c), 12000)
       .then(function (j) {
-        if (j.ok) { toast = { ok: true }; if (data) writeCache(data); }
-        else { if (m) m.d = false; toast = { ok: false, why: String(j.why || 'no reply').slice(0, 22)
+        if (j && j.ok) { toast = { ok: true }; if (valid(data)) writeCache(data); }
+        else { if (m) m.d = false; toast = { ok: false, why: String((j && j.why) || 'no reply').slice(0, 22) }; }
+      })
+      .catch(function (e) {
+        log('done failed: ' + e);
+        if (m) m.d = false;
+        toast = { ok: false, why: msgOf(e).slice(0, 22) };
+      })
+      .then(function () {
+        if (valid(data)) { render(false); ready = true; }
+        else load(false, function () { render(false); ready = true; });
+      });
+  }
+
+  function navStep(act) {
+    if (act === 'prev') offset -= 1; else if (act === 'next') offset += 1; else offset = 0;
+    setCookie('comboOffset', String(offset));
+  }
+  function itemFrom(p) { return { r: p.get('row'), n: p.get('n') || '', c: p.get('c') || '' }; }
+  function isNav(a) { return a === 'prev' || a === 'next' || a === 'today'; }
+
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href'); if (!h) return;
+    ev.preventDefault();
+    var p = new URLSearchParams(h.replace(/^#/, '')), act = p.get('action');
+    toast = null;
+    if (isNav(act)) { navStep(act); confirmItem = null; }
+    else if (act === 'ask') confirmItem = itemFrom(p);
+    else if (act === 'cancel') confirmItem = null;
+    else if (act === 'done') { var it = itemFrom(p); confirmItem = null; return doDone(it, true); }
+    render(true);
+  });
+
+  var p0 = new URLSearchParams(window.location.hash.replace(/^#/, '')), act0 = p0.get('action');
+  if (isNav(act0)) navStep(act0);
+  else if (act0 === 'ask') confirmItem = itemFrom(p0);
+
+  if (act0 === 'done') {
+    doDone(itemFrom(p0), false);
+  } else {
+    load(!!act0, function () { render(false); ready = true; });
+  }
+})();
+</script>
+</body>
+</html>
