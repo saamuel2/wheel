@@ -278,7 +278,14 @@
   function api(qs, ms) {
     var ctl = new AbortController();
     var t = setTimeout(function () { ctl.abort(); }, ms || 9000);
-    return fetch(API + '?token=' + enc(TOKEN) + (qs ? '&' + qs : ''), { signal: ctl.signal })
+    var fullUrl = API + '?token=' + enc(TOKEN) + (qs ? '&' + qs : '');
+    
+    return fetch(fullUrl, { 
+      signal: ctl.signal,
+      redirect: 'follow',
+      credentials: 'omit',
+      headers: { 'Accept': 'application/json' }
+    })
       .then(function (r) { return r.json(); })
       .then(function (j) { clearTimeout(t); if (j && j.error) throw new Error(j.error); return j; },
             function (e) { clearTimeout(t); throw e; });
@@ -339,8 +346,12 @@
   document.addEventListener('click', function (ev) {
     var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
     if (!a) return;
-    var h = a.getAttribute('href'); if (!h) return;
+    
+    // Stop the iOS widget app from interpreting this as a page navigation
     ev.preventDefault();
+    ev.stopPropagation();
+    
+    var h = a.getAttribute('href'); if (!h) return;
     var p = new URLSearchParams(h.replace(/^#/, '')), act = p.get('action');
     toast = null;
     if (isNav(act)) { navStep(act); confirmItem = null; }
@@ -349,7 +360,7 @@
     else if (act === 'done') { var it = itemFrom(p); confirmItem = null; return doDone(it, true); }
     render(true);
   });
-
+  
   var p0 = new URLSearchParams(window.location.hash.replace(/^#/, '')), act0 = p0.get('action');
   if (isNav(act0)) navStep(act0);
   else if (act0 === 'ask') confirmItem = itemFrom(p0);
