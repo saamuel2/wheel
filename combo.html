@@ -19,7 +19,6 @@
   a { text-decoration:none; color:inherit; }
   .box { position:relative; width:var(--W); height:calc(var(--W) * var(--RATIO)); background:var(--bg); overflow:hidden; }
 
-  /* Every <a> becomes a native iOS button in the widget; these control how it looks */
   .tap {
     --wweb2-overlay-btn-color: rgba(0,0,0,0);
     --wweb2-overlay-btn-press-color: rgba(255,255,255,0.25);
@@ -27,7 +26,6 @@
     --wweb2-overlay-btn-padding: -3px;
   }
 
-  /* ---- left: wheel ---- */
   .arrow { position:absolute; top:calc(var(--u)*2.6); width:calc(var(--u)*7.5); height:calc(var(--u)*7.5);
     border-radius:50%; background:var(--line); display:flex; align-items:center; justify-content:center;
     font-weight:800; font-size:calc(var(--u)*5.4); padding-bottom:calc(var(--u)*0.5);
@@ -43,14 +41,13 @@
   .pct  { font-weight:800; font-size:calc(var(--u)*7); line-height:1; }
   .frac { font-weight:700; font-size:calc(var(--u)*2.4); color:var(--sub); margin-top:calc(var(--u)*0.4); }
 
-  /* ---- right: assignments ---- */
   .hdr { position:absolute; left:calc(var(--u)*45.3); width:calc(var(--u)*51.7); top:calc(var(--u)*0.6); height:calc(var(--u)*5.6);
     display:flex; align-items:center; justify-content:center; }
   .htitle { font-weight:800; font-size:calc(var(--u)*3.4); }
   .badge { position:absolute; right:0; background:var(--line); color:#e4e4e7; border-radius:calc(var(--u)*0.9);
     padding:calc(var(--u)*0.4) calc(var(--u)*1.2); font-weight:700; font-size:calc(var(--u)*2); }
   .toast { border-radius:calc(var(--u)*1.6); padding:calc(var(--u)*0.8) calc(var(--u)*2.6); font-weight:800;
-    font-size:calc(var(--u)*2.8); color:var(--card); }
+    font-size:calc(var(--u)*2.8); color:var(--card); white-space:nowrap; }
   .toast.good { background:#b2e2b6; }
   .toast.bad  { background:#e4b39b; }
 
@@ -70,7 +67,6 @@
   .empty { flex:1; display:flex; align-items:center; justify-content:center; border:1px dashed var(--line);
     border-radius:calc(var(--u)*1.8); color:var(--sub); font-weight:700; font-size:calc(var(--u)*3); }
 
-  /* ---- confirm popup ---- */
   .pop { position:absolute; inset:0; z-index:10; background:rgba(30,30,36,0.94); display:none; align-items:center; justify-content:center; }
   .dialog { width:calc(var(--u)*62); background:var(--bg); border:1px solid var(--line); border-radius:calc(var(--u)*3); padding:calc(var(--u)*3); text-align:center; }
   .q { color:var(--sub); font-weight:700; font-size:calc(var(--u)*2.6); }
@@ -142,7 +138,6 @@
 
   ['prev', 'label', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
 
-  /* ---------- week math (same as your tracker) ---------- */
   function weekRange() {
     var now = new Date(); now.setDate(now.getDate() + offset * 7);
     var s = new Date(now); s.setDate(now.getDate() - now.getDay()); s.setHours(0,0,0,0);
@@ -157,7 +152,6 @@
   }
   function belongs(course, a) { return a.c && course.toLowerCase().indexOf(a.c.toLowerCase()) !== -1; }
 
-  /* ---------- wheel ---------- */
   function dashFor(r, pct) { var c = 2 * Math.PI * r, d = pct / 100 * c; return d + ' ' + (c - d); }
 
   function drawRings(list, animate) {
@@ -179,7 +173,6 @@
     }
   }
 
-  /* ---------- everything on screen ---------- */
   function render(animate) {
     $('label').textContent = weekLabel();
     var rg = weekRange();
@@ -208,7 +201,8 @@
     var badge = open.length > MAX_ROWS ? MAX_ROWS + ' of ' + open.length : open.length + ' due';
 
     $('hdr').innerHTML = toast
-      ? '<span class="toast ' + (toast.ok ? 'good' : 'bad') + '">' + (toast.ok ? '\u2713 marked done' : 'couldn\u2019t save') + '</span>'
+      ? '<span class="toast ' + (toast.ok ? 'good' : 'bad') + '">' +
+        (toast.ok ? '\u2713 marked done' : 'couldn\u2019t save' + (toast.why ? ': ' + esc(toast.why) : '')) + '</span>'
       : '<span class="htitle">assignments</span>' + (data ? '<span class="badge">' + badge + '</span>' : '');
 
     var k = 1 + (MAX_ROWS - Math.max(shown.length, 1)) * 0.08;
@@ -251,7 +245,6 @@
     });
   }
 
-  /* ---------- data ---------- */
   function readCache() { try { return JSON.parse(localStorage.getItem(CACHE_KEY)); } catch (e) { return null; } }
   function writeCache(d) { try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data: d })); } catch (e) {} }
 
@@ -284,48 +277,10 @@
   function doDone(item, interactive) {
     if (!data) { var c = readCache(); if (c) data = c.data; }
     var m = findItem(item);
-    if (m) m.d = true;                     // optimistic: card disappears, wheel moves
+    if (m) m.d = true;                     // card disappears and the wheel moves right away
     if (interactive) render(true);
+
     api('action=done&row=' + enc(item.r) + '&n=' + enc(item.n) + '&c=' + enc(item.c), 12000)
-      .then(function (j) { data = j; writeCache(j); toast = { ok: !!j.ok }; })
-      .catch(function (e) { log('done failed: ' + e); if (m) m.d = false; toast = { ok: false }; })
-      .then(function () { render(false); ready = true; });
-  }
-
-  /* ---------- actions ---------- */
-  function navStep(act) {
-    if (act === 'prev') offset -= 1; else if (act === 'next') offset += 1; else offset = 0;
-    setCookie('comboOffset', String(offset));
-  }
-  function itemFrom(p) { return { r: p.get('row'), n: p.get('n') || '', c: p.get('c') || '' }; }
-  function isNav(a) { return a === 'prev' || a === 'next' || a === 'today'; }
-
-  // Taps in a normal browser (testing in Safari): act in place, with animation
-  document.addEventListener('click', function (ev) {
-    var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
-    if (!a) return;
-    var h = a.getAttribute('href'); if (!h) return;
-    ev.preventDefault();
-    var p = new URLSearchParams(h.replace(/^#/, '')), act = p.get('action');
-    toast = null;
-    if (isNav(act)) { navStep(act); confirmItem = null; }
-    else if (act === 'ask') confirmItem = itemFrom(p);
-    else if (act === 'cancel') confirmItem = null;
-    else if (act === 'done') { var it = itemFrom(p); confirmItem = null; return doDone(it, true); }
-    render(true);
-  });
-
-  // Widget taps: the app reloads this page with #action=... in the URL
-  var p0 = new URLSearchParams(window.location.hash.replace(/^#/, '')), act0 = p0.get('action');
-  if (isNav(act0)) navStep(act0);
-  else if (act0 === 'ask') confirmItem = itemFrom(p0);
-
-  if (act0 === 'done') {
-    doDone(itemFrom(p0), false);
-  } else {
-    load(!!act0, function () { render(false); ready = true; });
-  }
-})();
-</script>
-</body>
-</html>
+      .then(function (j) {
+        if (j.ok) { toast = { ok: true }; if (data) writeCache(data); }
+        else { if (m) m.d = false; toast = { ok: false, why: String(j.why || 'no reply').slice(0, 22)
