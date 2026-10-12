@@ -124,7 +124,7 @@
   function enc(s) { return encodeURIComponent(s == null ? '' : s); }
   function log(m) { try { if (typeof __wweb2Log === 'function') __wweb2Log(m); } catch (e) {} }
   function msgOf(e) { return String((e && e.message) || e || 'unknown').slice(0, 26); }
-
+  
   function fmtDate(ts) {
     var d = new Date(ts);
     var days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -135,6 +135,7 @@
   var offset = 0; 
   var data = null, ready = false, confirmItem = null, toast = null, lastRings = [], loadErr = '';
 
+  // App API: tell the widget we need 0ms delay to maximize speed once ready
   window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
 
   ['prev', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
@@ -154,7 +155,6 @@
     return offset > 1 ? 'in ' + offset + ' wks' : Math.abs(offset) + ' wks ago';
   }
   function belongs(course, a) { return a.c && course.toLowerCase().indexOf(String(a.c).toLowerCase()) !== -1; }
-
   function dashFor(r, pct) { var c = 2 * Math.PI * r, d = pct / 100 * c; return d + ' ' + (c - d); }
 
   function drawRings(list, animate) {
@@ -163,9 +163,7 @@
     list.forEach(function (g, i) {
       var start = animate ? (prev[i] ? prev[i].pct : 0) : g.pct;
       var base = '<circle cx="100" cy="100" r="' + g.rad + '" fill="none" stroke-width="' + g.w + '"';
-      html += base + ' stroke="#3a3a3c"/>' +
-              base + ' class="fill" stroke="' + g.color + '" stroke-dasharray="' + dashFor(g.rad, start) +
-              '" transform="rotate(-90 100 100)"/>';
+      html += base + ' stroke="#3a3a3c"/>' + base + ' class="fill" stroke="' + g.color + '" stroke-dasharray="' + dashFor(g.rad, start) + '" transform="rotate(-90 100 100)"/>';
     });
     svg.innerHTML = html;
     if (animate) {
@@ -197,9 +195,8 @@
     var courses = data.courses.filter(function (c) { return week.some(function (a) { return belongs(c, a); }); });
     var rings = [];
     
-    if (!courses.length) {
-      rings.push({ rad: R - 9, w: 18, pct: 0, color: '#fff' });
-    } else {
+    if (!courses.length) rings.push({ rad: R - 9, w: 18, pct: 0, color: '#fff' });
+    else {
       var thick = Math.min(MAX_THICK, (R * (1 - CUTOUT)) / courses.length);
       courses.forEach(function (c, i) {
         var mine = week.filter(function (a) { return belongs(c, a); });
@@ -215,28 +212,21 @@
     var shown = open.slice(0, MAX_ROWS);
     var badge = open.length > MAX_ROWS ? MAX_ROWS + ' of ' + open.length : open.length + ' due';
 
-    // Keep header title intact at all times
     $('hdr').innerHTML = titleHtml + '<span class="badge">' + badge + '</span>';
 
-    // Render toast as a circle dot in the top left
     if (toast) {
-      var sym = toast.msg ? '\u21BB' : (toast.ok ? '\u2713' : '!'); // ↻, ✓, or !
+      var sym = toast.msg ? '\u21BB' : (toast.ok ? '\u2713' : '!');
       var cls = toast.msg ? 'load' : (toast.ok ? 'good' : 'bad');
       $('toast-area').innerHTML = '<div class="toast ' + cls + '">' + sym + '</div>';
-    } else {
-      $('toast-area').innerHTML = '';
-    }
+    } else $('toast-area').innerHTML = '';
 
     var k = 1 + (MAX_ROWS - Math.max(shown.length, 1)) * 0.08;
     var html = '';
-    if (!shown.length) {
-      html = '<div class="empty">' + (week.length ? 'all done \u2713' : 'nothing due') + '</div>';
-    } else {
+    if (!shown.length) html = '<div class="empty">' + (week.length ? 'all done \u2713' : 'nothing due') + '</div>';
+    else {
       shown.forEach(function (a) {
         var href = '#action=ask&row=' + a.r + '&n=' + enc(a.n) + '&c=' + enc(a.c);
-        var chk = confirmItem
-          ? '<div class="chk"><i></i></div>'
-          : '<a class="tap chk" data-act href="' + esc(href) + '"><i></i></a>';
+        var chk = confirmItem ? '<div class="chk"><i></i></div>' : '<a class="tap chk" data-act href="' + esc(href) + '"><i></i></a>';
         html += '<div class="row" style="--k:' + k + '">' + chk +
           '<span class="pill" style="background:' + colorFor(a.c) + '">' + esc(a.c) + '</span>' +
           '<span class="title">' + esc(a.n) + '</span>' +
@@ -266,8 +256,7 @@
   }
 
   function render(animate) {
-    try { renderInner(animate); }
-    catch (e) {
+    try { renderInner(animate); } catch (e) {
       log('render error: ' + e);
       try { $('pct').textContent = '!'; $('frac').textContent = 'error: ' + msgOf(e); } catch (e2) {}
     }
@@ -277,7 +266,6 @@
     var ctl = new AbortController();
     var t = setTimeout(function () { ctl.abort(); }, ms || 9000);
     var fullUrl = API + '?token=' + enc(TOKEN) + (qs ? '&' + qs : '') + '&_cb=' + Date.now();
-    
     return fetch(fullUrl, { signal: ctl.signal, redirect: 'follow', cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (j) { clearTimeout(t); if (j && j.error) throw new Error(j.error); return j; },
@@ -299,15 +287,11 @@
     return null;
   }
 
-  function doDone(item, interactive) {
+  function doDone(item) {
     var m = findItem(item);
     if (m) m.d = true;                     
-    
-    if (interactive) {
-      // Instantly show a loading toast and update the DOM synchronously (false = no animation delay)
-      toast = { ok: true, msg: 'saving...' };
-      render(false); 
-    }
+    toast = { ok: true, msg: 'saving...' };
+    render(false); 
 
     var payload = { token: TOKEN, action: 'done', row: item.r, n: item.n, c: item.c };
     var ctl = new AbortController();
@@ -323,19 +307,15 @@
       .then(function (r) { return r.json(); })
       .then(function (j) {
         clearTimeout(t);
-        if (j && j.ok) { toast = { ok: true }; }
+        if (j && j.ok) toast = { ok: true };
         else { if (m) m.d = false; toast = { ok: false }; }
       })
       .catch(function (e) {
         clearTimeout(t); log('done failed: ' + e);
         if (m) m.d = false; toast = { ok: false };
       })
-      .then(function () { 
-        render(false); 
-        // Force Web Widget to wake up and snap a new picture now that the server replied
-        if (interactive) {
-          setTimeout(function() { window.location.reload(); }, 150);
-        }
+      .then(function () {
+        load(function () { render(false); ready = true; }); 
       });
   }
 
@@ -345,30 +325,54 @@
   function itemFrom(p) { return { r: p.get('row'), n: p.get('n') || '', c: p.get('c') || '' }; }
   function isNav(a) { return a === 'prev' || a === 'next' || a === 'today'; }
 
-  document.addEventListener('click', function (ev) {
-    var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
-    if (!a) return;
-    
-    ev.preventDefault();
-    ev.stopPropagation();
+  // Execute App Intent immediately on load by checking URL hash
+  function processHashAction() {
+    var qs = window.location.hash;
+    if (qs.startsWith("#")) qs = qs.substring(1);
+    if (!qs) return false;
 
-    var h = a.getAttribute('href'); if (!h) return;
-    var p = new URLSearchParams(h.replace(/^#/, '')), act = p.get('action');
+    var p = new URLSearchParams(qs);
+    var act = p.get('action');
+    if (!act) return false;
+
     toast = null;
-    
     if (isNav(act)) { navStep(act); confirmItem = null; }
     else if (act === 'ask') confirmItem = itemFrom(p);
     else if (act === 'cancel') confirmItem = null;
-    else if (act === 'done') { var it = itemFrom(p); confirmItem = null; return doDone(it, true); }
+    else if (act === 'done') { 
+      var it = itemFrom(p); confirmItem = null; 
+      // Strip hash to prevent looping, then fire API
+      window.history.replaceState(null, null, ' ');
+      doDone(it); 
+      return true; 
+    }
     else if (act === 'refresh') {
       toast = { ok: true, msg: 'refreshing...' };
       render(false);
-      return load(function () { toast = null; render(false); }, true); 
+      window.history.replaceState(null, null, ' ');
+      load(function () { toast = null; render(false); ready = true; }, true); 
+      return true;
     }
+    window.history.replaceState(null, null, ' ');
+    return false;
+  }
+
+  // Fallback for live browsers
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
+    if (!a) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    window.location.hash = a.getAttribute('href');
+    processHashAction();
     render(true);
   });
 
-  load(function () { render(false); ready = true; });
+  // Initialization sequence
+  var loadingData = processHashAction();
+  if (!loadingData) {
+    load(function () { render(false); ready = true; });
+  }
 })();
 </script>
 </body>
