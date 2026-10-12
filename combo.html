@@ -347,7 +347,7 @@
     if (!act) return false;
 
     toast = null;
-    ready = true; 
+    var isFetching = false;
 
     if (isNav(act)) { navStep(act); confirmItem = null; }
     else if (act === 'ask') confirmItem = itemFrom(p);
@@ -356,17 +356,17 @@
       var it = itemFrom(p); confirmItem = null; 
       window.history.replaceState(null, null, ' ');
       doDone(it); 
-      return true; 
+      isFetching = true; 
     }
     else if (act === 'refresh') {
       toast = { ok: true, msg: 'refreshing...' };
       render(false);
       window.history.replaceState(null, null, ' ');
-      load(function () { toast = null; render(false); }, true); 
-      return true;
+      load(function () { toast = null; render(false); ready = true; }, true); 
+      isFetching = true;
     }
     window.history.replaceState(null, null, ' ');
-    return false;
+    return isFetching;
   }
   
   document.addEventListener('click', function (ev) {
@@ -374,12 +374,21 @@
     if (!a) return;
     ev.preventDefault();
     ev.stopPropagation();
+
+    // WIGGLE ROOM: Tell the widget we are busy so it doesn't instantly freeze
+    ready = false; 
+
     window.location.hash = a.getAttribute('href');
-    processHashAction();
+    var isFetchingData = processHashAction();
     render(true);
+
+    // If we are just changing weeks/menus (no network fetch), 
+    // give the screen 150ms to paint the new UI before telling the widget to freeze.
+    if (!isFetchingData) {
+      setTimeout(function() { ready = true; }, 150);
+    }
   });
 
-  // FIX: Initialization Sequence
   var hasCache = false;
   try {
     var cached = localStorage.getItem('wheelDataCache');
@@ -389,14 +398,13 @@
     }
   } catch (e) {}
 
-  // Instantly render cache on screen so it is never blank while fetching
   if (hasCache) render(false);
 
   var loadingData = processHashAction();
   if (!loadingData) {
     load(function () { 
       render(false); 
-      ready = true; // Tell iOS we are fully done fetching and to take the snapshot
+      ready = true; 
     });
   }
 })();
