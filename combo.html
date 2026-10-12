@@ -119,8 +119,15 @@
   function log(m) { try { if (typeof __wweb2Log === 'function') __wweb2Log(m); } catch (e) {} }
   function msgOf(e) { return String((e && e.message) || e || 'unknown').slice(0, 26); }
 
+  // Date Formatter: "tue 13"
+  function fmtDate(ts) {
+    var d = new Date(ts);
+    var days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    return days[d.getDay()] + ' ' + d.getDate();
+  }
+
   var $ = function (id) { return document.getElementById(id); };
-  var offset = 0; // We removed the cookie offset so it always defaults to this week on load
+  var offset = 0; 
   var data = null, ready = false, confirmItem = null, toast = null, lastRings = [], loadErr = '';
 
   window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
@@ -166,12 +173,13 @@
 
   function renderInner(animate) {
     var wLabel = weekLabel();
-    var titleHtml = '<span class="htitle">assignments ' + wLabel + '</span>';
+    // Header is now a clickable refresh button
+    var titleHtml = '<a class="tap htitle" data-act href="#action=refresh">assignments ' + wLabel + '</a>';
 
     if (!valid(data)) {
       drawRings([{ rad: R - 9, w: 18, pct: 0, color: '#fff' }], false);
       $('pct').textContent = '–';
-      $('frac').textContent = loadErr ? 'can\u2019t load: ' + loadErr : 'loading';
+      $('frac').textContent = loadErr ? 'error' : 'loading';
       $('hdr').innerHTML = titleHtml;
       $('list').innerHTML = '<div class="empty">' + (loadErr ? 'can\u2019t load' : 'loading\u2026') + '</div>';
       $('pop').style.display = 'none';
@@ -181,9 +189,9 @@
     var rg = weekRange();
     var week = data.assignments.filter(function (a) { return a.t >= rg.s && a.t <= rg.e; });
     var done = week.filter(function (a) { return a.d; }).length;
-
     var courses = data.courses.filter(function (c) { return week.some(function (a) { return belongs(c, a); }); });
     var rings = [];
+    
     if (!courses.length) {
       rings.push({ rad: R - 9, w: 18, pct: 0, color: '#fff' });
     } else {
@@ -198,14 +206,14 @@
     $('pct').textContent = (week.length ? Math.round(done / week.length * 100) : 0) + '%';
     $('frac').textContent = done + '/' + week.length + ' done';
 
-    var open = week.filter(function (a) { return !a.d; })
-                   .sort(function (x, y) { return (x.t - y.t) || (x.r - y.r); });
+    var open = week.filter(function (a) { return !a.d; }).sort(function (x, y) { return (x.t - y.t) || (x.r - y.r); });
     var shown = open.slice(0, MAX_ROWS);
     var badge = open.length > MAX_ROWS ? MAX_ROWS + ' of ' + open.length : open.length + ' due';
 
+    // Updated toast logic to support custom messages like "refreshing..."
     $('hdr').innerHTML = toast
       ? '<span class="toast ' + (toast.ok ? 'good' : 'bad') + '">' +
-        (toast.ok ? '\u2713 marked done' : 'couldn\u2019t save' + (toast.why ? ': ' + esc(toast.why) : '')) + '</span>'
+        (toast.msg ? esc(toast.msg) : (toast.ok ? '\u2713 marked done' : 'couldn\u2019t save' + (toast.why ? ': ' + esc(toast.why) : ''))) + '</span>'
       : titleHtml + '<span class="badge">' + badge + '</span>';
 
     var k = 1 + (MAX_ROWS - Math.max(shown.length, 1)) * 0.08;
@@ -222,7 +230,8 @@
           '<span class="pill" style="background:' + colorFor(a.c) + '">' + esc(a.c) + '</span>' +
           '<span class="title">' + esc(a.n) + '</span>' +
           (a.y ? '<span class="type">' + esc(a.y) + '</span>' : '') +
-          '<span class="due">' + esc(a.s) + '</span></div>';
+          // Inserted lowercase date formatter here
+          '<span class="due">' + fmtDate(a.t) + '</span></div>';
       });
     }
     $('list').innerHTML = html;
@@ -257,29 +266,19 @@
   function api(qs, ms) {
     var ctl = new AbortController();
     var t = setTimeout(function () { ctl.abort(); }, ms || 9000);
-    // Added a cache-buster parameter so iOS never treats this as a duplicate request
     var fullUrl = API + '?token=' + enc(TOKEN) + (qs ? '&' + qs : '') + '&_cb=' + Date.now();
     
-    return fetch(fullUrl, { 
-      signal: ctl.signal,
-      redirect: 'follow',
-      cache: 'no-store'
-    })
+    return fetch(fullUrl, { signal: ctl.signal, redirect: 'follow', cache: 'no-store' })
       .then(function (r) { return r.json(); })
       .then(function (j) { clearTimeout(t); if (j && j.error) throw new Error(j.error); return j; },
             function (e) { clearTimeout(t); throw e; });
   }
 
-  function load(then) {
-    api('', 9000)
-      .then(function (j) {
-        if (!valid(j)) throw new Error('bad data');
-        data = j; loadErr = '';
-      })
-      .catch(function (e) {
-        log('fetch failed: ' + e);
-        loadErr = msgOf(e);
-      })
+  function load(then, force) {
+    // Send force=1 flag to bypass Apps Script cache
+    api(force ? 'force=1' : '', 9000)
+      .then(function (j) { if (!valid(j)) throw new Error('bad data'); data = j; loadErr = ''; })
+      .catch(function (e) { log('fetch failed: ' + e); loadErr = msgOf(e); })
       .then(then);
   }
 
@@ -300,11 +299,10 @@
     var ctl = new AbortController();
     var t = setTimeout(function () { ctl.abort(); }, 12000);
 
-    // POST request hides the data in the body, bypassing the URL security filters
     fetch(API, {
       method: 'POST',
       body: JSON.stringify(payload),
-      headers: { 'Content-Type': 'text/plain' }, // text/plain bypasses CORS preflight blocks
+      headers: { 'Content-Type': 'text/plain' },
       signal: ctl.signal,
       redirect: 'follow'
     })
@@ -315,14 +313,10 @@
         else { if (m) m.d = false; toast = { ok: false, why: String((j && j.why) || 'no reply').slice(0, 22) }; }
       })
       .catch(function (e) {
-        clearTimeout(t);
-        log('done failed: ' + e);
-        if (m) m.d = false;
-        toast = { ok: false, why: msgOf(e).slice(0, 22) };
+        clearTimeout(t); log('done failed: ' + e);
+        if (m) m.d = false; toast = { ok: false, why: msgOf(e).slice(0, 22) };
       })
-      .then(function () {
-        load(function () { render(false); ready = true; });
-      });
+      .then(function () { load(function () { render(false); ready = true; }); });
   }
 
   function navStep(act) {
@@ -335,17 +329,23 @@
     var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
     if (!a) return;
     
-    // This stops the widget from accidentally reloading the old file when you tap a button
     ev.preventDefault();
     ev.stopPropagation();
 
     var h = a.getAttribute('href'); if (!h) return;
     var p = new URLSearchParams(h.replace(/^#/, '')), act = p.get('action');
     toast = null;
+    
     if (isNav(act)) { navStep(act); confirmItem = null; }
     else if (act === 'ask') confirmItem = itemFrom(p);
     else if (act === 'cancel') confirmItem = null;
     else if (act === 'done') { var it = itemFrom(p); confirmItem = null; return doDone(it, true); }
+    // Add manual refresh trigger
+    else if (act === 'refresh') {
+      toast = { ok: true, msg: 'refreshing...' };
+      render(false);
+      return load(function () { toast = null; render(false); }, true); // true passes force=1
+    }
     render(true);
   });
 
