@@ -135,6 +135,12 @@
   var offset = 0; 
   var data = null, ready = false, confirmItem = null, toast = null, lastRings = [], loadErr = '';
 
+  // NEW: Instantly load previous data from cache so the screen is never blank
+  try {
+    var cached = localStorage.getItem('wheelDataCache');
+    if (cached) data = JSON.parse(cached);
+  } catch (e) {}
+
   // App API: tell the widget we need 0ms delay to maximize speed once ready
   window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
 
@@ -274,7 +280,13 @@
 
   function load(then, force) {
     api(force ? 'force=1' : '', 9000)
-      .then(function (j) { if (!valid(j)) throw new Error('bad data'); data = j; loadErr = ''; })
+      .then(function (j) { 
+        if (!valid(j)) throw new Error('bad data'); 
+        data = j; 
+        loadErr = ''; 
+        // NEW: Save data to cache on successful load
+        try { localStorage.setItem('wheelDataCache', JSON.stringify(j)); } catch (e) {} 
+      })
       .catch(function (e) { log('fetch failed: ' + e); loadErr = msgOf(e); })
       .then(then);
   }
@@ -291,6 +303,10 @@
     var m = findItem(item);
     if (m) m.d = true;                     
     toast = { ok: true, msg: 'saving...' };
+    
+    // NEW: Save optimistic checkmark state instantly
+    try { localStorage.setItem('wheelDataCache', JSON.stringify(data)); } catch (e) {} 
+    
     render(false); 
 
     var payload = { token: TOKEN, action: 'done', row: item.r, n: item.n, c: item.c };
