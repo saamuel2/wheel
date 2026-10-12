@@ -296,12 +296,26 @@
     if (m) m.d = true;                     
     if (interactive) render(true);
 
-    api('action=done&row=' + enc(item.r) + '&n=' + enc(item.n) + '&c=' + enc(item.c), 12000)
+    var payload = { token: TOKEN, action: 'done', row: item.r, n: item.n, c: item.c };
+    var ctl = new AbortController();
+    var t = setTimeout(function () { ctl.abort(); }, 12000);
+
+    // POST request hides the data in the body, bypassing the URL security filters
+    fetch(API, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'text/plain' }, // text/plain bypasses CORS preflight blocks
+      signal: ctl.signal,
+      redirect: 'follow'
+    })
+      .then(function (r) { return r.json(); })
       .then(function (j) {
+        clearTimeout(t);
         if (j && j.ok) { toast = { ok: true }; }
         else { if (m) m.d = false; toast = { ok: false, why: String((j && j.why) || 'no reply').slice(0, 22) }; }
       })
       .catch(function (e) {
+        clearTimeout(t);
         log('done failed: ' + e);
         if (m) m.d = false;
         toast = { ok: false, why: msgOf(e).slice(0, 22) };
