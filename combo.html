@@ -31,12 +31,16 @@
   .badge { position:absolute; right:calc(var(--u)*4); background:var(--line); color:#e4e4e7; border-radius:calc(var(--u)*1.2);
     padding:calc(var(--u)*0.5) calc(var(--u)*1.4); font-weight:700; font-size:calc(var(--u)*2.2); }
   
-  .toast { border-radius:calc(var(--u)*1.6); padding:calc(var(--u)*0.8) calc(var(--u)*2.6); font-weight:800;
-    font-size:calc(var(--u)*2.8); color:#1c1c1e; white-space:nowrap; }
+  /* Circular toast in the top left */
+  .toast { position:absolute; left:calc(var(--u)*3.5); top:calc(var(--u)*1.8); width:calc(var(--u)*4.5); height:calc(var(--u)*4.5);
+    border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800;
+    font-size:calc(var(--u)*2.6); color:#1c1c1e; z-index:30; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
   .toast.good { background:#b2e2b6; }
   .toast.bad  { background:#e4b39b; }
+  .toast.load { background:#e2d5f8; font-size:calc(var(--u)*3.2); }
 
-  .wheel { position:absolute; left:calc(var(--u)*4); top:calc(var(--u)*7.5); width:calc(var(--u)*38); height:calc(var(--u)*38); }
+  /* Shifted wheel to the left */
+  .wheel { position:absolute; left:calc(var(--u)*1.5); top:calc(var(--u)*7.5); width:calc(var(--u)*38); height:calc(var(--u)*38); }
   .wheel svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .fill { transition: stroke-dasharray .8s cubic-bezier(.165,.84,.44,1); }
   .center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; padding:0 calc(var(--u)*6); text-align:center; }
@@ -47,7 +51,8 @@
   #prev { left:0; border-top-left-radius: 50%; border-bottom-left-radius: 50%; }
   #next { right:0; border-top-right-radius: 50%; border-bottom-right-radius: 50%; }
 
-  .list { position:absolute; left:calc(var(--u)*46); right:calc(var(--u)*4); top:calc(var(--u)*7.5); height:calc(var(--u)*37);
+  /* Expanded list container */
+  .list { position:absolute; left:calc(var(--u)*40.5); right:calc(var(--u)*2.5); top:calc(var(--u)*7.5); height:calc(var(--u)*37);
     display:flex; flex-direction:column; gap:calc(var(--u)*1.2); }
   .row { flex:1 1 0; min-height:0; display:flex; align-items:stretch; background:var(--card); 
     border-radius:calc(var(--u)*2.2); overflow:hidden; font-size:calc(var(--u)*2.6*var(--k,1)); }
@@ -79,6 +84,7 @@
 <body>
 <div class="box">
   <div class="hdr" id="hdr"></div>
+  <div id="toast-area"></div>
 
   <div class="wheel">
     <svg id="svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"></svg>
@@ -94,7 +100,7 @@
 
 <script>
 (function () {
-  // IMPORTANT: Paste your newest Google Apps Script URL here between the quotes
+  // IMPORTANT: Keep your working .com URL here
   var API   = 'https://script.google.com/macros/s/AKfycbxzDb4jpmzj2rf5wNCncRVA1B6dkNYPQGWTPcEGlGotFaezxDpsLGW9P5pf_Toeew7g/exec';
   var TOKEN = 'wheel-7k2m9q';
 
@@ -119,7 +125,6 @@
   function log(m) { try { if (typeof __wweb2Log === 'function') __wweb2Log(m); } catch (e) {} }
   function msgOf(e) { return String((e && e.message) || e || 'unknown').slice(0, 26); }
 
-  // Date Formatter: "tue 13"
   function fmtDate(ts) {
     var d = new Date(ts);
     var days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -173,7 +178,6 @@
 
   function renderInner(animate) {
     var wLabel = weekLabel();
-    // Header is now a clickable refresh button
     var titleHtml = '<a class="tap htitle" data-act href="#action=refresh">assignments ' + wLabel + '</a>';
 
     if (!valid(data)) {
@@ -181,6 +185,7 @@
       $('pct').textContent = '–';
       $('frac').textContent = loadErr ? 'error' : 'loading';
       $('hdr').innerHTML = titleHtml;
+      $('toast-area').innerHTML = '';
       $('list').innerHTML = '<div class="empty">' + (loadErr ? 'can\u2019t load' : 'loading\u2026') + '</div>';
       $('pop').style.display = 'none';
       return;
@@ -210,11 +215,17 @@
     var shown = open.slice(0, MAX_ROWS);
     var badge = open.length > MAX_ROWS ? MAX_ROWS + ' of ' + open.length : open.length + ' due';
 
-    // Updated toast logic to support custom messages like "refreshing..."
-    $('hdr').innerHTML = toast
-      ? '<span class="toast ' + (toast.ok ? 'good' : 'bad') + '">' +
-        (toast.msg ? esc(toast.msg) : (toast.ok ? '\u2713 marked done' : 'couldn\u2019t save' + (toast.why ? ': ' + esc(toast.why) : ''))) + '</span>'
-      : titleHtml + '<span class="badge">' + badge + '</span>';
+    // Keep header title intact at all times
+    $('hdr').innerHTML = titleHtml + '<span class="badge">' + badge + '</span>';
+
+    // Render toast as a circle dot in the top left
+    if (toast) {
+      var sym = toast.msg ? '\u21BB' : (toast.ok ? '\u2713' : '!'); // ↻, ✓, or !
+      var cls = toast.msg ? 'load' : (toast.ok ? 'good' : 'bad');
+      $('toast-area').innerHTML = '<div class="toast ' + cls + '">' + sym + '</div>';
+    } else {
+      $('toast-area').innerHTML = '';
+    }
 
     var k = 1 + (MAX_ROWS - Math.max(shown.length, 1)) * 0.08;
     var html = '';
@@ -230,7 +241,6 @@
           '<span class="pill" style="background:' + colorFor(a.c) + '">' + esc(a.c) + '</span>' +
           '<span class="title">' + esc(a.n) + '</span>' +
           (a.y ? '<span class="type">' + esc(a.y) + '</span>' : '') +
-          // Inserted lowercase date formatter here
           '<span class="due">' + fmtDate(a.t) + '</span></div>';
       });
     }
@@ -275,7 +285,6 @@
   }
 
   function load(then, force) {
-    // Send force=1 flag to bypass Apps Script cache
     api(force ? 'force=1' : '', 9000)
       .then(function (j) { if (!valid(j)) throw new Error('bad data'); data = j; loadErr = ''; })
       .catch(function (e) { log('fetch failed: ' + e); loadErr = msgOf(e); })
@@ -310,11 +319,11 @@
       .then(function (j) {
         clearTimeout(t);
         if (j && j.ok) { toast = { ok: true }; }
-        else { if (m) m.d = false; toast = { ok: false, why: String((j && j.why) || 'no reply').slice(0, 22) }; }
+        else { if (m) m.d = false; toast = { ok: false }; } // simplified failure circle
       })
       .catch(function (e) {
         clearTimeout(t); log('done failed: ' + e);
-        if (m) m.d = false; toast = { ok: false, why: msgOf(e).slice(0, 22) };
+        if (m) m.d = false; toast = { ok: false };
       })
       .then(function () { load(function () { render(false); ready = true; }); });
   }
@@ -340,11 +349,10 @@
     else if (act === 'ask') confirmItem = itemFrom(p);
     else if (act === 'cancel') confirmItem = null;
     else if (act === 'done') { var it = itemFrom(p); confirmItem = null; return doDone(it, true); }
-    // Add manual refresh trigger
     else if (act === 'refresh') {
       toast = { ok: true, msg: 'refreshing...' };
       render(false);
-      return load(function () { toast = null; render(false); }, true); // true passes force=1
+      return load(function () { toast = null; render(false); }, true); 
     }
     render(true);
   });
