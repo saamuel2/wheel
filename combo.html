@@ -302,7 +302,12 @@
   function doDone(item, interactive) {
     var m = findItem(item);
     if (m) m.d = true;                     
-    if (interactive) render(true);
+    
+    if (interactive) {
+      // Instantly show a loading toast and update the DOM synchronously (false = no animation delay)
+      toast = { ok: true, msg: 'saving...' };
+      render(false); 
+    }
 
     var payload = { token: TOKEN, action: 'done', row: item.r, n: item.n, c: item.c };
     var ctl = new AbortController();
@@ -319,13 +324,19 @@
       .then(function (j) {
         clearTimeout(t);
         if (j && j.ok) { toast = { ok: true }; }
-        else { if (m) m.d = false; toast = { ok: false }; } // simplified failure circle
+        else { if (m) m.d = false; toast = { ok: false }; }
       })
       .catch(function (e) {
         clearTimeout(t); log('done failed: ' + e);
         if (m) m.d = false; toast = { ok: false };
       })
-      .then(function () { load(function () { render(false); ready = true; }); });
+      .then(function () { 
+        render(false); 
+        // Force Web Widget to wake up and snap a new picture now that the server replied
+        if (interactive) {
+          setTimeout(function() { window.location.reload(); }, 150);
+        }
+      });
   }
 
   function navStep(act) {
