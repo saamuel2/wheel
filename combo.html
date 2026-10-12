@@ -31,7 +31,6 @@
   .badge { position:absolute; right:calc(var(--u)*4); background:var(--line); color:#e4e4e7; border-radius:calc(var(--u)*1.2);
     padding:calc(var(--u)*0.5) calc(var(--u)*1.4); font-weight:700; font-size:calc(var(--u)*2.2); }
   
-  /* Circular toast in the top left */
   .toast { position:absolute; left:calc(var(--u)*3.5); top:calc(var(--u)*1.8); width:calc(var(--u)*4.5); height:calc(var(--u)*4.5);
     border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800;
     font-size:calc(var(--u)*2.6); color:#1c1c1e; z-index:30; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
@@ -39,7 +38,6 @@
   .toast.bad  { background:#e4b39b; }
   .toast.load { background:#e2d5f8; font-size:calc(var(--u)*3.2); }
 
-  /* Shifted wheel to the left */
   .wheel { position:absolute; left:calc(var(--u)*1.5); top:calc(var(--u)*7.5); width:calc(var(--u)*38); height:calc(var(--u)*38); }
   .wheel svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .fill { transition: stroke-dasharray .8s cubic-bezier(.165,.84,.44,1); }
@@ -51,7 +49,6 @@
   #prev { left:0; border-top-left-radius: 50%; border-bottom-left-radius: 50%; }
   #next { right:0; border-top-right-radius: 50%; border-bottom-right-radius: 50%; }
 
-  /* Expanded list container */
   .list { position:absolute; left:calc(var(--u)*40.5); right:calc(var(--u)*2.5); top:calc(var(--u)*7.5); height:calc(var(--u)*37);
     display:flex; flex-direction:column; gap:calc(var(--u)*1.2); }
   .row { flex:1 1 0; min-height:0; display:flex; align-items:stretch; background:var(--card); 
@@ -90,6 +87,7 @@
     <svg id="svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"></svg>
     <div class="center"><div class="pct" id="pct">–</div><div class="frac" id="frac">loading</div></div>
     
+    <!-- Invisible buttons overlaying the left/right of the wheel -->
     <a class="tap arrow" id="prev"  data-act href="#action=prev"></a>
     <a class="tap arrow" id="next"  data-act href="#action=next"></a>
   </div>
@@ -100,7 +98,6 @@
 
 <script>
 (function () {
-  // IMPORTANT: Keep your working .com URL here
   var API   = 'https://script.google.com/macros/s/AKfycbxzDb4jpmzj2rf5wNCncRVA1B6dkNYPQGWTPcEGlGotFaezxDpsLGW9P5pf_Toeew7g/exec';
   var TOKEN = 'wheel-7k2m9q';
 
@@ -135,16 +132,13 @@
   var offset = 0; 
   var data = null, ready = false, confirmItem = null, toast = null, lastRings = [], loadErr = '';
 
-  // NEW: Instantly load previous data from cache so the screen is never blank
-  try {
-    var cached = localStorage.getItem('wheelDataCache');
-    if (cached) data = JSON.parse(cached);
-  } catch (e) {}
-
-  // App API: tell the widget we need 0ms delay to maximize speed once ready
   window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
 
-  ['prev', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
+  // FIX: Safely check if elements exist before interacting with them to prevent crashes
+  ['prev', 'next'].forEach(function (id) { 
+    var el = $(id);
+    if (el) el.setAttribute('data-h', el.getAttribute('href') || ''); 
+  });
 
   function valid(d) { return d && Array.isArray(d.assignments) && Array.isArray(d.courses); }
 
@@ -255,9 +249,13 @@
     } else {
       pop.innerHTML = ''; pop.style.display = 'none';
     }
+    
+    // FIX: Safely check if elements exist
     ['prev', 'next'].forEach(function (id) {
       var el = $(id);
-      if (confirmItem) el.removeAttribute('href'); else el.setAttribute('href', el.getAttribute('data-h'));
+      if (el) {
+        if (confirmItem) el.removeAttribute('href'); else el.setAttribute('href', el.getAttribute('data-h') || '');
+      }
     });
   }
 
@@ -284,7 +282,6 @@
         if (!valid(j)) throw new Error('bad data'); 
         data = j; 
         loadErr = ''; 
-        // NEW: Save data to cache on successful load
         try { localStorage.setItem('wheelDataCache', JSON.stringify(j)); } catch (e) {} 
       })
       .catch(function (e) { log('fetch failed: ' + e); loadErr = msgOf(e); })
@@ -304,7 +301,6 @@
     if (m) m.d = true;                     
     toast = { ok: true, msg: 'saving...' };
     
-    // NEW: Save optimistic checkmark state instantly
     try { localStorage.setItem('wheelDataCache', JSON.stringify(data)); } catch (e) {} 
     
     render(false); 
@@ -341,7 +337,6 @@
   function itemFrom(p) { return { r: p.get('row'), n: p.get('n') || '', c: p.get('c') || '' }; }
   function isNav(a) { return a === 'prev' || a === 'next' || a === 'today'; }
 
-  // Execute App Intent immediately on load by checking URL hash
   function processHashAction() {
     var qs = window.location.hash;
     if (qs.startsWith("#")) qs = qs.substring(1);
@@ -352,7 +347,7 @@
     if (!act) return false;
 
     toast = null;
-    ready = true; // INSTANT SNAPSHOT ON BUTTON PRESS
+    ready = true; 
 
     if (isNav(act)) { navStep(act); confirmItem = null; }
     else if (act === 'ask') confirmItem = itemFrom(p);
@@ -373,7 +368,7 @@
     window.history.replaceState(null, null, ' ');
     return false;
   }
-  // Fallback for live browsers
+  
   document.addEventListener('click', function (ev) {
     var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
     if (!a) return;
@@ -384,10 +379,25 @@
     render(true);
   });
 
-  // Initialization sequence
+  // FIX: Initialization Sequence
+  var hasCache = false;
+  try {
+    var cached = localStorage.getItem('wheelDataCache');
+    if (cached) {
+      data = JSON.parse(cached);
+      hasCache = true;
+    }
+  } catch (e) {}
+
+  // Instantly render cache on screen so it is never blank while fetching
+  if (hasCache) render(false);
+
   var loadingData = processHashAction();
   if (!loadingData) {
-    load(function () { render(false); ready = true; });
+    load(function () { 
+      render(false); 
+      ready = true; // Tell iOS we are fully done fetching and to take the snapshot
+    });
   }
 })();
 </script>
