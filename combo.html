@@ -136,7 +136,7 @@
   var data = null, ready = false, confirmItem = null, toast = null, lastRings = [], loadErr = '';
 
   // App API: tell the widget we need 0ms delay to maximize speed once ready
-  window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
+  window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return 0; };
 
   ['prev', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
 
