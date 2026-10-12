@@ -136,7 +136,7 @@
   var data = null, ready = false, confirmItem = null, toast = null, lastRings = [], loadErr = '';
 
   // App API: tell the widget we need 0ms delay to maximize speed once ready
-  window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return 0; };
+  window.__wweb2WaitMillisecondsToWidgetIsReady = function () { return ready ? 0 : 250; };
 
   ['prev', 'next'].forEach(function (id) { $(id).setAttribute('data-h', $(id).getAttribute('href')); });
 
@@ -336,12 +336,13 @@
     if (!act) return false;
 
     toast = null;
+    ready = true; // INSTANT SNAPSHOT ON BUTTON PRESS
+
     if (isNav(act)) { navStep(act); confirmItem = null; }
     else if (act === 'ask') confirmItem = itemFrom(p);
     else if (act === 'cancel') confirmItem = null;
     else if (act === 'done') { 
       var it = itemFrom(p); confirmItem = null; 
-      // Strip hash to prevent looping, then fire API
       window.history.replaceState(null, null, ' ');
       doDone(it); 
       return true; 
@@ -350,13 +351,12 @@
       toast = { ok: true, msg: 'refreshing...' };
       render(false);
       window.history.replaceState(null, null, ' ');
-      load(function () { toast = null; render(false); ready = true; }, true); 
+      load(function () { toast = null; render(false); }, true); 
       return true;
     }
     window.history.replaceState(null, null, ' ');
     return false;
   }
-
   // Fallback for live browsers
   document.addEventListener('click', function (ev) {
     var a = ev.target.closest ? ev.target.closest('a[data-act]') : null;
