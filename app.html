@@ -10,88 +10,13 @@
 <style>
   :root {
     --bg: #000000;
-    --text: #FFFFFF;
-    --sub: #8E8E93; /* Native iOS inactive gray */
-    --tint: #0A84FF; /* Native iOS blue */
-    --bar-bg: rgba(20, 20, 22, 0.55); /* Darker, more transparent for true blur */
-    --active-bg: rgba(255, 255, 255, 0.15); /* The animated pill selector */
-  }
-
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  
-  html, body {
-    position: fixed; 
-    top: 0; left: 0; right: 0; bottom: 0;
-    margin: 0; padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-    -webkit-user-select: none; user-select: none;
-    overflow: hidden; 
-  }
-
-  .content {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    overflow-y: scroll;
-    -webkit-overflow-scrolling: touch;
-    padding-top: calc(env(safe-area-inset-top) + 24px); 
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-bottom: calc(100px + env(safe-area-inset-bottom)); 
-  }
-
-  .view { display: none; animation: fadeIn 0.15s ease-out; }
-  .view.active { display: block; }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(3px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  h1 { 
-    font-size: 34px; 
-    font-weight: 800; 
-    letter-spacing: -0.5px; 
-    text-transform: lowercase; 
-    margin-top: 0px; 
-    margin-bottom: 20px;
-  }
-  
-  /* Added colorful gradients to the placeholders to PROVE the blur effect is working */
-  .placeholder-card { 
-    background: #1C1C1E; 
-    height: 300px; 
-    border-radius: 16px; 
-    margin-bottom: 20px; 
-  }
-  .placeholder-### Phase Summary
-**Phase 1: App Shell & Navigation** focuses exclusively on establishing the structural foundation and native feel of the application. The goal is to perfectly integrate with the iPhone's physical hardware (notch, safe areas, home bar), eliminate web-browser constraints while retaining natural iOS behaviors (like scroll bouncing on content but not on the app itself), and construct a pixel-perfect, seamlessly animated tab navigation system utilizing genuine Apple-style backdrop filters (frosted liquid glass) and dark mode styling.
-
-***
-
-Phase 1 Iteration 6
-
-app.html
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000000">
-<title>Tracker</title>
-<style>
-  :root {
-    --bg: #000000;
     --card: #1C1C1E;
     --text: #FFFFFF;
-    --sub: #8E8E93; /* Closer to Apple's unselected grey */
-    --tint: #0A84FF;
-    --bar-bg: rgba(25, 25, 25, 0.65); /* Darker grey as requested */
-    --active-bg: rgba(255, 255, 255, 0.15); /* The animated selector */
+    --sub: #8E8E93; 
+    --tint: #0A84FF; 
+    --bar-bg: rgba(25, 25, 25, 0.65); 
+    /* Darker, transparent overlay for the active tab */
+    --active-bg: rgba(0, 0, 0, 0.35); 
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -115,7 +40,7 @@ app.html
     padding-top: calc(env(safe-area-inset-top) + 24px); 
     padding-left: 16px;
     padding-right: 16px;
-    padding-bottom: calc(110px + env(safe-area-inset-bottom)); 
+    padding-bottom: 110px; 
   }
 
   .view { display: none; animation: fadeIn 0.15s ease-out; }
@@ -135,17 +60,19 @@ app.html
     margin-bottom: 20px;
   }
   
-  /* Added bright colorful gradients here specifically so you can test and SEE the true glass blur effect */
-  .placeholder-card { background: linear-gradient(135deg, #1C1C1E, #2C2C2E); height: 300px; border-radius: 16px; margin-bottom: 20px; }
-  .placeholder-card.color-1 { background: linear-gradient(135deg, #FF3B30, #FF9500); height: 500px;}
-  .placeholder-card.color-2 { background: linear-gradient(135deg, #34C759, #00C7BE); height: 500px;}
-  .placeholder-card.color-3 { background: linear-gradient(135deg, #007AFF, #5856D6); height: 500px;}
+  /* Reverted placeholders back to clean dark grey now that blur is confirmed */
+  .placeholder-card { 
+    background: var(--card); 
+    height: 300px; 
+    border-radius: 16px; 
+    margin-bottom: 20px; 
+  }
+  .placeholder-card.tall { height: 600px; }
 
-  /* Floating Pill Nav Bar */
+  /* Nav Bar dropped flush to the bottom */
   .nav-bar {
     position: fixed;
-    /* Reverted height placement to be aggressively low like Iteration 1 */
-    bottom: calc(4px + env(safe-area-inset-bottom));
+    bottom: 8px; /* Removed safe-area padding to force it completely down */
     left: 12px;
     right: 12px;
     height: 64px;
@@ -158,25 +85,27 @@ app.html
     align-items: center;
     padding: 0 4px;
     z-index: 1000;
+    /* CSS Variable to track active tab position securely */
+    --active-index: 0; 
   }
 
-  /* The actual animated pill background */
   .nav-indicator {
     position: absolute;
     top: 6px;
     bottom: 6px;
-    width: calc((100% - 8px) / 5); /* 5 tabs */
+    left: 4px;
+    width: calc((100% - 8px) / 5);
     background: var(--active-bg);
     border-radius: 26px;
     z-index: 0;
-    /* Spring-like transition for the native iOS tab slide feel */
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.35, 1);
-    transform: translateX(0);
+    /* Maps strictly to the active index variable */
+    transform: translateX(calc(100% * var(--active-index)));
   }
 
   .nav-item {
     position: relative;
-    z-index: 1; /* Keep above the sliding indicator */
+    z-index: 1; 
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--sub); text-decoration: none;
     font-size: 10px; font-weight: 500; 
@@ -195,23 +124,23 @@ app.html
     <div id="view-dashboard" class="view active">
       <h1>dashboard</h1>
       <div class="placeholder-card"></div>
-      <div class="placeholder-card color-1"></div>
+      <div class="placeholder-card tall"></div>
     </div>
     <div id="view-assignments" class="view">
       <h1>assignments</h1>
-      <div class="placeholder-card color-2"></div>
+      <div class="placeholder-card tall"></div>
     </div>
     <div id="view-grades" class="view">
       <h1>grades</h1>
-      <div class="placeholder-card color-3"></div>
+      <div class="placeholder-card tall"></div>
     </div>
     <div id="view-attendance" class="view">
       <h1>attendance</h1>
-      <div class="placeholder-card color-1"></div>
+      <div class="placeholder-card tall"></div>
     </div>
     <div id="view-settings" class="view">
       <h1>settings</h1>
-      <div class="placeholder-card color-2"></div>
+      <div class="placeholder-card tall"></div>
     </div>
   </div>
 
@@ -240,27 +169,33 @@ app.html
   </div>
 
   <script>
+    const navBar = document.getElementById('nav-bar');
     const navItems = document.querySelectorAll('.nav-item');
     const views = document.querySelectorAll('.view');
-    const indicator = document.getElementById('nav-indicator');
+
+    // Set initial position immediately based on active class
+    const initialActive = document.querySelector('.nav-item.active');
+    if (initialActive) {
+      navBar.style.setProperty('--active-index', initialActive.getAttribute('data-index'));
+    }
 
     navItems.forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         
-        // Remove active state from items
         navItems.forEach(nav => nav.classList.remove('active'));
         views.forEach(view => view.classList.remove('active'));
         
-        // Add active state to clicked item
         item.classList.add('active');
         document.getElementById(item.getAttribute('data-target')).classList.add('active');
         
-        // Animate the pill indicator using CSS transforms based on index
-        const index = item.getAttribute('data-index');
-        indicator.style.transform = `translateX(${index * 100}%)`;
+        // Push the active index to the CSS variable for perfect offset alignment
+        navBar.style.setProperty('--active-index', item.getAttribute('data-index'));
       });
     });
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
