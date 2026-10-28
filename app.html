@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- viewport-fit=cover allows the app to draw over the notch and physical screen edges -->
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<!-- viewport-fit=cover is required to bypass the notch and home bar physical boundaries -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
@@ -21,20 +21,31 @@
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
-  /* Explicit width/height forces the app into the curved physical edges of the display */
+  /* 
+   * REMOVED: `min-height: -webkit-fill-available;` 
+   * This specific Apple tag explicitly crops the canvas at the safe area. 
+   * RESTORED: `100vh`, `100vw`, and `position: fixed`. In a standalone PWA, 
+   * 100vh spans the absolute physical pixels of the display, ignoring curves.
+   */
   html, body {
-    position: fixed; 
-    top: 0; left: 0; 
+    margin: 0; 
+    padding: 0;
     width: 100vw; 
-    height: 100vh; /* Using absolute vh to ignore safe-area bottom cutoffs */
-    margin: 0; padding: 0;
-    background: var(--bg);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     -webkit-user-select: none; user-select: none;
     overflow: hidden; 
   }
 
+  /* 
+   * The content container also ignores the bottom safe area now to prevent 
+   * black chin gaps when you scroll to the absolute bottom.
+   */
   .content {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -66,10 +77,12 @@
   .placeholder-card { background: var(--card); height: 300px; border-radius: 16px; margin-bottom: 20px; }
   .placeholder-card.tall { height: 600px; }
 
-  /* Nav bar ignoring safe-area insets */
+  /* 
+   * Nav bar placed explicitly relative to the 100vh physical boundary. 
+   */
   .nav-bar {
     position: fixed;
-    bottom: 12px; /* Set physically low relative to the absolute edge of the glass */
+    bottom: 24px;
     left: 12px;
     right: 12px;
     height: 64px;
@@ -142,16 +155,12 @@
   <div class="nav-bar" id="nav-bar">
     <div class="nav-indicator" id="nav-indicator"></div>
     
-    <!-- DASHBOARD ICON: Custom 3-ring Activity design -->
     <a href="#" class="nav-item active" data-target="view-dashboard" data-index="0">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-        <!-- Outer Ring -->
         <circle cx="12" cy="12" r="9" stroke-width="1.5" opacity="0.25"/>
         <circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/>
-        <!-- Middle Ring -->
         <circle cx="12" cy="12" r="6" stroke-width="1.5" opacity="0.25"/>
         <circle cx="12" cy="12" r="6" stroke-width="1.5" stroke-dasharray="25 100" transform="rotate(-90 12 12)"/>
-        <!-- Inner Ring -->
         <circle cx="12" cy="12" r="3" stroke-width="1.5" opacity="0.25"/>
         <circle cx="12" cy="12" r="3" stroke-width="1.5" stroke-dasharray="12 100" transform="rotate(-90 12 12)"/>
       </svg>
