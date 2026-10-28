@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
@@ -12,181 +12,274 @@
     --bg: #000000;
     --card: #1C1C1E;
     --text: #FFFFFF;
-    --sub: #8E8E93;
-    --tint: #0A84FF;
-    --bar-bg: rgba(25, 25, 25, 0.65);
-    --active-bg: rgba(0, 0, 0, 0.35);
+    --sub: #8E8E93; 
+    --tint: #0A84FF; 
+    --bar-bg: rgba(25, 25, 25, 0.65); 
+    --active-bg: rgba(0, 0, 0, 0.35); 
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
   html, body {
-    margin: 0; 
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
+    margin: 0; padding: 0; width: 100vw; height: 100vh;
+    position: fixed; top: 0; left: 0;
+    background-color: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-    -webkit-user-select: none; user-select: none;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden; 
+    -webkit-user-select: none; user-select: none; overflow: hidden; 
   }
 
   .content {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: calc(env(safe-area-inset-top) + 24px) 16px 140px 16px;
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    overflow-y: scroll; -webkit-overflow-scrolling: touch;
+    padding-top: calc(env(safe-area-inset-top) + 24px); 
+    padding-left: 16px; padding-right: 16px; padding-bottom: 120px; 
   }
 
-  .view { display: none; animation: fadeIn 0.2s ease-out; }
+  .view { display: none; animation: fadeIn 0.15s ease-out; }
   .view.active { display: block; }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
 
-  h1 { font-size: 34px; font-weight: 800; margin-top: 0px; margin-bottom: 20px; letter-spacing: -0.5px; text-transform: lowercase; }
+  h1 { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; text-transform: lowercase; margin-top: 0px; margin-bottom: 20px; }
+  
   .placeholder-card { background: var(--card); height: 300px; border-radius: 16px; margin-bottom: 20px; }
   .placeholder-card.tall { height: 600px; }
 
-  /* Pushed all the way down to the 0px safe-area boundary */
+  /* Nav Bar (Untouched from Phase 1 Final) */
   .nav-bar {
-    position: fixed;
-    bottom: env(safe-area-inset-bottom);
-    left: 12px;
-    right: 12px;
-    height: 64px;
-    background: var(--bar-bg);
-    backdrop-filter: blur(40px) saturate(200%);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border-radius: 32px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 0 4px;
-    z-index: 1000;
+    position: fixed; bottom: 12px; left: 12px; right: 12px; height: 64px;
+    background: var(--bar-bg); backdrop-filter: blur(40px) saturate(200%); -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border-radius: 32px; display: flex; justify-content: space-evenly; align-items: center; padding: 0 4px; z-index: 1000;
     --active-index: 0; 
   }
-
   .nav-indicator {
-    position: absolute;
-    top: 6px;
-    bottom: 6px;
-    left: 4px;
-    width: calc((100% - 8px) / 5);
-    background: var(--active-bg);
-    border-radius: 26px;
-    z-index: 0;
-    pointer-events: none;
+    position: absolute; top: 6px; bottom: 6px; left: 4px; width: calc((100% - 8px) / 5);
+    background: var(--active-bg); border-radius: 26px; z-index: 0; pointer-events: none; 
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.35, 1);
     transform: translateX(calc(100% * var(--active-index)));
   }
-
   .nav-item {
-    position: relative;
-    z-index: 1;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: var(--sub); text-decoration: none;
-    font-size: 10px; font-weight: 500;
-    flex: 1;
-    height: 100%;
-    transition: color 0.2s ease;
+    position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--sub); text-decoration: none; font-size: 10px; font-weight: 500; flex: 1; height: 100%;
+    touch-action: manipulation; transition: color 0.2s ease, opacity 0.2s ease;
   }
-  
-  .nav-item.active { color: var(--tint); }
-  
-  /* Removed the global fill: currentColor that was breaking the strokes */
+  .nav-item:active { opacity: 0.6; }
+  .nav-item.active { color: var(--tint); opacity: 1; }
   .nav-item svg { width: 24px; height: 24px; margin-bottom: 3px; }
+
+  /* --- NEW PHASE 2 WHEEL CSS --- */
+  .week-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 0 10px;
+  }
+  .week-nav-btn {
+    width: 44px; height: 44px; border-radius: 22px; background: var(--card); color: var(--text);
+    display: flex; align-items: center; justify-content: center; text-decoration: none;
+    font-size: 24px; font-weight: bold; padding-bottom: 4px; transition: opacity 0.2s;
+  }
+  .week-nav-btn:active { opacity: 0.5; }
+  .week-label { font-size: 18px; font-weight: 700; color: var(--sub); text-transform: lowercase; }
+
+  .wheel-container {
+    position: relative; width: 100%; max-width: 320px; aspect-ratio: 1/1; margin: 0 auto 40px auto;
+  }
+  .wheel-container svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .wheel-ring { transition: stroke-dasharray 0.8s cubic-bezier(0.165, 0.84, 0.44, 1); }
+  .wheel-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;
+  }
+  .wheel-pct { font-weight: 800; font-size: 64px; line-height: 1; letter-spacing: -1px; }
+  .wheel-frac { font-weight: 700; font-size: 16px; color: var(--sub); margin-top: 4px; }
+  
+  .error-toast { color: #FF3B30; font-size: 14px; text-align: center; margin-top: 10px; font-weight: 600; display: none; }
 </style>
 </head>
 <body>
 
-  <div class="content">
+  <div class="content" id="scroll-container">
+    <!-- DASHBOARD VIEW -->
     <div id="view-dashboard" class="view active">
       <h1>dashboard</h1>
-      <div class="placeholder-card"></div>
-      <div class="placeholder-card tall"></div>
+      
+      <!-- Week Navigation -->
+      <div class="week-header">
+        <a href="#" class="week-nav-btn" id="btn-prev">‹</a>
+        <div class="week-label" id="week-label">loading...</div>
+        <a href="#" class="week-nav-btn" id="btn-next">›</a>
+      </div>
+
+      <!-- Wheel -->
+      <div class="wheel-container">
+        <svg id="wheel-svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="wheel-center">
+          <div class="wheel-pct" id="wheel-pct">–</div>
+          <div class="wheel-frac" id="wheel-frac">loading</div>
+        </div>
+      </div>
+      <div id="error-msg" class="error-toast"></div>
     </div>
-    <div id="view-assignments" class="view">
-      <h1>assignments</h1>
-      <div class="placeholder-card tall"></div>
-    </div>
-    <div id="view-grades" class="view">
-      <h1>grades</h1>
-      <div class="placeholder-card tall"></div>
-    </div>
-    <div id="view-attendance" class="view">
-      <h1>attendance</h1>
-      <div class="placeholder-card tall"></div>
-    </div>
-    <div id="view-settings" class="view">
-      <h1>settings</h1>
-      <div class="placeholder-card tall"></div>
-    </div>
+
+    <!-- OTHER VIEWS -->
+    <div id="view-assignments" class="view"><h1>assignments</h1><div class="placeholder-card tall"></div></div>
+    <div id="view-grades" class="view"><h1>grades</h1><div class="placeholder-card tall"></div></div>
+    <div id="view-attendance" class="view"><h1>attendance</h1><div class="placeholder-card tall"></div></div>
+    <div id="view-settings" class="view"><h1>settings</h1><div class="placeholder-card tall"></div></div>
   </div>
 
   <div class="nav-bar" id="nav-bar">
     <div class="nav-indicator" id="nav-indicator"></div>
-    
     <a href="#" class="nav-item active" data-target="view-dashboard" data-index="0">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-        <circle cx="12" cy="12" r="9" stroke-width="1.5" opacity="0.25"/>
-        <circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/>
-        <circle cx="12" cy="12" r="6" stroke-width="1.5" opacity="0.25"/>
-        <circle cx="12" cy="12" r="6" stroke-width="1.5" stroke-dasharray="25 100" transform="rotate(-90 12 12)"/>
-        <circle cx="12" cy="12" r="3" stroke-width="1.5" opacity="0.25"/>
-        <circle cx="12" cy="12" r="3" stroke-width="1.5" stroke-dasharray="12 100" transform="rotate(-90 12 12)"/>
+        <circle cx="12" cy="12" r="9" stroke-width="1.5" opacity="0.25"/><circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/>
+        <circle cx="12" cy="12" r="6" stroke-width="1.5" opacity="0.25"/><circle cx="12" cy="12" r="6" stroke-width="1.5" stroke-dasharray="25 100" transform="rotate(-90 12 12)"/>
+        <circle cx="12" cy="12" r="3" stroke-width="1.5" opacity="0.25"/><circle cx="12" cy="12" r="3" stroke-width="1.5" stroke-dasharray="12 100" transform="rotate(-90 12 12)"/>
       </svg>
       dashboard
     </a>
-    
-    <a href="#" class="nav-item" data-target="view-assignments" data-index="1">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
-      tasks
-    </a>
-    
-    <a href="#" class="nav-item" data-target="view-grades" data-index="2">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>
-      grades
-    </a>
-    
-    <a href="#" class="nav-item" data-target="view-attendance" data-index="3">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>
-      attendance
-    </a>
-    
-    <a href="#" class="nav-item" data-target="view-settings" data-index="4">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-      settings
-    </a>
+    <a href="#" class="nav-item" data-target="view-assignments" data-index="1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>tasks</a>
+    <a href="#" class="nav-item" data-target="view-grades" data-index="2"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades</a>
+    <a href="#" class="nav-item" data-target="view-attendance" data-index="3"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>attendance</a>
+    <a href="#" class="nav-item" data-target="view-settings" data-index="4"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>settings</a>
   </div>
 
   <script>
+    // --- TAB SWITCHING ---
     const navBar = document.getElementById('nav-bar');
     const navItems = document.querySelectorAll('.nav-item');
     const views = document.querySelectorAll('.view');
-
-    const initialActive = document.querySelector('.nav-item.active');
-    if (initialActive) {
-      navBar.style.setProperty('--active-index', initialActive.getAttribute('data-index'));
-    }
-
     navItems.forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
-        
         navItems.forEach(nav => nav.classList.remove('active'));
         views.forEach(view => view.classList.remove('active'));
-        
         item.classList.add('active');
         document.getElementById(item.getAttribute('data-target')).classList.add('active');
-        
         navBar.style.setProperty('--active-index', item.getAttribute('data-index'));
       });
     });
+
+    // --- WHEEL LOGIC (Migrated from combo.html) ---
+    const API = 'https://script.google.com/macros/s/AKfycbxzDb4jpmzj2rf5wNCncRVA1B6dkNYPQGWTPcEGlGotFaezxDpsLGW9P5pf_Toeew7g/exec';
+    const TOKEN = 'wheel-7k2m9q';
+    let appData = null;
+    let weekOffset = 0;
+    
+    // Core parameters for SVG Drawing
+    const R = 96; const CUTOUT = 0.6; const MAX_THICK = 18; const GAP = 2.5;
+    
+    const COLORS = {
+      'bch351':'#b2e2b6','biochem':'#b2e2b6','bio240':'#9ed2f6','anat+phys':'#9ed2f6',
+      'bsc494':'#e4b39b','teaching':'#e4b39b','gn427':'#d3f1bf','bioinformatics':'#d3f1bf',
+      'gn521':'#91e3d6','molgen':'#91e3d6','pb421':'#c2c7f8','plant phys':'#c2c7f8',
+      'phi325':'#fbe0a3','bioethics':'#fbe0a3','e115':'#e2d5f8','computing':'#e2d5f8'
+    };
+
+    function colorFor(name) {
+      let n = String(name || '').toLowerCase();
+      if (COLORS[n]) return COLORS[n];
+      for (let k in COLORS) if (n.includes(k)) return COLORS[k];
+      return '#A6A6B1';
+    }
+
+    function getWeekRange() {
+      let now = new Date(); now.setDate(now.getDate() + (weekOffset * 7));
+      let s = new Date(now); s.setDate(now.getDate() - now.getDay()); s.setHours(0,0,0,0);
+      let e = new Date(s);   e.setDate(s.getDate() + 6);              e.setHours(23,59,59,999);
+      return { s: s.getTime(), e: e.getTime() };
+    }
+
+    function updateWeekLabel() {
+      const lbl = document.getElementById('week-label');
+      if (weekOffset === 0) lbl.textContent = 'this week';
+      else if (weekOffset === -1) lbl.textContent = 'last week';
+      else if (weekOffset === 1) lbl.textContent = 'next week';
+      else if (weekOffset > 1) lbl.textContent = `in ${weekOffset} wks`;
+      else lbl.textContent = `${Math.abs(weekOffset)} wks ago`;
+    }
+
+    function drawWheel(animate = false) {
+      updateWeekLabel();
+      const svg = document.getElementById('wheel-svg');
+      
+      if (!appData || !appData.assignments) {
+        svg.innerHTML = `<circle cx="100" cy="100" r="${R-9}" fill="none" stroke-width="18" stroke="#38383A"/>`;
+        document.getElementById('wheel-pct').textContent = '–';
+        document.getElementById('wheel-frac').textContent = 'loading...';
+        return;
+      }
+
+      const rg = getWeekRange();
+      const weekTasks = appData.assignments.filter(a => a.t >= rg.s && a.t <= rg.e);
+      const doneTasks = weekTasks.filter(a => a.d);
+      
+      // Find classes that actually have assignments this week
+      const belongs = (c, a) => a.c && c.toLowerCase().includes(String(a.c).toLowerCase());
+      const activeCourses = appData.courses.filter(c => weekTasks.some(a => belongs(c, a)));
+
+      let html = '';
+      if (activeCourses.length === 0) {
+        html = `<circle cx="100" cy="100" r="${R-9}" fill="none" stroke-width="18" stroke="#38383A"/>`;
+      } else {
+        let thick = Math.min(MAX_THICK, (R * (1 - CUTOUT)) / activeCourses.length);
+        activeCourses.forEach((c, i) => {
+          let mine = weekTasks.filter(a => belongs(c, a));
+          let pct = mine.length ? (mine.filter(a => a.d).length / mine.length) * 100 : 0;
+          let rad = R - (i * thick) - (thick / 2);
+          let w = Math.max(thick - GAP, 2);
+          
+          let circ = 2 * Math.PI * rad;
+          let dash = (pct / 100) * circ;
+          
+          let base = `<circle cx="100" cy="100" r="${rad}" fill="none" stroke-width="${w}"`;
+          html += `${base} stroke="#38383A"/>`;
+          if (pct > 0) {
+            html += `${base} class="wheel-ring" stroke="${colorFor(c)}" stroke-dasharray="${animate ? '0 1000' : `${dash} ${circ - dash}`}" transform="rotate(-90 100 100)"/>`;
+          }
+        });
+      }
+      
+      svg.innerHTML = html;
+      document.getElementById('wheel-pct').textContent = weekTasks.length ? Math.round((doneTasks.length / weekTasks.length) * 100) + '%' : '0%';
+      document.getElementById('wheel-frac').textContent = `${doneTasks.length}/${weekTasks.length} done`;
+
+      // Trigger CSS animation for the strokes if requested
+      if (animate && activeCourses.length > 0) {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const rings = svg.querySelectorAll('.wheel-ring');
+          activeCourses.forEach((c, i) => {
+            let mine = weekTasks.filter(a => belongs(c, a));
+            let pct = mine.length ? (mine.filter(a => a.d).length / mine.length) * 100 : 0;
+            let rad = R - (i * Math.min(MAX_THICK, (R * (1 - CUTOUT)) / activeCourses.length)) - (Math.min(MAX_THICK, (R * (1 - CUTOUT)) / activeCourses.length) / 2);
+            let circ = 2 * Math.PI * rad;
+            if (rings[i]) rings[i].setAttribute('stroke-dasharray', `${(pct / 100) * circ} ${circ}`);
+          });
+        }));
+      }
+    }
+
+    function fetchData() {
+      fetch(`${API}?token=${encodeURIComponent(TOKEN)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) throw new Error(data.error);
+          appData = data;
+          document.getElementById('error-msg').style.display = 'none';
+          drawWheel(true);
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById('wheel-frac').textContent = 'error';
+          const errBox = document.getElementById('error-msg');
+          errBox.textContent = "Failed to connect to Google Sheets.";
+          errBox.style.display = 'block';
+        });
+    }
+
+    // Week Nav Listeners
+    document.getElementById('btn-prev').addEventListener('click', (e) => { e.preventDefault(); weekOffset--; drawWheel(true); });
+    document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
+
+    // Init
+    drawWheel(); // draw empty skeleton immediately
+    fetchData(); // load data
   </script>
 </body>
 </html>
