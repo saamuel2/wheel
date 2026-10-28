@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- viewport-fit=cover is the Apple tag to draw content behind the notch and home bar -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<!-- viewport-fit=cover allows the app to draw over the notch and physical screen edges -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
@@ -21,19 +21,14 @@
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
-  /* 
-   * REMOVED: `position: fixed` and `100vh`. 
-   * iOS Safari has a known bug where locking the body's position shrinks the viewport 
-   * and prevents `viewport-fit=cover` from reaching the bottom physical bezels. 
-   * Using standard height: 100% + -webkit-fill-available fixes this.
-   */
+  /* Explicit width/height forces the app into the curved physical edges of the display */
   html, body {
-    margin: 0; 
-    padding: 0;
-    width: 100%; 
-    height: 100%;
-    min-height: -webkit-fill-available;
-    background-color: var(--bg);
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100vw; 
+    height: 100vh; /* Using absolute vh to ignore safe-area bottom cutoffs */
+    margin: 0; padding: 0;
+    background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     -webkit-user-select: none; user-select: none;
@@ -48,7 +43,6 @@
     padding-top: calc(env(safe-area-inset-top) + 24px); 
     padding-left: 16px;
     padding-right: 16px;
-    /* Extra padding so the bottom-most content clears the nav bar */
     padding-bottom: 120px; 
   }
 
@@ -72,10 +66,10 @@
   .placeholder-card { background: var(--card); height: 300px; border-radius: 16px; margin-bottom: 20px; }
   .placeholder-card.tall { height: 600px; }
 
-  /* Nav bar firmly pinned near the absolute bottom bezel */
+  /* Nav bar ignoring safe-area insets */
   .nav-bar {
     position: fixed;
-    bottom: 24px; /* Hard-set distance from the physical bottom edge */
+    bottom: 12px; /* Set physically low relative to the absolute edge of the glass */
     left: 12px;
     right: 12px;
     height: 64px;
@@ -148,12 +142,16 @@
   <div class="nav-bar" id="nav-bar">
     <div class="nav-indicator" id="nav-indicator"></div>
     
+    <!-- DASHBOARD ICON: Custom 3-ring Activity design -->
     <a href="#" class="nav-item active" data-target="view-dashboard" data-index="0">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
+        <!-- Outer Ring -->
         <circle cx="12" cy="12" r="9" stroke-width="1.5" opacity="0.25"/>
         <circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/>
+        <!-- Middle Ring -->
         <circle cx="12" cy="12" r="6" stroke-width="1.5" opacity="0.25"/>
         <circle cx="12" cy="12" r="6" stroke-width="1.5" stroke-dasharray="25 100" transform="rotate(-90 12 12)"/>
+        <!-- Inner Ring -->
         <circle cx="12" cy="12" r="3" stroke-width="1.5" opacity="0.25"/>
         <circle cx="12" cy="12" r="3" stroke-width="1.5" stroke-dasharray="12 100" transform="rotate(-90 12 12)"/>
       </svg>
