@@ -18,27 +18,31 @@
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
-  /* Fixed body prevents the whole app from rubber-banding */
   html, body {
     position: fixed; 
-    top: 0; left: 0; width: 100%; height: 100%;
+    inset: 0; /* Shorthand for top:0, right:0, bottom:0, left:0 */
+    width: 100vw;
+    height: 100dvh; /* Dynamic Viewport Height fixes the black buffer */
     margin: 0; padding: 0;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     -webkit-user-select: none; user-select: none;
     overflow: hidden; 
-    overscroll-behavior: none; 
+    overscroll-behavior: none;
   }
 
-  /* Content area extends fully to the bottom so it scrolls UNDER the nav bar */
   .content {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0; 
-    overflow-y: auto;
+    inset: 0; 
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
-    /* Padding bottom ensures the last item clears the nav bar */
-    padding: calc(env(safe-area-inset-top) + 5px) 16px calc(90px + env(safe-area-inset-bottom)) 16px;
+    overscroll-behavior-y: none; /* Prevents bounce when hitting top/bottom of this container */
+    /* Increased top padding to clear the notch, padding-bottom to clear the nav bar */
+    padding-top: calc(env(safe-area-inset-top) + 24px); 
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: calc(75px + env(safe-area-inset-bottom)); 
   }
 
   .view { display: none; animation: fadeIn 0.2s ease-out; }
@@ -49,7 +53,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Lowercase headers and shifted slightly higher */
   h1 { 
     font-size: 34px; 
     font-weight: 800; 
@@ -59,29 +62,30 @@
     margin-bottom: 20px;
   }
   
-  /* Tall elements to test the scrolling glass effect */
   .placeholder-card { background: var(--card); height: 300px; border-radius: 16px; margin-bottom: 20px; }
   .placeholder-card.tall { height: 800px; }
 
-  /* Enhanced Liquid Glass Nav Bar */
+  /* Redesigned Liquid Glass Nav Bar */
   .nav-bar {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    background: rgba(28, 28, 30, 0.45); /* More transparent for better blur */
-    backdrop-filter: blur(30px) saturate(150%);
-    -webkit-backdrop-filter: blur(30px) saturate(150%);
-    border-top: 0.5px solid rgba(255, 255, 255, 0.15); /* subtle top edge */
+    height: calc(55px + env(safe-area-inset-bottom));
+    background: rgba(15, 15, 15, 0.65); /* Deep translucent black */
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.15);
     display: flex;
     justify-content: space-around;
-    padding-top: 10px;
-    padding-bottom: calc(4px + env(safe-area-inset-bottom)); /* Shifted lower */
+    align-items: center;
+    padding-bottom: env(safe-area-inset-bottom); /* Pushes icons up from home indicator */
     z-index: 1000;
   }
 
   .nav-item {
-    display: flex; flex-direction: column; align-items: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--sub); text-decoration: none;
     font-size: 10px; font-weight: 500; flex: 1;
+    height: 100%;
   }
   .nav-item.active { color: var(--tint); }
   .nav-item svg { width: 26px; height: 26px; margin-bottom: 3px; fill: currentColor; }
@@ -89,7 +93,7 @@
 </head>
 <body>
 
-  <div class="content">
+  <div class="content" id="scroll-container">
     <div id="view-dashboard" class="view active">
       <h1>dashboard</h1>
       <div class="placeholder-card"></div>
@@ -149,6 +153,13 @@
         document.getElementById(item.getAttribute('data-target')).classList.add('active');
       });
     });
+
+    // Hard-stop rubber banding trick for iOS PWAs
+    document.addEventListener('touchmove', function(e) {
+      if (!e.target.closest('#scroll-container')) {
+        e.preventDefault();
+      }
+    }, { passive: false });
   </script>
 </body>
 </html>
