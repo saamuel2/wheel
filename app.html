@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<!-- viewport-fit=cover is required to bypass the notch and home bar physical boundaries -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -21,12 +20,6 @@
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
-  /* 
-   * REMOVED: `min-height: -webkit-fill-available;` 
-   * This specific Apple tag explicitly crops the canvas at the safe area. 
-   * RESTORED: `100vh`, `100vw`, and `position: fixed`. In a standalone PWA, 
-   * 100vh spans the absolute physical pixels of the display, ignoring curves.
-   */
   html, body {
     margin: 0; 
     padding: 0;
@@ -42,10 +35,6 @@
     overflow: hidden; 
   }
 
-  /* 
-   * The content container also ignores the bottom safe area now to prevent 
-   * black chin gaps when you scroll to the absolute bottom.
-   */
   .content {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -55,6 +44,7 @@
     padding-left: 16px;
     padding-right: 16px;
     padding-bottom: 120px; 
+    z-index: 1; /* Explicitly place content below the nav bar */
   }
 
   .view { display: none; animation: fadeIn 0.15s ease-out; }
@@ -77,9 +67,6 @@
   .placeholder-card { background: var(--card); height: 300px; border-radius: 16px; margin-bottom: 20px; }
   .placeholder-card.tall { height: 600px; }
 
-  /* 
-   * Nav bar placed explicitly relative to the 100vh physical boundary. 
-   */
   .nav-bar {
     position: fixed;
     bottom: 24px;
@@ -107,22 +94,30 @@
     background: var(--active-bg);
     border-radius: 26px;
     z-index: 0;
+    /* CRITICAL FIX: Forces the browser to completely ignore this element for touch events */
+    pointer-events: none; 
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.35, 1);
     transform: translateX(calc(100% * var(--active-index)));
   }
 
   .nav-item {
     position: relative;
-    z-index: 1; 
+    /* CRITICAL FIX: Bumped z-index and forced pointer-events so they sit unambiguously on top */
+    z-index: 10; 
+    pointer-events: auto;
+    cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--sub); text-decoration: none;
     font-size: 10px; font-weight: 500; 
     flex: 1;
     height: 100%;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, opacity 0.2s ease;
   }
   
-  .nav-item.active { color: var(--tint); }
+  /* Adds a slight dim effect precisely when your finger presses down */
+  .nav-item:active { opacity: 0.6; }
+  .nav-item.active { color: var(--tint); opacity: 1; }
+  
   .nav-item svg { width: 24px; height: 24px; margin-bottom: 3px; }
 </style>
 </head>
