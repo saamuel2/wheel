@@ -35,6 +35,7 @@
     overflow: hidden; 
   }
 
+  /* Reverted to Iteration 10 exactly to prevent iOS from recalculating the safe-area bounds */
   .content {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -44,7 +45,6 @@
     padding-left: 16px;
     padding-right: 16px;
     padding-bottom: 120px; 
-    z-index: 1; /* Explicitly place content below the nav bar */
   }
 
   .view { display: none; animation: fadeIn 0.15s ease-out; }
@@ -69,7 +69,7 @@
 
   .nav-bar {
     position: fixed;
-    bottom: 24px;
+    bottom: 12px; /* Set lower to ensure it sits flush with the bottom */
     left: 12px;
     right: 12px;
     height: 64px;
@@ -94,18 +94,14 @@
     background: var(--active-bg);
     border-radius: 26px;
     z-index: 0;
-    /* CRITICAL FIX: Forces the browser to completely ignore this element for touch events */
-    pointer-events: none; 
+    pointer-events: none; /* CRITICAL FIX: Only this line was added to fix the buttons */
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.35, 1);
     transform: translateX(calc(100% * var(--active-index)));
   }
 
   .nav-item {
     position: relative;
-    /* CRITICAL FIX: Bumped z-index and forced pointer-events so they sit unambiguously on top */
-    z-index: 10; 
-    pointer-events: auto;
-    cursor: pointer;
+    z-index: 1; 
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--sub); text-decoration: none;
     font-size: 10px; font-weight: 500; 
@@ -114,7 +110,6 @@
     transition: color 0.2s ease, opacity 0.2s ease;
   }
   
-  /* Adds a slight dim effect precisely when your finger presses down */
   .nav-item:active { opacity: 0.6; }
   .nav-item.active { color: var(--tint); opacity: 1; }
   
