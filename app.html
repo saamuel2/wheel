@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- viewport-fit=cover is essential for pushing content into the notch and home bar areas -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -19,30 +20,26 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
   html, body {
-    position: fixed; 
-    inset: 0; /* Shorthand for top:0, right:0, bottom:0, left:0 */
-    width: 100vw;
-    height: 100dvh; /* Dynamic Viewport Height fixes the black buffer */
+    position: absolute; 
+    top: 0; left: 0; right: 0; bottom: 0;
     margin: 0; padding: 0;
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     -webkit-user-select: none; user-select: none;
-    overflow: hidden; 
-    overscroll-behavior: none;
+    /* Removed overscroll-behavior: none to bring back native iOS rubber banding */
   }
 
   .content {
     position: absolute;
-    inset: 0; 
-    overflow-y: scroll;
+    top: 0; left: 0; right: 0; bottom: 0;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: none; /* Prevents bounce when hitting top/bottom of this container */
-    /* Increased top padding to clear the notch, padding-bottom to clear the nav bar */
     padding-top: calc(env(safe-area-inset-top) + 24px); 
     padding-left: 16px;
     padding-right: 16px;
-    padding-bottom: calc(75px + env(safe-area-inset-bottom)); 
+    /* Ensures the last item scrolls completely past the nav bar */
+    padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
   }
 
   .view { display: none; animation: fadeIn 0.2s ease-out; }
@@ -67,17 +64,18 @@
 
   /* Redesigned Liquid Glass Nav Bar */
   .nav-bar {
-    position: absolute;
+    position: fixed; /* Changed to fixed to ensure it anchors to the true bottom */
     bottom: 0; left: 0; right: 0;
-    height: calc(55px + env(safe-area-inset-bottom));
-    background: rgba(15, 15, 15, 0.65); /* Deep translucent black */
-    backdrop-filter: blur(40px) saturate(200%);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    /* Reverted height trick and used padding to naturally fill the home bar area */
+    padding-top: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom)); 
+    background: rgba(30, 30, 30, 0.55); /* Lighter gray with more transparency for better blur */
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
     border-top: 0.5px solid rgba(255, 255, 255, 0.15);
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding-bottom: env(safe-area-inset-bottom); /* Pushes icons up from home indicator */
     z-index: 1000;
   }
 
@@ -85,7 +83,6 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     color: var(--sub); text-decoration: none;
     font-size: 10px; font-weight: 500; flex: 1;
-    height: 100%;
   }
   .nav-item.active { color: var(--tint); }
   .nav-item svg { width: 26px; height: 26px; margin-bottom: 3px; fill: currentColor; }
@@ -153,13 +150,6 @@
         document.getElementById(item.getAttribute('data-target')).classList.add('active');
       });
     });
-
-    // Hard-stop rubber banding trick for iOS PWAs
-    document.addEventListener('touchmove', function(e) {
-      if (!e.target.closest('#scroll-container')) {
-        e.preventDefault();
-      }
-    }, { passive: false });
   </script>
 </body>
 </html>
