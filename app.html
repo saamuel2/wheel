@@ -37,7 +37,6 @@
     top: 0; left: 0; right: 0; bottom: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    /* Padded heavily at the bottom so content clears the floating bar */
     padding: calc(env(safe-area-inset-top) + 24px) 16px 140px 16px;
   }
 
@@ -53,10 +52,10 @@
   .placeholder-card { background: var(--card); height: 300px; border-radius: 16px; margin-bottom: 20px; }
   .placeholder-card.tall { height: 600px; }
 
-  /* Using Iteration 1's safe-area logic for bulletproof positioning */
+  /* Lowered to 6px above the safe area */
   .nav-bar {
     position: fixed;
-    bottom: calc(12px + env(safe-area-inset-bottom));
+    bottom: calc(6px + env(safe-area-inset-bottom));
     left: 12px;
     right: 12px;
     height: 64px;
@@ -99,9 +98,6 @@
   
   .nav-item.active { color: var(--tint); }
   .nav-item svg { width: 24px; height: 24px; margin-bottom: 3px; fill: currentColor; }
-  
-  /* Make the dashboard stroke-based icon inherit color properly */
-  .nav-item svg circle { stroke: currentColor; }
 </style>
 </head>
 <body>
@@ -134,14 +130,7 @@
     <div class="nav-indicator" id="nav-indicator"></div>
     
     <a href="#" class="nav-item active" data-target="view-dashboard" data-index="0">
-      <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round">
-        <circle cx="12" cy="12" r="9" stroke-width="1.5" opacity="0.25"/>
-        <circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/>
-        <circle cx="12" cy="12" r="6" stroke-width="1.5" opacity="0.25"/>
-        <circle cx="12" cy="12" r="6" stroke-width="1.5" stroke-dasharray="25 100" transform="rotate(-90 12 12)"/>
-        <circle cx="12" cy="12" r="3" stroke-width="1.5" opacity="0.25"/>
-        <circle cx="12" cy="12" r="3" stroke-width="1.5" stroke-dasharray="12 100" transform="rotate(-90 12 12)"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
       dashboard
     </a>
     
