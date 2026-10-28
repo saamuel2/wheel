@@ -35,7 +35,6 @@
     overflow: hidden; 
   }
 
-  /* Reverted to Iteration 10 exactly to prevent iOS from recalculating the safe-area bounds */
   .content {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -69,7 +68,7 @@
 
   .nav-bar {
     position: fixed;
-    bottom: 12px; /* Set lower to ensure it sits flush with the bottom */
+    bottom: 12px; 
     left: 12px;
     right: 12px;
     height: 64px;
@@ -82,6 +81,9 @@
     align-items: center;
     padding: 0 4px;
     z-index: 1000;
+    /* CRITICAL FIX: Forces the graphics engine to sync the visual and hit layers */
+    transform: translateZ(0); 
+    -webkit-transform: translateZ(0);
     --active-index: 0; 
   }
 
@@ -94,9 +96,10 @@
     background: var(--active-bg);
     border-radius: 26px;
     z-index: 0;
-    pointer-events: none; /* CRITICAL FIX: Only this line was added to fix the buttons */
+    pointer-events: none; 
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.35, 1);
     transform: translateX(calc(100% * var(--active-index)));
+    -webkit-transform: translateX(calc(100% * var(--active-index)));
   }
 
   .nav-item {
@@ -107,6 +110,8 @@
     font-size: 10px; font-weight: 500; 
     flex: 1;
     height: 100%;
+    /* Ensure the browser treats these explicitly as instant touch targets */
+    touch-action: manipulation; 
     transition: color 0.2s ease, opacity 0.2s ease;
   }
   
