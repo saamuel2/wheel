@@ -243,7 +243,7 @@
   .topbar#topbar::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .2s; border-bottom: .5px solid var(--sep);
     background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)), rgba(0,0,0,.3); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); }
   .topbar#topbar.show::before { opacity: 1; }
-  .topbar#topbar { height: calc(env(safe-area-inset-top) + 60px); padding-top: calc(env(safe-area-inset-top) + 16px); padding-bottom: 0; }
+  .topbar#topbar { height: calc(env(safe-area-inset-top) + 68px); padding-top: calc(env(safe-area-inset-top) + 24px); padding-bottom: 0; }
   #tb-title { font-size: 20px; font-weight: 700; letter-spacing: -.2px; opacity: 0; transition: opacity .2s; -webkit-font-smoothing: antialiased; }
   .topbar.show #tb-title { opacity: 1; }
   .fab { display: none; position: fixed; z-index: 900; right: 12px; top: calc(env(safe-area-inset-top) + 20px); width: 44px; height: 44px; border-radius: 22px; border: 0; padding: 0; align-items: center; justify-content: center; color: #fff; touch-action: manipulation;
@@ -256,10 +256,10 @@
   .tile.wx .tv, .tile .tv { font-size: 22px; line-height: 26px; font-weight: 700; }
   .wtxt .ts { margin-top: 1px; }
   .nav-bar { bottom: max(8px, calc(env(safe-area-inset-bottom) - 20px)); }
-  .nav-bar { background: linear-gradient(180deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.015) 48%, rgba(255,255,255,.045) 100%), rgba(24,24,26,.09);
+  .nav-bar { background: linear-gradient(180deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,.01) 48%, rgba(255,255,255,.035) 100%), rgba(24,24,26,.05);
     -webkit-backdrop-filter: blur(26px) saturate(210%) brightness(1.1); backdrop-filter: blur(26px) saturate(210%) brightness(1.1); }
   .nav-item { color: #fff; } .nav-item.active { color: var(--tint); }
-  .topbar#topbar::before { border-bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,.9) 0%, rgba(0,0,0,.5) 38%, rgba(0,0,0,.08) 100%); -webkit-backdrop-filter: blur(22px) saturate(180%); backdrop-filter: blur(22px) saturate(180%); }
+  .topbar#topbar::before { border-bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 40%, rgba(0,0,0,.03) 100%); -webkit-backdrop-filter: blur(22px) saturate(180%); backdrop-filter: blur(22px) saturate(180%); }
   #csheet { max-height: 80%; }
   #asheet { z-index: 1300; }
   .abig { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 68px; text-align: center; margin-top: 6px; } .asub { color: var(--sub); font-size: 15px; text-align: center; margin-top: 2px; }
@@ -500,7 +500,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.19';
+    const BUILD = '2.20';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
     const $ = id => document.getElementById(id);
