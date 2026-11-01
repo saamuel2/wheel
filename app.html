@@ -6,7 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#000000">
-<title>Tracker</title>
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
+<meta name="apple-mobile-web-app-title" content="assignments">
+<title>assignments</title>
 <style>
   :root {
     --bg: #000000;
@@ -21,8 +24,8 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
   html, body {
-    margin: 0; padding: 0; width: 100vw; height: 100vh; height: 100dvh;
-    position: fixed; top: 0; left: 0;
+    margin: 0; padding: 0;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background-color: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     -webkit-user-select: none; user-select: none; overflow: hidden; 
@@ -235,25 +238,26 @@
   /* 2.10: grade on the right as "94.44 (A)", tap-to-reveal gpa */
   .gr { font-size: 17px; margin-left: 12px; flex: none; font-variant-numeric: tabular-nums; } .gr i { font-style: normal; color: var(--sub); }
   .gv.eyebox { display: flex; align-items: center; height: 46px; } .eye { display: block; color: var(--sub); }
-  .tcbox { position: relative; height: 540px; border-radius: 16px; overflow: hidden; background: #fff; } .tcbox iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #fff; }
-  .tcph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #8e8e93; font-size: 15px; }
   /* 2.16 */
   .topbar#topbar { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; box-shadow: none; opacity: 1; transition: none; }
   .topbar#topbar::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .2s; border-bottom: .5px solid var(--sep);
-    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)), rgba(0,0,0,.62); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); }
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)), rgba(0,0,0,.78); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); }
   .topbar#topbar.show::before { opacity: 1; }
+  .topbar#topbar { height: calc(env(safe-area-inset-top) + 52px); padding-bottom: 8px; }
   #tb-title { font-size: 20px; font-weight: 700; letter-spacing: -.2px; opacity: 0; transition: opacity .2s; -webkit-font-smoothing: antialiased; }
   .topbar.show #tb-title { opacity: 1; }
-  .fab { display: none; position: fixed; z-index: 900; right: 12px; top: calc(env(safe-area-inset-top) + 0px); width: 44px; height: 44px; border-radius: 22px; border: 0; padding: 0; align-items: center; justify-content: center; color: var(--tint); touch-action: manipulation;
+  .fab { display: none; position: fixed; z-index: 900; right: 12px; top: calc(env(safe-area-inset-top) + 60px); width: 44px; height: 44px; border-radius: 22px; border: 0; padding: 0; align-items: center; justify-content: center; color: var(--tint); touch-action: manipulation;
     background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.05)), rgba(60,60,64,.45); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 3px 12px rgba(0,0,0,.4); }
   .fab:active { transform: scale(.94); } .fab svg { width: 22px; height: 22px; }
   .topbar[data-v="view-assignments"] ~ .fab, .topbar[data-v="view-attendance"] ~ .fab { display: flex; }
+  #view-assignments .hrow, #view-attendance .hrow { margin-bottom: 46px; }
   .seg { padding: 3px; border-radius: 13px; margin-bottom: 8px; }
   .seg i { top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n)); border-radius: 10px; }
   .seg button { font-size: 15px; line-height: 38px; }
   .tile.wx .tv, .tile .tv { font-size: 22px; line-height: 26px; font-weight: 700; }
   .wtxt .ts { margin-top: 1px; }
-  .nav-bar { bottom: max(6px, calc(env(safe-area-inset-bottom) - 14px)); }
+  .nav-bar { bottom: max(8px, calc(env(safe-area-inset-bottom) - 20px)); }
+  #csheet { max-height: 80%; }
   #asheet { z-index: 1300; }
   .abig { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 68px; text-align: center; margin-top: 6px; } .asub { color: var(--sub); font-size: 15px; text-align: center; margin-top: 2px; }
   .rm { border: 0; background: none; color: #FF453A; font-family: inherit; font-size: 15px; padding: 8px 0 8px 12px; }
@@ -293,7 +297,7 @@
     <div id="view-grades" class="view"><h1>grades</h1><div id="grades-box"></div></div>
     <div id="view-attendance" class="view"><div class="hrow"><h1>attendance</h1></div><div id="att-box"></div></div>
     <div id="view-settings" class="view"><h1>settings</h1><div id="settings-card"></div>
-      <div class="grp" style="margin-top:26px">time clock</div><div class="tcbox" id="tc-box"><div class="tcph">loading time clock…</div></div>
+      
 </div>
   </div>
 
@@ -493,7 +497,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.16';
+    const BUILD = '2.17';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
     const $ = id => document.getElementById(id);
@@ -667,6 +671,7 @@
       $('settings-card').innerHTML = '<div class="grp" style="margin-top:0">app info</div><div class="group">' + r('build', BUILD) + r('data', DEMO ? 'demo snapshot' : 'live · google sheets') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
         r('screen', innerWidth + '×' + innerHeight + ' of ' + screen.width + '×' + screen.height + (navigator.standalone ? ' · app' : ' · browser')) +
+        r('layout', document.documentElement.clientHeight + ' · bar bottom ' + Math.round(innerHeight - $('nav-bar').getBoundingClientRect().bottom)) +
         '</div><div class="grp">links</div><div class="group"><a class="lrow" href="' + SHEET_URL + '" target="_blank" rel="noopener">open spreadsheet</a><a class="lrow" href="https://go.ncsu.edu/timeclock" target="_blank" rel="noopener">time clock</a><button class="lrow" id="btn-sync">refresh data</button>' + (DEMO ? '' : '<button class="lrow" id="btn-loc">update location</button>') + '</div>';
     }
 
@@ -677,16 +682,7 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden) setGreeting(); if (!document.hidden && !pending && $('sheet').style.display !== 'flex') fetchData(); });
     // Large title -> inline title when scrolled (iOS navigation bar behavior)
     $('scroll-container').addEventListener('scroll', () => $('topbar').classList.toggle('show', $('scroll-container').scrollTop > 34), { passive: true });
-    // time clock lives in settings; load it the first time you open that tab
-    const TC_URL = 'https://go.ncsu.edu/timeclock';
-    function loadTimeclock() {
-      if ($('tc-frame')) return;
-      const f = document.createElement('iframe'); f.id = 'tc-frame'; f.src = TC_URL; f.title = 'time clock'; f.setAttribute('allow', 'geolocation');
-      f.setAttribute('sandbox', 'allow-scripts allow-forms allow-same-origin allow-popups allow-popups-to-escape-sandbox');
-      $('tc-box').appendChild(f);
-    }
     navItems.forEach(item => item.addEventListener('click', () => {
-      if (item.dataset.target === 'view-settings') loadTimeclock();
       if (gpaShown) { gpaShown = false; renderGrades(); }
       $('scroll-container').scrollTop = 0; $('topbar').classList.remove('show');
       $('tb-title').textContent = item.dataset.target === 'view-dashboard' ? 'dashboard' : document.querySelector('#' + item.dataset.target + ' h1').textContent; $('topbar').dataset.v = item.dataset.target;
