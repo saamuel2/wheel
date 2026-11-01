@@ -260,6 +260,12 @@
     -webkit-backdrop-filter: blur(26px) saturate(210%) brightness(1.1); backdrop-filter: blur(26px) saturate(210%) brightness(1.1); }
   .nav-item { color: #fff; } .nav-item.active { color: var(--tint); }
   .topbar#topbar::before { border-bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 40%, rgba(0,0,0,.03) 100%); -webkit-backdrop-filter: blur(22px) saturate(180%); backdrop-filter: blur(22px) saturate(180%); }
+  #sheet { max-height: min(80%, calc(100% - var(--kb, 0px) - 48px)); }
+  .task.gr-row { padding-left: 16px; padding-right: 12px; gap: 10px; }
+  .gin { width: 68px; height: 38px; flex: none; border: 0; border-radius: 10px; background: var(--fill); color: var(--text); font-family: inherit; font-size: 17px; font-weight: 600; text-align: center; outline: 0; -webkit-user-select: text; user-select: text; -webkit-appearance: none; appearance: none; font-variant-numeric: tabular-nums; }
+  .gin::placeholder { color: #636366; } .gin:focus { background: rgba(118,118,128,.4); box-shadow: 0 0 0 1.5px var(--tint); }
+  .g100 { width: 38px; height: 38px; flex: none; border-radius: 19px; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: var(--fill); color: var(--tint); touch-action: manipulation; transition: background .2s, color .2s; }
+  .g100.on { background: var(--tint); color: #fff; } .g100:active { transform: scale(.92); }
   #csheet { max-height: 80%; }
   #asheet { z-index: 1300; }
   .abig { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 68px; text-align: center; margin-top: 6px; } .asub { color: var(--sub); font-size: 15px; text-align: center; margin-top: 2px; }
@@ -476,23 +482,57 @@
       }
     }
 
-    function fetchData() {
-      if (DEMO) { appData = demoData(); synced(); return; }
+    function fetchData(silent) {
+      if (DEMO) { if (!silent) { appData = demoData(); synced(); } return; }
+      if (fetching) return; fetching = true;
       fetch(`${API}?token=${encodeURIComponent(TOKEN)}`)
         .then(res => res.json())
         .then(data => {
+          fetching = false;
           if (data.error) throw new Error(data.error);
-          appData = data; try { localStorage.setItem('wheel-cache', JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
+          applyOv(data); stash = data; saveCache(data);
           document.getElementById('error-msg').style.display = 'none';
-          synced();
+          flushStash();
         })
         .catch(err => {
-          console.error(err);
+          fetching = false; console.error(err);
+          if (silent && appData) return;
           document.getElementById('wheel-frac').textContent = 'error';
           const errBox = document.getElementById('error-msg');
           errBox.textContent = "Failed to connect to Google Sheets.";
           errBox.style.display = 'block';
         });
+    }
+    let fetching = false, stash = null;
+    function busy() {
+      const ae = document.activeElement, ed = ae && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);
+      return !!(pending || hold || ed || ['sheet', 'csheet', 'asheet'].some(id => $(id).classList.contains('show')));
+    }
+    function flushStash() {
+      if (!stash) return;
+      if (busy()) { setTimeout(flushStash, 2000); return; }
+      applyOv(stash); appData = stash; stash = null; synced();
+    }
+    function saveCache(d) { try { localStorage.setItem('wheel-cache', JSON.stringify({ ts: Date.now(), data: d || appData })); } catch (e) {} }
+
+    // Local changes stay on screen until the sheet shows the same thing (or 90 s pass), so a slow save never makes things pop back.
+    const OV = {}, gradeHold = new Set();
+    const kOf = a => a.c + '|' + a.n + '|' + a.t;
+    const snapOf = a => ({ r: a.r, n: a.n, c: a.c, y: a.y, t: a.t, d: a.d, g: a.g });
+    function setOv(key, base, fields, add) {
+      const o = OV[key] || (OV[key] = { base: base, f: {}, add: !!add });
+      Object.assign(o.f, fields); o.exp = Date.now() + 90000;
+    }
+    const same = (x, y) => String(x == null ? '' : x) === String(y == null ? '' : y);
+    function applyOv(data) {
+      const L = data.assignments || [], now = Date.now();
+      Object.keys(OV).forEach(k => {
+        const o = OV[k]; if (now > o.exp) { delete OV[k]; return; }
+        const nk = kOf(Object.assign({}, o.base, o.f));
+        if (L.some(x => kOf(x) === nk && Object.keys(o.f).every(p => same(x[p], o.f[p])))) { delete OV[k]; return; }   // sheet caught up
+        const old = L.find(x => kOf(x) === k);
+        if (old) Object.assign(old, o.f); else if (o.add) L.push(Object.assign({}, o.base, o.f));
+      });
     }
 
     // Week Nav Listeners
@@ -500,7 +540,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.20';
+    const BUILD = '2.21';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
     const $ = id => document.getElementById(id);
@@ -558,6 +598,24 @@
         (list.length ? list.map(a => rowHtml(a, dayLabel(a.t))).join('') : '<div class="empty-row">all caught up</div>') + '</div>';
     }
 
+    const TICK = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+    function gradeRowHtml(a) {
+      const col = colorFor(a.c), has = a.g != null && a.g !== '', parts = [a.y ? esc(a.y) : '', dayLabel(a.t)].filter(Boolean);
+      return `<div class="task gr-row" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}"><div class="tmain"><div class="tname">${esc(a.n)}</div><div class="tsub"><b style="color:${col}">${esc(a.c)}</b>${parts.map(x => ' · ' + x).join('')}</div></div>` +
+        `<input class="gin" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="–" value="${has ? fmtG(a.g) : ''}"><button class="g100${has && Number(a.g) === 100 ? ' on' : ''}" aria-label="mark 100">${TICK}</button></div>`;
+    }
+    function rowOf(el) { const row = el.closest('.task'); return row && appData ? appData.assignments.find(x => String(x.r) === row.dataset.r && x.n === row.dataset.n && x.c === row.dataset.c) : null; }
+    function setGrade(a, raw, input) {
+      const t = String(raw).trim(), prev = a.g == null ? '' : a.g; let g = t === '' ? '' : Number(t);
+      const show = v => { input.value = v === '' || v == null ? '' : fmtG(v); input.nextElementSibling.classList.toggle('on', v !== '' && v != null && Number(v) === 100); };
+      if (t !== '' && isNaN(g)) { show(prev); return; }
+      if (same(prev, g)) { show(prev); return; }
+      const k = kOf(a); a.g = g; gradeHold.add(k); setOv(k, snapOf(a), { g: g }); saveCache(); show(g);
+      if (DEMO) return;
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g } }) })
+        .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); })
+        .catch(() => { a.g = prev; setOv(k, snapOf(a), { g: prev }); saveCache(); if (input.isConnected) show(prev); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3000); });
+    }
     function renderTasks() {
       const hasG = !!(appData && appData.assignments && appData.assignments.some(a => a.g !== undefined));
       const F = [['upcoming','upcoming'], ['week','this week']].concat(hasG ? [['grade','to grade']] : [], [['done','done']]);
@@ -570,10 +628,10 @@
       const today = new Date(); today.setHours(0,0,0,0);
       const ws = new Date(today); ws.setDate(ws.getDate() - ws.getDay()); const we = new Date(ws); we.setDate(ws.getDate() + 7);
       let list = appData.assignments.filter(a =>
-        filter === 'upcoming' ? !a.d : filter === 'done' ? a.d : filter === 'grade' ? (a.d && (a.g == null || a.g === '')) : (a.t >= ws.getTime() && a.t < we.getTime()));
+        filter === 'upcoming' ? !a.d : filter === 'done' ? a.d : filter === 'grade' ? (a.d && ((a.g == null || a.g === '') || gradeHold.has(kOf(a)))) : (a.t >= ws.getTime() && a.t < we.getTime()));
       list.sort((x, y) => (x.t - y.t) || (x.r - y.r));
       if (filter === 'done') list.reverse();
-      box.innerHTML = list.length ? listHtml(list, filter === 'done' || filter === 'grade')
+      box.innerHTML = list.length ? (filter === 'grade' ? '<div class="group">' + list.map(gradeRowHtml).join('') + '</div>' : listHtml(list, filter === 'done'))
         : '<div class="empty">' + ({done:'nothing done yet', grade:'everything is graded', week:'nothing due this week'}[filter] || 'all caught up') + '</div>';
     }
 
@@ -587,16 +645,16 @@
       const a = appData.assignments.find(x => String(x.r) === el.dataset.r && x.n === el.dataset.n && x.c === el.dataset.c);
       if (!a) return;
       const to = !a.d, leaves = el.closest('#dash-list') ? to : (filter === 'upcoming' ? to : (filter === 'done' || filter === 'grade') ? !to : false);
-      hold = true; a.d = to; drawWheel(false);
+      hold = true; setOv(kOf(a), snapOf(a), { d: to }); a.d = to; drawWheel(false); saveCache();
       el.classList.toggle('done', to);
       if (leaves) setTimeout(() => el.classList.add('out'), 280);
       setTimeout(release, leaves ? 720 : 450);
-      const p = { a: a, to: to, timer: setTimeout(() => commit(p), 4000) };
+      const p = { a: a, to: to, timer: setTimeout(() => commit(p), 3000) };
       pending = p; showUndo(to ? 'marked done' : 'marked not done', true);
     }
     function undo() {
       if (!pending) return;
-      clearTimeout(pending.timer); pending.a.d = !pending.to; pending = null;
+      clearTimeout(pending.timer); pending.a.d = !pending.to; setOv(kOf(pending.a), snapOf(pending.a), { d: !pending.to }); saveCache(); pending = null;
       hideUndo(); release(); drawWheel(false);
     }
     function commit(p) {
@@ -606,7 +664,7 @@
       fetch(API, { method: 'POST', body: JSON.stringify({ token: TOKEN, action: p.to ? 'done' : 'undone', row: p.a.r, n: p.a.n, c: p.a.c }),
         headers: { 'Content-Type': 'text/plain' }, redirect: 'follow' })
         .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); })
-        .catch(() => { p.a.d = !p.to; release(); drawWheel(false); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3000); });
+        .catch(() => { const cur = appData.assignments.find(x => kOf(x) === kOf(p.a)) || p.a; cur.d = !p.to; setOv(kOf(cur), snapOf(cur), { d: !p.to }); saveCache(); release(); drawWheel(false); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3000); });
     }
 
     // --- Dashboard side tiles: animated weather + next event ---
@@ -664,7 +722,8 @@
         : up.length ? '<div class="tl">next up</div>' + up.map(e => `<div class="ev"><div class="tn">${esc(e.n)}</div><div class="ts">${whenTxt(e, now)}</div></div>`).join('')
         : '<div class="tl">next up</div><div class="ts">nothing coming up</div>';
       const d = Math.round((LDOC - new Date().setHours(0, 0, 0, 0)) / 864e5);
-      const cd = `<div class="tl">ldoc · tue 12/8</div><div class="tv">${d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
+      const togo = appData && appData.assignments ? appData.assignments.filter(a => !a.d && a.t < LDOC + 864e5).length : null;
+      const cd = `<div class="tl">ldoc${togo == null ? '' : ' · ' + (togo ? togo + ' assignment' + (togo === 1 ? '' : 's') + ' to go' : 'all done')}</div><div class="tv">${d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
       $('side').innerHTML = w + `<div class="tile big">${c}</div><div class="tile">${cd}</div>`;
     }
     $('side').addEventListener('click', e => { if (DEMO && e.target.closest('.wx')) { wxi = (wxi + 1) % WXD.length; setDemoWx(wxi); renderSide(); } });  // demo: tap weather to preview conditions
@@ -678,15 +737,16 @@
         '</div><div class="grp">links</div><div class="group"><a class="lrow" href="' + SHEET_URL + '" target="_blank" rel="noopener">open spreadsheet</a><a class="lrow" href="https://go.ncsu.edu/timeclock" target="_blank" rel="noopener">time clock</a><button class="lrow" id="btn-sync">refresh data</button>' + (DEMO ? '' : '<button class="lrow" id="btn-loc">update location</button>') + '</div>';
     }
 
-    $('seg').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; renderTasks(); } });
+    $('seg').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; gradeHold.clear(); renderTasks(); } });
     document.addEventListener('click', e => { const b = e.target.closest('.task .chk'); if (b) toggle(b.closest('.task')); });
     $('undo-btn').addEventListener('click', undo);
     $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); if (e.target.id === 'btn-loc') { locAsked = false; withLoc(loadWx2, true); } });
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) setGreeting(); if (!document.hidden && !pending && $('sheet').style.display !== 'flex') fetchData(); });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { setGreeting(); renderSide(); fetchData(true); loadWx(); } });
     // Large title -> inline title when scrolled (iOS navigation bar behavior)
     $('scroll-container').addEventListener('scroll', () => $('topbar').classList.toggle('show', $('scroll-container').scrollTop > 34), { passive: true });
     navItems.forEach(item => item.addEventListener('click', () => {
       if (gpaShown) { gpaShown = false; renderGrades(); }
+      if (gradeHold.size) { gradeHold.clear(); renderTasks(); }
       $('scroll-container').scrollTop = 0; $('topbar').classList.remove('show');
       $('tb-title').textContent = item.dataset.target === 'view-dashboard' ? 'dashboard' : document.querySelector('#' + item.dataset.target + ' h1').textContent; $('topbar').dataset.v = item.dataset.target;
     }));
@@ -803,7 +863,9 @@
       const g = $('f-grade').value.trim(), gn = g === '' ? null : (isNaN(Number(g)) ? g : Number(g));
       const vals = { n: $('f-name').value.trim(), c: $('f-class').value, y: $('f-type').value.trim().toUpperCase(), t: toMs($('f-due').value), d: $('f-done').checked, g: gn };
       const a = editing, snap = a ? Object.assign({}, a) : null; let item = a;
-      if (a) Object.assign(a, vals); else { item = Object.assign({ r: Math.max(2, ...appData.assignments.map(x => x.r)) + 1 }, vals); appData.assignments.push(item); }
+      const k0 = a ? kOf(a) : null;
+      if (a) { Object.assign(a, vals); setOv(k0, snapOf(snap), vals); } else { item = Object.assign({ r: Math.max(2, ...appData.assignments.map(x => x.r)) + 1 }, vals); appData.assignments.push(item); setOv(kOf(item), snapOf(item), {}, true); }
+      saveCache();
       closeSheet(); renderTasks(); renderDash(); drawWheel(false);
       showUndo(a ? 'saved' : 'added', false); setTimeout(hideUndo, 1800);
       if (DEMO) return;
@@ -811,7 +873,8 @@
         fields: { done: vals.d, due: $('f-due').value, name: vals.n, className: vals.c, type: vals.y, grade: gn == null ? '' : gn } }) })
         .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); if (!a && j.row) item.r = j.row; })
         .catch(() => {
-          if (a) { Object.keys(a).forEach(k => delete a[k]); Object.assign(a, snap); } else appData.assignments.splice(appData.assignments.indexOf(item), 1);
+          if (a) { Object.keys(a).forEach(k => delete a[k]); Object.assign(a, snap); delete OV[k0]; } else { appData.assignments.splice(appData.assignments.indexOf(item), 1); delete OV[kOf(item)]; }
+          saveCache();
           renderTasks(); renderDash(); drawWheel(false); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3500);
         });
     }
@@ -819,8 +882,10 @@
     $('sh-cancel').addEventListener('click', closeSheet); $('scrim').addEventListener('click', () => $('asheet').classList.contains('show') ? closeAbs() : $('csheet').classList.contains('show') ? closeClass() : closeSheet()); $('sh-save').addEventListener('click', saveSheet);
     ['f-name', 'f-class', 'f-due'].forEach(id => { $(id).addEventListener('input', formOk); $(id).addEventListener('change', formOk); });
     $('f-due').addEventListener('input', updDue); $('f-due').addEventListener('change', updDue);
+    $('task-list').addEventListener('change', e => { const i = e.target.closest('.gin'); if (!i) return; const a = rowOf(i); if (a) setGrade(a, i.value, i); });
+    $('task-list').addEventListener('click', e => { const b = e.target.closest('.g100'); if (!b) return; const a = rowOf(b), i = b.previousElementSibling; if (a && i) { i.value = '100'; setGrade(a, '100', i); } });
     $('task-list').addEventListener('click', e => {
-      if (e.target.closest('.chk')) return;
+      if (e.target.closest('.chk, .gin, .g100')) return;
       const row = e.target.closest('.task'); if (!row || !appData) return;
       const a = appData.assignments.find(x => String(x.r) === row.dataset.r && x.n === row.dataset.n && x.c === row.dataset.c);
       if (a) openSheet(a);
@@ -910,6 +975,13 @@
       sh.addEventListener('touchend', () => { if (y0 === null) return; y0 = null; sh.style.transition = ''; if (dy > 110) closeAbs(); else sh.style.transform = ''; });
     })();
 
+    // Live refresh: clock bits every 30 s, sheet every 60 s, weather every 10 min (only while the app is open on screen)
+    if (!DEMO) {
+      setInterval(() => { if (!document.hidden) { setGreeting(); renderSide(); } }, 30000);
+      setInterval(() => { if (!document.hidden) fetchData(true); }, 60000);
+      setInterval(() => { if (!document.hidden) loadWx(); }, 600000);
+      window.addEventListener('online', () => fetchData(true));
+    } else { setInterval(() => { setGreeting(); renderSide(); }, 30000); }
     // Init
     setGreeting(); drawWheel(); // draw empty skeleton immediately
     renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
