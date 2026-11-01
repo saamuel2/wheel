@@ -260,7 +260,7 @@
     -webkit-backdrop-filter: blur(26px) saturate(210%) brightness(1.1); backdrop-filter: blur(26px) saturate(210%) brightness(1.1); }
   .nav-item { color: #fff; } .nav-item.active { color: var(--tint); }
   .topbar#topbar::before { border-bottom: 0; background: linear-gradient(180deg, rgba(0,0,0,.85) 0%, rgba(0,0,0,.4) 40%, rgba(0,0,0,.03) 100%); -webkit-backdrop-filter: blur(22px) saturate(180%); backdrop-filter: blur(22px) saturate(180%); }
-  #sheet { max-height: min(80%, calc(100% - var(--kb, 0px) - 48px)); }
+  #sheet { max-height: min(80%, calc(var(--vvh, 100vh) - 16px)); }
   .task.gr-row { padding-left: 16px; padding-right: 12px; gap: 10px; }
   .gin { width: 68px; height: 38px; flex: none; border: 0; border-radius: 10px; background: var(--fill); color: var(--text); font-family: inherit; font-size: 17px; font-weight: 600; text-align: center; outline: 0; -webkit-user-select: text; user-select: text; -webkit-appearance: none; appearance: none; font-variant-numeric: tabular-nums; }
   .gin::placeholder { color: #636366; } .gin:focus { background: rgba(118,118,128,.4); box-shadow: 0 0 0 1.5px var(--tint); }
@@ -563,11 +563,12 @@
         assignments: SNAP.map(x => { const p = x[1].split('-'); return { r: x[0], n: x[2], c: x[3], y: x[4], t: new Date(p[0], p[1] - 1, p[2]).getTime(), d: !!x[5], g: x[6] }; })
       };
     }
+    let wheelDone = false, wxLoaded = false;
     function synced() {
       lastSync = new Date(); setGreeting();
       if (DEMO) { if (!WX) setDemoWx(wxi); EV = EV || DEMO_EV; }
-      else { if (appData.events) EV = appData.events; loadWx(); }
-      drawWheel(true); renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
+      else { if (appData.events) EV = appData.events; if (!wxLoaded) { wxLoaded = true; loadWx(); } }
+      drawWheel(!wheelDone); wheelDone = true; renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
     }
 
     const fmt2 = n => { const t = Number(n).toFixed(2); return t === '100.00' ? '100' : t; };
@@ -723,7 +724,7 @@
         : '<div class="tl">next up</div><div class="ts">nothing coming up</div>';
       const d = Math.round((LDOC - new Date().setHours(0, 0, 0, 0)) / 864e5);
       const togo = appData && appData.assignments ? appData.assignments.filter(a => !a.d && a.t < LDOC + 864e5).length : null;
-      const cd = `<div class="tl">ldoc${togo == null ? '' : ' · ' + (togo ? togo + ' assignment' + (togo === 1 ? '' : 's') + ' to go' : 'all done')}</div><div class="tv">${d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
+      const cd = `<div class="tl">${togo == null ? 'last day of classes' : togo ? togo + ' assignment' + (togo === 1 ? '' : 's') + ' to go' : 'all done'}</div><div class="tv">${d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
       $('side').innerHTML = w + `<div class="tile big">${c}</div><div class="tile">${cd}</div>`;
     }
     $('side').addEventListener('click', e => { if (DEMO && e.target.closest('.wx')) { wxi = (wxi + 1) % WXD.length; setDemoWx(wxi); renderSide(); } });  // demo: tap weather to preview conditions
@@ -897,8 +898,8 @@
       sh.addEventListener('touchmove', e => { if (y0 === null) return; dy = Math.max(0, e.touches[0].clientY - y0); sh.style.transform = 'translateY(' + dy + 'px)'; }, { passive: true });
       sh.addEventListener('touchend', () => { if (y0 === null) return; y0 = null; sh.style.transition = ''; if (dy > 110) closeSheet(); else sh.style.transform = ''; });
       if (window.visualViewport) {
-        const f = () => sh.style.setProperty('--kb', Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop) + 'px');
-        visualViewport.addEventListener('resize', f); visualViewport.addEventListener('scroll', f);
+        const f = () => { sh.style.setProperty('--vvh', visualViewport.height + 'px'); sh.style.setProperty('--kb', Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop) + 'px'); };
+        f(); visualViewport.addEventListener('resize', f); visualViewport.addEventListener('scroll', f);
       }
     })();
 
@@ -978,7 +979,7 @@
     // Live refresh: clock bits every 30 s, sheet every 60 s, weather every 10 min (only while the app is open on screen)
     if (!DEMO) {
       setInterval(() => { if (!document.hidden) { setGreeting(); renderSide(); } }, 30000);
-      setInterval(() => { if (!document.hidden) fetchData(true); }, 60000);
+      setInterval(() => { if (!document.hidden) fetchData(true); }, 30000);
       setInterval(() => { if (!document.hidden) loadWx(); }, 600000);
       window.addEventListener('online', () => fetchData(true));
     } else { setInterval(() => { setGreeting(); renderSide(); }, 30000); }
