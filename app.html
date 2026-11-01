@@ -21,7 +21,7 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   
   html, body {
-    margin: 0; padding: 0; width: 100vw; height: 100vh;
+    margin: 0; padding: 0; width: 100vw; height: 100vh; height: 100dvh;
     position: fixed; top: 0; left: 0;
     background-color: var(--bg); color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
@@ -237,6 +237,23 @@
   .gv.eyebox { display: flex; align-items: center; height: 46px; } .eye { display: block; color: var(--sub); }
   .tcbox { position: relative; height: 540px; border-radius: 16px; overflow: hidden; background: #fff; } .tcbox iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: #fff; }
   .tcph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #8e8e93; font-size: 15px; }
+  /* 2.16 */
+  .topbar#topbar { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; box-shadow: none; opacity: 1; transition: none; }
+  .topbar#topbar::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .2s; border-bottom: .5px solid var(--sep);
+    background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)), rgba(0,0,0,.62); -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); }
+  .topbar#topbar.show::before { opacity: 1; }
+  #tb-title { font-size: 20px; font-weight: 700; letter-spacing: -.2px; opacity: 0; transition: opacity .2s; -webkit-font-smoothing: antialiased; }
+  .topbar.show #tb-title { opacity: 1; }
+  .fab { display: none; position: fixed; z-index: 900; right: 12px; top: calc(env(safe-area-inset-top) + 0px); width: 44px; height: 44px; border-radius: 22px; border: 0; padding: 0; align-items: center; justify-content: center; color: var(--tint); touch-action: manipulation;
+    background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.05)), rgba(60,60,64,.45); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 3px 12px rgba(0,0,0,.4); }
+  .fab:active { transform: scale(.94); } .fab svg { width: 22px; height: 22px; }
+  .topbar[data-v="view-assignments"] ~ .fab, .topbar[data-v="view-attendance"] ~ .fab { display: flex; }
+  .seg { padding: 3px; border-radius: 13px; margin-bottom: 8px; }
+  .seg i { top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n)); border-radius: 10px; }
+  .seg button { font-size: 15px; line-height: 38px; }
+  .tile.wx .tv, .tile .tv { font-size: 22px; line-height: 26px; font-weight: 700; }
+  .wtxt .ts { margin-top: 1px; }
+  .nav-bar { bottom: max(6px, calc(env(safe-area-inset-bottom) - 14px)); }
   #asheet { z-index: 1300; }
   .abig { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 68px; text-align: center; margin-top: 6px; } .asub { color: var(--sub); font-size: 15px; text-align: center; margin-top: 2px; }
   .rm { border: 0; background: none; color: #FF453A; font-family: inherit; font-size: 15px; padding: 8px 0 8px 12px; }
@@ -272,9 +289,9 @@
     </div>
 
     <!-- OTHER VIEWS -->
-    <div id="view-assignments" class="view"><div class="hrow"><h1>assignments</h1><button class="plus" id="btn-add" aria-label="add assignment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div><div class="seg" id="seg"></div><div id="task-list"></div></div>
+    <div id="view-assignments" class="view"><div class="hrow"><h1>assignments</h1></div><div class="seg" id="seg"></div><div id="task-list"></div></div>
     <div id="view-grades" class="view"><h1>grades</h1><div id="grades-box"></div></div>
-    <div id="view-attendance" class="view"><div class="hrow"><h1>attendance</h1><button class="plus" id="btn-abs" aria-label="add absence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div><div id="att-box"></div></div>
+    <div id="view-attendance" class="view"><div class="hrow"><h1>attendance</h1></div><div id="att-box"></div></div>
     <div id="view-settings" class="view"><h1>settings</h1><div id="settings-card"></div>
       <div class="grp" style="margin-top:26px">time clock</div><div class="tcbox" id="tc-box"><div class="tcph">loading time clock…</div></div>
 </div>
@@ -315,7 +332,8 @@
     <div class="sh-body" id="c-body"></div>
   </div>
 
-  <div class="topbar" id="topbar"><span id="tb-title">dashboard</span><button class="plus tb-plus" id="tb-plus" aria-label="add assignment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+  <div class="topbar" id="topbar"><span id="tb-title">dashboard</span></div>
+  <button class="fab" id="fab" aria-label="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 
   <div class="undo" id="undo"><span id="undo-msg"></span><button id="undo-btn">undo</button></div>
 
@@ -457,7 +475,7 @@
         .then(res => res.json())
         .then(data => {
           if (data.error) throw new Error(data.error);
-          appData = data;
+          appData = data; try { localStorage.setItem('wheel-cache', JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
           document.getElementById('error-msg').style.display = 'none';
           synced();
         })
@@ -475,7 +493,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.15';
+    const BUILD = '2.16';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
     const $ = id => document.getElementById(id);
@@ -586,19 +604,21 @@
 
     // --- Dashboard side tiles: animated weather + next event ---
     let LOC = { lat: 35.78, lon: -78.64 };   // fallback: Raleigh, NC (used until your phone shares its location)
-    try { const c = JSON.parse(localStorage.getItem('wheel-loc') || 'null'); if (c && isFinite(c.lat) && isFinite(c.lon)) LOC = c; } catch (e) {}
-    let locAsked = false;
-    function withLoc(cb) {
-      if (locAsked || DEMO || !navigator.geolocation) return cb(); locAsked = true;
+    let locSaved = false, locAsked = false;
+    try { const c = JSON.parse(localStorage.getItem('wheel-loc') || 'null'); if (c && isFinite(c.lat) && isFinite(c.lon)) { LOC = c; locSaved = true; } } catch (e) {}
+    function withLoc(cb, force) {
+      let before = false; try { before = localStorage.getItem('wheel-loc-asked') === '1'; } catch (e) {}
+      if (DEMO || !navigator.geolocation || locAsked || (!force && (locSaved || before))) return cb();
+      locAsked = true; try { localStorage.setItem('wheel-loc-asked', '1'); } catch (e) {}
       navigator.geolocation.getCurrentPosition(p => {
-        LOC = { lat: +p.coords.latitude.toFixed(3), lon: +p.coords.longitude.toFixed(3) };
+        LOC = { lat: +p.coords.latitude.toFixed(3), lon: +p.coords.longitude.toFixed(3) }; locSaved = true;
         try { localStorage.setItem('wheel-loc', JSON.stringify(LOC)); } catch (e) {}
         cb();
       }, () => cb(), { timeout: 8000, maximumAge: 30 * 60000 });
     }
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
     let WX = null, EV = null, wxi = 1;
-    const WXL = { clear: 'clear', partly: 'partly cloudy', cloudy: 'cloudy', fog: 'foggy', rain: 'rain', snow: 'snow', storm: 'thunderstorms' };
+    const WXL = { clear: 'clear', partly: 'partly', cloudy: 'cloudy', fog: 'foggy', rain: 'rain', snow: 'snow', storm: 'storms' };
     const WXD = [['clear',1,64,69,48],['partly',1,62,68,51],['cloudy',1,57,60,49],['rain',1,52,56,47],['snow',1,28,33,22],['storm',1,71,76,63],['fog',1,45,58,41],['clear',0,50,69,48],['partly',0,54,68,51]];
     const setDemoWx = i => { const d = WXD[i % WXD.length]; WX = { k: d[0], day: d[1], t: d[2], hi: d[3], lo: d[4] }; };
     const wxKind = c => c === 0 ? 'clear' : c < 3 ? 'partly' : c === 3 ? 'cloudy' : c < 50 ? 'fog' : c < 70 ? 'rain' : c < 80 ? 'snow' : c < 85 ? 'rain' : c < 90 ? 'snow' : 'storm';
@@ -630,7 +650,7 @@
     const LDOC = new Date(2026, 11, 8).getTime();   // last day of classes: Tue 12/8
     const whenTxt = (e, now) => e.t <= now ? 'now · until ' + fmtT(e.e) : new Date(e.t).setHours(0, 0, 0, 0) === new Date(now).setHours(0, 0, 0, 0) ? fmtT(e.t) + ' · ' + untilTxt(e.t - now) : dayLabel(e.t) + ' · ' + fmtT(e.t);
     function renderSide() {
-      const w = WX ? `<div class="tile wx"><div class="wtxt"><div class="tv">${WX.t}°<small> ${WX.hi}/${WX.lo}</small></div><div class="ts">${WXL[WX.k]}</div></div><div class="wxart"><svg viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div></div>`
+      const w = WX ? `<div class="tile wx"><div class="wtxt"><div class="tv">${WX.t}°</div><div class="ts">${WXL[WX.k]} · ${WX.hi}/${WX.lo}</div></div><div class="wxart"><svg viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div></div>`
         : '<div class="tile wx"><div class="ts">loading…</div></div>';
       const now = Date.now(), up = EV ? EV.filter(e => !e.a && (e.t > now || (e.e || 0) > now)).sort((x, y) => x.t - y.t).slice(0, 2) : [];
       const c = EV === null ? '<div class="tl">next up</div><div class="ts">calendar not connected</div>'
@@ -646,13 +666,14 @@
       const r = (k, v) => `<div class="task srow"><span>${k}</span><span class="tg">${v}</span></div>`;
       $('settings-card').innerHTML = '<div class="grp" style="margin-top:0">app info</div><div class="group">' + r('build', BUILD) + r('data', DEMO ? 'demo snapshot' : 'live · google sheets') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
-        '</div><div class="grp">links</div><div class="group"><a class="lrow" href="' + SHEET_URL + '" target="_blank" rel="noopener">open spreadsheet</a><a class="lrow" href="https://go.ncsu.edu/timeclock" target="_blank" rel="noopener">time clock</a><button class="lrow" id="btn-sync">refresh data</button></div>';
+        r('screen', innerWidth + '×' + innerHeight + ' of ' + screen.width + '×' + screen.height + (navigator.standalone ? ' · app' : ' · browser')) +
+        '</div><div class="grp">links</div><div class="group"><a class="lrow" href="' + SHEET_URL + '" target="_blank" rel="noopener">open spreadsheet</a><a class="lrow" href="https://go.ncsu.edu/timeclock" target="_blank" rel="noopener">time clock</a><button class="lrow" id="btn-sync">refresh data</button>' + (DEMO ? '' : '<button class="lrow" id="btn-loc">update location</button>') + '</div>';
     }
 
     $('seg').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; renderTasks(); } });
     document.addEventListener('click', e => { const b = e.target.closest('.task .chk'); if (b) toggle(b.closest('.task')); });
     $('undo-btn').addEventListener('click', undo);
-    $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); });
+    $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); if (e.target.id === 'btn-loc') { locAsked = false; withLoc(loadWx2, true); } });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) setGreeting(); if (!document.hidden && !pending && $('sheet').style.display !== 'flex') fetchData(); });
     // Large title -> inline title when scrolled (iOS navigation bar behavior)
     $('scroll-container').addEventListener('scroll', () => $('topbar').classList.toggle('show', $('scroll-container').scrollTop > 34), { passive: true });
@@ -747,7 +768,7 @@
     // --- greeting (2am-12pm morning, 12-5pm afternoon, 5pm-2am evening) ---
     function setGreeting() {
       const h = new Date().getHours(), g = h >= 2 && h < 12 ? 'good morning' : h >= 12 && h < 17 ? 'good afternoon' : 'good evening';
-      $('dash-title').textContent = g;
+      $('dash-title').textContent = g + '!';
     }
     // --- EDIT / ADD / GRADE SHEET ---
     let editing = null, shT = null;
@@ -795,8 +816,7 @@
           renderTasks(); renderDash(); drawWheel(false); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3500);
         });
     }
-    $('btn-add').addEventListener('click', () => openSheet(null));
-    $('tb-plus').addEventListener('click', () => $('topbar').dataset.v === 'view-attendance' ? openAbs(null) : openSheet(null));
+    $('fab').addEventListener('click', () => $('topbar').dataset.v === 'view-attendance' ? openAbs(null) : openSheet(null));
     $('sh-cancel').addEventListener('click', closeSheet); $('scrim').addEventListener('click', () => $('asheet').classList.contains('show') ? closeAbs() : $('csheet').classList.contains('show') ? closeClass() : closeSheet()); $('sh-save').addEventListener('click', saveSheet);
     ['f-name', 'f-class', 'f-due'].forEach(id => { $(id).addEventListener('input', formOk); $(id).addEventListener('change', formOk); });
     $('f-due').addEventListener('input', updDue); $('f-due').addEventListener('change', updDue);
@@ -881,7 +901,6 @@
       const b = e.target.closest('.rm'); if (b) { removeAbs(attCode, Number(b.dataset.t)); return; }
       if (e.target.closest('#a-add-here')) openAbs(attCode);
     });
-    $('btn-abs').addEventListener('click', () => openAbs(null));
     $('a-cancel').addEventListener('click', closeAbs);
     $('a-save').addEventListener('click', () => { if ($('a-save').disabled) return; const c = $('a-class').value, d = $('a-date').value; closeAbs(); addAbs(c, d); });
     ['input', 'change'].forEach(ev => { $('a-class').addEventListener(ev, aOk); $('a-date').addEventListener(ev, () => { updAdate(); aOk(); }); });
@@ -895,6 +914,7 @@
     // Init
     setGreeting(); drawWheel(); // draw empty skeleton immediately
     renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
+    if (!DEMO) { try { const c = JSON.parse(localStorage.getItem('wheel-cache') || 'null'); if (c && c.data && c.data.assignments) { appData = c.data; synced(); } } catch (e) {} }
     fetchData(); // load data
   </script>
 </body>
