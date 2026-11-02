@@ -611,6 +611,15 @@
         });
     }
     let fetching = false, stash = null;
+    // fetch the newest app.html straight from the server; if its build differs from ours, reload into it
+    function checkUpdate() {
+      if (DEMO || !/github\.io$/.test(location.hostname)) return Promise.resolve(false);
+      return fetch(location.origin + location.pathname + '?v=' + Date.now(), { cache: 'reload' }).then(r => r.text()).then(t => {
+        const m = /const BUILD = '([^']+)'/.exec(t);
+        if (m && m[1] !== BUILD) { location.reload(); return true; }
+        return false;
+      }).catch(() => false);
+    }
     // pull down at the top of any tab to refresh
     (function () {
       const sc = document.getElementById('scroll-container'), ind = document.getElementById('ptr'); let y0 = null, pull = 0, busyP = false;
@@ -627,7 +636,7 @@
         if (y0 === null) return; y0 = null;
         if (pull < 60) { set(pull = 0, true); return; }
         busyP = true; set(56, true); ind.classList.add('spin');
-        Promise.all([fetchData(false), DEMO ? new Promise(r => setTimeout(r, 700)) : Promise.resolve(), (loadWx(), Promise.resolve())])
+        Promise.all([checkUpdate(), fetchData(false), DEMO ? new Promise(r => setTimeout(r, 700)) : Promise.resolve(), (loadWx(), Promise.resolve())])
           .catch(() => {}).then(() => { setTimeout(() => { ind.classList.remove('spin'); set(pull = 0, true); busyP = false; }, 250); });
       }, { passive: true });
     })();
@@ -667,7 +676,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.34';
+    const BUILD = '2.35';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
     const $ = id => document.getElementById(id);
@@ -916,7 +925,7 @@
     $('settings-card').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.gr; if (!k) return; GR[k] = k === 'rand' ? e.target.checked : e.target.value; saveGR(); GP.key = ''; setGreeting(); });
     $('settings-card').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.cd; if (!k) return; CD[k] = e.target.value; saveCD(); if (e.target.blur) e.target.blur(); renderSide(); if (k === 'mode') renderSettings(); });
     $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); if (e.target.id === 'btn-loc') { locAsked = false; withLoc(loadWx2, true); } });
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { setGreeting(); renderSide(); fetchData(true); loadWx(); } });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { setGreeting(); renderSide(); fetchData(true); loadWx(); if (!busy()) checkUpdate(); } });
     // Large title -> inline title when scrolled (iOS navigation bar behavior)
     $('scroll-container').addEventListener('scroll', () => $('topbar').classList.toggle('show', $('scroll-container').scrollTop > 34), { passive: true });
     const scrollPos = {}; let scrollView = 'view-dashboard';
