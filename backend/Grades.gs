@@ -225,9 +225,9 @@ var Engine = (function () {
 // ===================================================================================
 // Sheet functions. Rules live on the Rules tab; nothing here needs editing per semester.
 //
-//   =GRADES(Rules!A4:T13, Rules!A17:N, Assignments!B3:G, Attendance!A2:Z)
+//   =GRADES(Rules!A4:T13, Rules!A17:N, Assignments!B3:L, Attendance!A2:Z)
 //       → one row per course: course | grade | letter | grade points
-//   =GRADETRACE("bch351", Rules!A4:T13, Rules!A17:N, Assignments!B3:G, Attendance!A2:Z)
+//   =GRADETRACE("bch351", Rules!A4:T13, Rules!A17:N, Assignments!B3:L, Attendance!A2:Z)
 //       → the step-by-step calculation, one line per row
 //
 // Passing the ranges in (instead of reading them inside) is what makes Sheets recalculate
@@ -249,7 +249,7 @@ var COUNTED_AS = {
  * Course grades from the Rules tab.
  * @param {A4:T13} courses Rules tab course table
  * @param {A17:N} categories Rules tab category table
- * @param {B3:G} assignments Assignments tab, due through out-of
+ * @param {B3:L} assignments Assignments tab, due through the hidden "out of" column L
  * @param {A2:Z} attendance Attendance tab rows
  * @return course | grade | letter | grade points
  * @customfunction
@@ -362,7 +362,7 @@ function itemsFromSheet_(rows) {
     if (Object.prototype.toString.call(d) === '[object Date]' && !isNaN(d)) due = typeof Utilities !== 'undefined' ? Utilities.formatDate(d, tz, 'yyyy-MM-dd') : d.toISOString().slice(0, 10);
     else if (/^\d{4}-\d\d-\d\d$/.test(clean_(d))) due = clean_(d);
     var g = r[4];
-    out.push({ name: name, cls: clean_(r[2]), type: clean_(r[3]), due: due, grade: g === '' ? null : g, possible: num_(r[5]) });
+    out.push({ name: name, cls: clean_(r[2]), type: clean_(r[3]), due: due, grade: g === '' ? null : g, possible: num_(r.length > 10 ? r[10] : r[5]) });   // "out of" lives in hidden column L
   });
   return out;
 }

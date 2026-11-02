@@ -26,6 +26,7 @@ function doGet(e) {
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
+  try { res.todo = readTodo_(); } catch (err) { errors.todo = String(err); }
   try { res.events = readEvents_(); } catch (err) { errors.events = String(err); }
   res.errors = errors;
   return out_(res);
@@ -48,6 +49,8 @@ function doPost(e) {
       case 'absence_remove': return out_(absenceRemove_(ss, b));
       case 'ra_done': return out_(raDone_(ss, b));
       case 'note_add': return out_(noteAdd_(ss, b));
+      case 'task_add':  return out_(taskAdd_(b));
+      case 'task_done': return out_(taskDone_(b));
       default: return out_({ ok: false, error: 'unknown action' });
     }
   } catch (err) {
@@ -73,18 +76,19 @@ function cellYmd_(v, ss) {
   return y + '-' + ('0' + m[1]).slice(-2) + '-' + ('0' + m[2]).slice(-2);
 }
 
-// ---------- assignments (Assignments rows from 3; A done, B due, C name, D class, E type, F grade, G out of) ----------
+// ---------- assignments (Assignments rows from 3; A done, B due, C name, D class, E type, F grade; L = "out of", a hidden column) ----------
+var OUT_COL = 12;   // column L
 function readAssignments_(ss) {
   var sh = ss.getSheetByName('Assignments'), last = sh.getLastRow(), list = [];
   if (last < 3) return list;
-  var v = sh.getRange(3, 1, last - 2, 7).getValues();
+  var v = sh.getRange(3, 1, last - 2, OUT_COL).getValues();
   for (var i = 0; i < v.length; i++) {
     var name = str_(v[i][2]);
     if (!name || name.indexOf('────') > -1) continue;
     var dy = cellYmd_(v[i][1], ss); if (!dy) continue;
     var g = v[i][5];
     list.push({ r: i + 3, n: name, c: str_(v[i][3]), y: str_(v[i][4]), t: ymdToMs_(dy), d: v[i][0] === true,
-      g: numv_(g) != null ? g : (str_(g) === '' ? '' : str_(g)), o: numv_(v[i][6]) });
+      g: numv_(g) != null ? g : (str_(g) === '' ? '' : str_(g)), o: numv_(v[i][OUT_COL - 1]) });
   }
   return list;
 }
@@ -148,7 +152,7 @@ function writeFields_(sh, r, f, ss) {
   if (f.className !== undefined) sh.getRange(r, 4).setValue(f.className);
   if (f.type !== undefined) sh.getRange(r, 5).setValue(f.type);
   if (f.grade !== undefined) { var g = cellVal_(f.grade), cell = sh.getRange(r, 6); if (g === '') cell.clearContent(); else cell.setValue(g); }
-  if (f.outOf !== undefined) { var o = cellVal_(f.outOf), oc = sh.getRange(r, 7); if (o === '') oc.clearContent(); else oc.setValue(o); }
+  if (f.outOf !== undefined) { var o = cellVal_(f.outOf), oc = sh.getRange(r, OUT_COL); if (o === '') oc.clearContent(); else oc.setValue(o); }
 }
 
 function editRow_(ss, b) {
@@ -172,9 +176,10 @@ function addMany_(ss, b) {
   if (!rows.length) return { ok: false, error: 'nothing to add' };
   var sh = ss.getSheetByName('Assignments'), r0 = lastContentRow_(sh) + 1;
   var vals = rows.map(function (f) {
-    return [false, ymdToCell_(f.due, ss), f.name, f.className, f.type || '', cellVal_(f.grade), cellVal_(f.outOf)];
+    return [false, ymdToCell_(f.due, ss), f.name, f.className, f.type || '', cellVal_(f.grade)];
   });
-  sh.getRange(r0, 1, vals.length, 7).setValues(vals);
+  sh.getRange(r0, 1, vals.length, 6).setValues(vals);
+  sh.getRange(r0, OUT_COL, vals.length, 1).setValues(rows.map(function (f) { return [cellVal_(f.outOf)]; }));
   sh.getRange(r0, 2, vals.length, 1).setNumberFormat('ddd" "m"/"d');
   return { ok: true, row: r0, added: vals.length };
 }
@@ -200,6 +205,33 @@ function raDone_(ss, b) {
   if (r < 0) return { ok: false, error: 'task not found' };
   sh.getRange(r, 1).setValue(!!b.done);
   return { ok: true, row: r };
+}
+
+// ---------- to-do list = your Google Tasks (default list) ----------
+// Needs the Tasks service: in the Apps Script editor, Services (+) → Google Tasks API → Add.
+function readTodo_() {
+  if (typeof Tasks === 'undefined') return null;                 // service not switched on yet
+  var res = Tasks.Tasks.list('@default', { showCompleted: true, showHidden: true, maxResults: 100 }), out = [];
+  var weekAgo = Date.now() - 7 * 864e5;
+  (res.items || []).forEach(function (t) {
+    if (!t.title) return;
+    var done = t.status === 'completed';
+    if (done && t.completed && new Date(t.completed).getTime() < weekAgo) return;   // keep the last week of finished ones
+    out.push({ id: t.id, n: t.title, d: done, t: t.due ? ymdToMs_(String(t.due).slice(0, 10)) : null, note: t.notes || '' });
+  });
+  return out;
+}
+function taskAdd_(b) {
+  if (typeof Tasks === 'undefined') return { ok: false, error: 'Google Tasks service is off' };
+  var title = String(b.title || '').trim(); if (!title) return { ok: false, error: 'empty task' };
+  var t = { title: title }; if (b.due) t.due = b.due + 'T00:00:00.000Z';
+  var made = Tasks.Tasks.insert(t, '@default');
+  return { ok: true, id: made.id };
+}
+function taskDone_(b) {
+  if (typeof Tasks === 'undefined') return { ok: false, error: 'Google Tasks service is off' };
+  Tasks.Tasks.patch(b.done ? { status: 'completed' } : { status: 'needsAction', completed: null }, '@default', String(b.id));
+  return { ok: true };
 }
 
 // ---------- notes (issues noted on the phone, grade flags from the desktop) → Notes tab ----------
@@ -265,7 +297,7 @@ function gradesFromEngine_(ss, rulesSh) {
   var lastR = Math.max(rulesSh.getLastRow(), 17);
   var rules = rulesFromSheet_(rulesSh.getRange('A4:T13').getValues(), rulesSh.getRange(17, 1, lastR - 16, 14).getValues());
   var ash = ss.getSheetByName('Assignments'), lastA = Math.max(ash.getLastRow(), 3);
-  var items = itemsFromSheet_(ash.getRange(3, 2, lastA - 2, 6).getValues());
+  var items = itemsFromSheet_(ash.getRange(3, 2, lastA - 2, OUT_COL - 1).getValues());
   var att = ss.getSheetByName('Attendance'), absences = att ? absencesFromSheet_(att.getDataRange().getValues().slice(1)) : {};
   var cfg = ss.getSheetByName('Config').getRange(2, 1, 10, 4).getValues(), info = {};
   cfg.forEach(function (r) { var c = str_(r[0]).toLowerCase(); if (c) info[c] = { name: str_(r[1]), credits: Number(r[3]) || 0 }; });
@@ -351,6 +383,7 @@ function checkSetup() {
   msg.push('attendance: ' + readAttendance_(ss).length + ' classes');
   msg.push('weeks: ' + readWeeks_(ss).length + ' dividers');
   var ra = readRA_(ss); msg.push('RA tasks: ' + (ra ? ra.length : 'no RA tab'));
+  try { var td = readTodo_(); msg.push('google tasks: ' + (td ? td.length + ' tasks' : 'OFF — Services (+) → Google Tasks API → Add')); } catch (err) { msg.push('google tasks: PROBLEM — ' + err); }
   try { var ev = readEvents_().filter(function (x) { return !x.a; }); msg.push('calendar: ' + ev.length + ' upcoming timed events'); }
   catch (err) { msg.push('calendar: PROBLEM — ' + err); }
   Logger.log(msg.join('\n'));
