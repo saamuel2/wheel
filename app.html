@@ -687,7 +687,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.36';
+    const BUILD = '2.37';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -913,14 +913,11 @@
       const dl = `<div class="grp">countdown</div><div class="group">` + row('show', `<select class="sel" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>`) +
         (CD.mode === 'ldoc' ? row('date', `<input class="sin" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">`) : '') +
         (CD.mode === 'custom' ? row('title', `<input class="sin" type="text" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}">`) + row('date', `<input class="sin" type="date" data-cd="date" value="${esc(CD.date)}">`) : '') + '</div>';
-      const links = '<div class="grp">links</div><div class="group"><a class="lrow" href="' + SHEET_URL + '" target="_blank" rel="noopener">open spreadsheet</a><a class="lrow" href="https://go.ncsu.edu/timeclock" target="_blank" rel="noopener">time clock</a><button class="lrow" id="btn-sync">refresh data</button>' + (DEMO ? '' : '<button class="lrow" id="btn-loc">update location</button>') + '</div>';
       const iss = '<div class="grp">issues for next session</div><div class="group">' + ISS.map((i, n) => `<div class="task srow iss-row"><span class="iss">${esc(i.x)}</span><button class="rm" data-rmi="${n}">remove</button></div>`).join('') +
         '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in" placeholder="note an issue…" autocomplete="off" maxlength="300"><button class="iss-add" id="iss-add">add</button></div>' +
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
-      $('settings-card').innerHTML = th + dl + links + gr + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('data', DEMO ? 'demo snapshot' : 'live · google sheets') +
+      $('settings-card').innerHTML = th + dl + gr + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ↗</a>') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
-        r('screen', innerWidth + '×' + innerHeight + ' of ' + screen.width + '×' + screen.height + (navigator.standalone ? ' · app' : ' · browser')) +
-        r('layout', document.documentElement.clientHeight + ' · bar bottom ' + Math.round(innerHeight - $('nav-bar').getBoundingClientRect().bottom)) +
         '</div>';
     }
 
