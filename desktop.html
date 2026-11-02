@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#000000">
+<link rel="icon" type="image/png" href="icon.png">
+<title>tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
+<script>try{var t=localStorage.getItem('wheel-theme');if(t==='light'||t==='elegant'||t==='moody')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<style>
+  /* same tokens and themes as the phone app */
+  :root { --bg: #000; --card: #1C1C1E; --card2: #2C2C2E; --text: #fff; --sub: #8E8E93; --tint: #0A84FF; --sep: rgba(84,84,88,.55); --fill: rgba(118,118,128,.24);
+    --track: #38383A; --press: #2C2C2E; --chkc: #1C1C1E; --ph: #636366; --dtrack: rgba(255,255,255,.1); --red: #FF453A; --spring: cubic-bezier(.32,.72,0,1);
+    --serif: ui-serif, "New York", "Iowan Old Style", Georgia, serif; color-scheme: dark; }
+  html[data-theme=light] { --bg: #F2F2F7; --card: #fff; --card2: #F2F2F7; --text: #000; --sub: #6C6C70; --tint: #007AFF; --sep: rgba(60,60,67,.22); --fill: rgba(120,120,128,.12);
+    --track: #E5E5EA; --press: #E5E5EA; --chkc: #fff; --ph: #C7C7CC; --dtrack: rgba(60,60,67,.12); --red: #FF3B30; color-scheme: light; }
+  html[data-theme=elegant] { --bg: #E4D9C2; --card: #F2EAD9; --card2: #EAE0CB; --text: #183C40; --sub: #5E6E63; --tint: #2F6B4A; --sep: rgba(24,60,64,.17); --fill: rgba(24,60,64,.09);
+    --track: #D3C7AB; --press: #E8DEC8; --chkc: #F2EAD9; --ph: #A39C86; --dtrack: rgba(24,60,64,.12); --red: #A33A55; --serif: "Newsreader", ui-serif, Georgia, serif; color-scheme: light; }
+  html[data-theme=moody] { --bg: #141413; --card: #1F1F1C; --card2: #2A2A26; --text: #E6DCC8; --sub: #A8A599; --tint: #9DB27F; --sep: rgba(225,216,204,.14); --fill: rgba(225,216,204,.10);
+    --track: #2D2D29; --press: #2A2A26; --chkc: #141413; --ph: #66665C; --dtrack: rgba(225,216,204,.12); --red: #D8728A; --serif: "Newsreader", ui-serif, Georgia, serif; }
+  html[data-theme=elegant] .card, html[data-theme=elegant] .group { box-shadow: inset 0 0 0 .5px rgba(24,60,64,.14), 0 1px 3px rgba(24,60,64,.06); }
+  html[data-theme=moody] .card, html[data-theme=moody] .group { box-shadow: inset 0 0 0 .5px rgba(225,216,204,.10); }
+  html[data-theme=elegant] h1, html[data-theme=moody] h1, html[data-theme=elegant] .big, html[data-theme=moody] .big, html[data-theme=elegant] .wpct, html[data-theme=moody] .wpct,
+  html[data-theme=elegant] .dl, html[data-theme=moody] .dl { font-family: var(--serif); font-weight: 500; letter-spacing: 0; font-variant-numeric: lining-nums tabular-nums; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  a { color: var(--tint); text-decoration: none; }
+  .app { display: grid; grid-template-columns: 216px 1fr; height: 100vh; }
+
+  /* sidebar */
+  .side { padding: 22px 12px; display: flex; flex-direction: column; gap: 2px; border-right: .5px solid var(--sep); overflow-y: auto; }
+  .brand { font-size: 22px; font-weight: 800; letter-spacing: -.4px; padding: 0 10px 18px; }
+  .nav { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; color: var(--sub); border: 0; background: none; text-align: left; font-weight: 500; }
+  .nav svg { width: 20px; height: 20px; flex: none; }
+  .nav:hover { background: var(--fill); color: var(--text); }
+  .nav.on { background: var(--fill); color: var(--tint); }
+  .nav kbd { margin-left: auto; font: 11px ui-monospace, monospace; color: var(--ph); }
+  .side .grow { flex: 1; }
+  .sync { font-size: 12px; color: var(--sub); padding: 8px 10px; display: flex; align-items: center; gap: 6px; }
+  .sync i { width: 7px; height: 7px; border-radius: 50%; background: #30D158; }
+  .sync.off i { background: var(--red); } .sync.busy i { background: #FFD60A; }
+  .addbtn { margin: 4px 0 10px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border-radius: 10px; border: 0; background: var(--tint); color: #fff; font-weight: 600; }
+  html[data-theme=elegant] .addbtn, html[data-theme=moody] .addbtn { color: var(--bg); }
+
+  /* main */
+  main { overflow-y: auto; padding: 28px 36px 80px; }
+  .view { display: none; max-width: 1320px; margin: 0 auto; }
+  .view.on { display: block; animation: fade .15s ease-out; }
+  @keyframes fade { from { opacity: 0; transform: translateY(3px); } }
+  h1 { font-size: 30px; font-weight: 800; letter-spacing: -.5px; margin: 0; text-transform: lowercase; }
+  .head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  .head .sub { color: var(--sub); font-weight: 600; }
+  .head .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .card { background: var(--card); border-radius: 16px; padding: 18px 20px; }
+  .ct { font-size: 12px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .04em; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .ct .r { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; }
+  .btn { border: 0; background: var(--fill); padding: 7px 12px; border-radius: 9px; font-weight: 600; }
+  .btn:hover { filter: brightness(1.15); }
+  .btn.tint { background: var(--tint); color: #fff; } html[data-theme=elegant] .btn.tint, html[data-theme=moody] .btn.tint { color: var(--bg); }
+  .btn.ghost { background: none; color: var(--tint); padding: 4px 6px; }
+  .iconbtn { border: 0; background: var(--fill); width: 32px; height: 32px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+  .empty { color: var(--sub); padding: 18px 0; text-align: center; }
+  .muted { color: var(--sub); }
+  .seg { display: inline-flex; background: var(--fill); border-radius: 9px; padding: 2px; }
+  .seg button { border: 0; background: none; padding: 5px 12px; border-radius: 7px; font-weight: 600; font-size: 13px; }
+  .seg button.on { background: var(--card2); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+  html[data-theme=light] .seg button.on { background: #fff; }
+  input.txt, select.txt { background: var(--fill); border: 0; border-radius: 8px; padding: 7px 10px; outline: none; }
+  input.txt:focus, select.txt:focus { box-shadow: 0 0 0 2px var(--tint); }
+
+  /* dashboard */
+  .dash { display: grid; gap: 20px; }
+  .glance { display: grid; grid-template-columns: 300px repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+  .glance .col { display: grid; gap: 20px; align-content: start; }
+  .lower { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .stack { display: grid; gap: 20px; }
+  .wk { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .wk .lbl { font-weight: 700; color: var(--sub); }
+  .wheel { position: relative; width: 100%; aspect-ratio: 1; max-width: 230px; margin: 0 auto 6px; }
+  .wheel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wheel .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .wpct { font-size: 44px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .wfrac { color: var(--sub); font-weight: 700; margin-top: 4px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; font-size: 12px; color: var(--sub); }
+  .legend b { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 5px; }
+  .tile .big { font-size: 26px; font-weight: 800; letter-spacing: -.4px; }
+  .ev { padding: 7px 0; border-top: .5px solid var(--sep); } .ev:first-of-type { border-top: 0; }
+  .ev .n { font-weight: 600; } .ev .w { color: var(--sub); font-size: 12px; }
+  .days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+  .day { background: var(--card); border-radius: 14px; padding: 10px; min-height: 180px; display: flex; flex-direction: column; gap: 6px; }
+  .day.today { box-shadow: inset 0 0 0 2px var(--tint); }
+  .day.past { opacity: .62; }
+  .dh { display: flex; align-items: baseline; gap: 6px; padding: 0 2px 4px; }
+  .dh .dn { font-weight: 800; text-transform: lowercase; } .dh .dd { color: var(--sub); font-size: 12px; font-weight: 600; }
+  .dh .dc { margin-left: auto; font-size: 11px; color: var(--sub); }
+  .chip { display: flex; gap: 7px; align-items: flex-start; padding: 7px 8px; border-radius: 10px; background: var(--card2); border-left: 3px solid var(--c); }
+  .chip .tx { min-width: 0; flex: 1; } .chip .nm { font-size: 13px; font-weight: 600; line-height: 1.25; overflow-wrap: break-word; hyphens: auto; }
+  .chip .mt { font-size: 11px; color: var(--sub); } .chip.done .nm { text-decoration: line-through; color: var(--sub); }
+  .chk { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--c); background: none; padding: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; }
+  .chk svg { opacity: 0; } .done > .chk, .chk.on { background: var(--c); } .done > .chk svg, .chk.on svg { opacity: 1; }
+  .overdue { margin-bottom: 20px; }
+  .overdue .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .overdue .chip { width: 260px; }
+  .ct .late { color: var(--red); }
+  .gcard .masked { filter: blur(9px); pointer-events: none; user-select: none; }
+  .gmini { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .gm { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: var(--card2); border: 0; text-align: left; }
+  .gm .dl { font-size: 22px; font-weight: 800; min-width: 38px; }
+  .gm .cn { font-weight: 700; font-size: 13px; } .gm .cp { font-size: 12px; color: var(--sub); }
+  .eye { border: 0; background: none; color: var(--tint); font-weight: 600; padding: 0; }
+  .bar { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; margin-top: 8px; } .bar i { display: block; height: 100%; background: var(--tint); border-radius: 3px; }
+
+  /* sheet */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fchip { border: 0; padding: 5px 10px; border-radius: 14px; background: var(--fill); font-weight: 600; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .fchip b { width: 8px; height: 8px; border-radius: 4px; background: var(--c); }
+  .fchip.on { box-shadow: inset 0 0 0 2px var(--c); background: var(--card); }
+  table.grid { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card); border-radius: 14px; overflow: hidden; }
+  .grid th { text-align: left; font-size: 12px; color: var(--sub); font-weight: 700; padding: 10px 10px; border-bottom: .5px solid var(--sep); position: sticky; top: 0; background: var(--card); z-index: 1; }
+  .grid td { padding: 6px 10px; border-bottom: .5px solid var(--sep); vertical-align: middle; }
+  .grid tr.row:hover td { background: var(--fill); }
+  .grid tr.row.done td.nm { color: var(--sub); }
+  .grid tr.row.late td.due { color: var(--red); font-weight: 700; }
+  .grid tr.wkh td { background: var(--card2); font-size: 12px; font-weight: 700; color: var(--sub); padding: 6px 10px; text-transform: lowercase; }
+  .grid tr.wkh td span { float: right; font-weight: 600; }
+  .grid td.cls b { color: var(--c); font-weight: 700; }
+  .grid td.nm { font-weight: 600; cursor: pointer; } .grid td.nm:hover { color: var(--tint); }
+  .gin { width: 76px; background: var(--fill); border: 0; border-radius: 7px; padding: 5px 7px; text-align: right; outline: none; font-variant-numeric: tabular-nums; }
+  .gin.o { width: 56px; } .gin:focus { box-shadow: 0 0 0 2px var(--tint); }
+  .gin.saving { opacity: .55; } .gin.bad { box-shadow: 0 0 0 2px var(--red); }
+  .grid td.w36 { width: 36px; } .grid td.due { width: 92px; white-space: nowrap; font-variant-numeric: tabular-nums; } .grid td.cls { width: 84px; } .grid td.ty { width: 56px; color: var(--sub); }
+
+  /* grades */
+  .gtop { display: grid; grid-template-columns: 300px 1fr; gap: 20px; margin-bottom: 20px; }
+  .gpa .big { font-size: 46px; } .gpa .rows { margin-top: 10px; font-size: 13px; }
+  .gpa .rows div { display: flex; justify-content: space-between; padding: 4px 0; border-top: .5px solid var(--sep); }
+  .ccards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  .cc { background: var(--card); border-radius: 16px; padding: 16px; border: 0; text-align: left; display: flex; flex-direction: column; gap: 6px; }
+  .cc:hover { box-shadow: inset 0 0 0 2px var(--c); }
+  .cc .top { display: flex; align-items: baseline; gap: 8px; } .cc .code { font-weight: 800; color: var(--c); } .cc .nmx { color: var(--sub); font-size: 13px; }
+  .cc .pf { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--sub); background: var(--fill); padding: 2px 6px; border-radius: 6px; }
+  .donut { position: relative; width: 150px; height: 150px; margin: 6px auto; }
+  .donut svg { width: 100%; height: 100%; }
+  .donut .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .donut .dl { font-size: 34px; font-weight: 800; line-height: 1; } .donut .cp { color: var(--sub); font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .hidden-note { text-align: center; padding: 40px 0; }
+
+  /* drawer + modal */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 40; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(600px, 92vw); background: var(--bg); box-shadow: -10px 0 40px rgba(0,0,0,.35); transform: translateX(105%);
+    transition: transform .32s var(--spring); z-index: 50; overflow-y: auto; padding: 24px 26px 60px; }
+  .drawer.on { transform: none; }
+  .drawer h2 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.3px; }
+  .dhd { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .dhd .x { margin-left: auto; }
+  .kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .kv .card { padding: 12px 14px; } .kv .k { font-size: 12px; color: var(--sub); font-weight: 600; } .kv .v { font-size: 24px; font-weight: 800; }
+  table.cats { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cats th { text-align: left; color: var(--sub); font-weight: 700; font-size: 12px; padding: 6px 4px; border-bottom: .5px solid var(--sep); }
+  .cats td { padding: 7px 4px; border-bottom: .5px solid var(--sep); vertical-align: top; } .cats td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .cats .note { color: var(--sub); font-size: 12px; }
+  ol.trace { margin: 0; padding-left: 22px; font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+  ol.trace li::marker { color: var(--ph); }
+  .wi { display: grid; grid-template-columns: 1fr 70px 56px; gap: 6px 8px; align-items: center; font-size: 13px; }
+  .wi .h { font-size: 11px; color: var(--sub); font-weight: 700; }
+  .wi .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .wi .nm small { color: var(--sub); }
+  .wi .gin.changed { box-shadow: 0 0 0 2px #FFD60A; }
+  .delta { font-weight: 700; } .delta.up { color: #30D158; } .delta.dn { color: var(--red); }
+  .sec { margin-top: 22px; }
+  textarea.txt { width: 100%; min-height: 70px; background: var(--fill); border: 0; border-radius: 10px; padding: 10px; outline: none; resize: vertical; }
+  .modal { position: fixed; left: 50%; top: 8vh; transform: translate(-50%, -8px) scale(.98); width: min(720px, 94vw); max-height: 84vh; overflow-y: auto; background: var(--bg);
+    border-radius: 18px; box-shadow: 0 20px 60px rgba(0,0,0,.45); padding: 22px 24px; z-index: 50; opacity: 0; pointer-events: none; transition: opacity .18s, transform .25s var(--spring); }
+  .modal.on { opacity: 1; pointer-events: auto; transform: translate(-50%, 0) scale(1); }
+  .form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .form label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: var(--sub); }
+  .form .full { grid-column: 1 / -1; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; align-items: center; }
+  .actions .l { margin-right: auto; font-size: 12px; color: var(--sub); }
+  table.prev { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  .prev td, .prev th { padding: 4px; border-bottom: .5px solid var(--sep); text-align: left; } .prev input, .prev select { width: 100%; }
+
+  /* attendance + extras */
+  .acards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .ac .n { font-size: 34px; font-weight: 800; } .ac .rule { color: var(--sub); font-size: 13px; min-height: 36px; }
+  .dates { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .dchip { background: var(--fill); border-radius: 8px; padding: 3px 4px 3px 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .dchip button { border: 0; background: none; color: var(--sub); padding: 0 4px; font-size: 14px; line-height: 1; }
+  .xlist .xi { display: flex; gap: 10px; align-items: center; padding: 9px 4px; border-bottom: .5px solid var(--sep); }
+  .xlist .xi .t { flex: 1; } .xlist .xi .d { color: var(--sub); font-size: 12px; white-space: nowrap; } .xlist .xi.done .t { color: var(--sub); text-decoration: line-through; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+  /* settings */
+  .set { max-width: 640px; display: grid; gap: 16px; }
+  .set .row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: .5px solid var(--sep); } .set .row:first-of-type { border-top: 0; }
+  .set .row > span { flex: 1; }
+  .themes { display: flex; gap: 8px; }
+
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px); background: var(--card2); color: var(--text); padding: 10px 14px 10px 18px; border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.35); display: flex; gap: 12px; align-items: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .3s var(--spring); z-index: 60; font-weight: 600; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .connect { max-width: 520px; margin: 12vh auto; }
+
+  @media (max-width: 1180px) { .glance { grid-template-columns: 280px 1fr 1fr; } .glance .col.c3 { grid-column: 2 / -1; grid-template-columns: 1fr 1fr; display: grid; } .lower { grid-template-columns: 1fr; } }
+  @media (max-width: 980px) { .days { grid-template-columns: repeat(4, minmax(0, 1fr)); } .gtop { grid-template-columns: 1fr; } .glance { grid-template-columns: 1fr 1fr; } .glance .col.c3 { grid-column: auto; } }
+  @media (max-width: 760px) { .app { grid-template-columns: 1fr; } .side { display: none; } main { padding: 20px 16px; } .days { grid-template-columns: 1fr 1fr; } .two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="side" id="side">
+    <div class="brand">tracker</div>
+    <button class="addbtn" data-act="add"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>add assignment</button>
+    <button class="nav on" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard<kbd>1</kbd></button>
+    <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet<kbd>2</kbd></button>
+    <button class="nav" data-view="grades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades<kbd>3</kbd></button>
+    <button class="nav" data-view="att"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>attendance<kbd>4</kbd></button>
+    <button class="nav" data-view="extra"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg>ra &amp; extras<kbd>5</kbd></button>
+    <div class="grow"></div>
+    <button class="nav" data-view="settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.47.47 0 0 0-.47.41l-.36 2.54a7.4 7.4 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.73 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.04.3-.08.63-.08.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>settings</button>
+    <div class="sync" id="sync"><i></i><span>loading…</span></div>
+  </nav>
+
+  <main id="main">
+    <section class="view on" id="v-dash"></section>
+    <section class="view" id="v-sheet"></section>
+    <section class="view" id="v-grades"></section>
+    <section class="view" id="v-att"></section>
+    <section class="view" id="v-extra"></section>
+    <section class="view" id="v-settings"></section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+<div class="modal" id="modal"></div>
+<div class="toast" id="toast"><span id="toast-msg"></span><button class="btn ghost" id="toast-btn">undo</button></div>
+
+<script src="engine.js"></script>
+<script>
+'use strict';
+// ===================== connection =====================
+const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
+const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
+const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+let KEY = store.get('wheel-token', '');
+
+// ===================== helpers =====================
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m]));
+const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'], MONS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+const D0 = ms => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const today = () => D0(Date.now());
+const md = ms => { const d = new Date(ms); return (d.getMonth() + 1) + '/' + d.getDate(); };
+const dayLabel = ms => { const d = new Date(ms); return DAYS[d.getDay()] + ' ' + md(ms); };
+const ymd = ms => { const d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const fromYmd = s => { const p = String(s).split('-'); return new Date(+p[0], p[1] - 1, +p[2]).getTime(); };
+const weekStart = ms => { const d = new Date(D0(ms)); d.setDate(d.getDate() - d.getDay()); return d.getTime(); };
+const addDays = (ms, n) => { const d = new Date(ms); d.setDate(d.getDate() + n); return d.getTime(); };   // calendar days, safe across daylight-saving changes
+const f2 = n => n == null || n === '' || isNaN(n) ? '–' : (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, '');
+const fmtG = g => g == null || g === '' ? '' : (typeof g === 'number' ? f2(g) : String(g));
+const fmtT = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
+const CHECK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--chkc)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const EXTRA = ['wv', 'lab', 'hc', 'honors'];   // extracurricular "classes": never graded
+const isExtra = c => EXTRA.includes(String(c || '').toLowerCase()) || /^\W*$/.test(String(c || '').replace(/[‎‏\s]/g, ''));
+
+// colours: the phone's palette for this semester's classes; any new class code gets a stable colour from the same family
+const COLORS = { bch351: '#b2e2b6', bio240: '#9ed2f6', bsc494: '#e4b39b', gn427: '#d3f1bf', gn521: '#91e3d6', pb421: '#c2c7f8', phi325: '#fbe0a3', e115: '#e2d5f8', wv: '#A6A6B1', lab: '#A6A6B1', hc: '#A6A6B1' };
+const SPARE = ['#b2e2b6', '#9ed2f6', '#e4b39b', '#d3f1bf', '#91e3d6', '#c2c7f8', '#fbe0a3', '#e2d5f8', '#f6b8c9', '#bfe6ef'];
+const TMAP = {
+  light: { '#b2e2b6': '#2FA84F', '#9ed2f6': '#2F8FD8', '#e4b39b': '#D9714A', '#d3f1bf': '#6BB33A', '#91e3d6': '#14A89A', '#c2c7f8': '#6670D8', '#fbe0a3': '#E09A14', '#e2d5f8': '#9A62D8', '#A6A6B1': '#8E8E93', '#f6b8c9': '#D9577D', '#bfe6ef': '#2C9DB5' },
+  elegant: { '#b2e2b6': '#426345', '#9ed2f6': '#4F7F86', '#e4b39b': '#8C5A7A', '#d3f1bf': '#5E9A5A', '#91e3d6': '#3F7A5C', '#c2c7f8': '#6A5A8C', '#fbe0a3': '#A0627A', '#e2d5f8': '#5E7A56', '#A6A6B1': '#7A8478', '#f6b8c9': '#9A4E62', '#bfe6ef': '#4A7480' }
+};
+TMAP.moody = TMAP.elegant;
+let THEME = document.documentElement.getAttribute('data-theme') || 'default';
+function colorFor(code) {
+  const k = String(code || '').toLowerCase().replace(/\s+/g, '');
+  let c = COLORS[k];
+  if (!c) { let h = 0; for (const ch of k) h = (h * 31 + ch.charCodeAt(0)) >>> 0; c = SPARE[h % SPARE.length]; }
+  const m = TMAP[THEME]; return (m && m[c]) || c;
+}
+const spaceCode = c => String(c || '').replace(/^([a-z]+)(\d+)$/i, (m, a, b) => a.toUpperCase() + ' ' + b);
+
+// ===================== data =====================
+let data = null, lastSync = 0, syncState = 'busy', fetching = false;
+const OV = {};                                // local edits that stay on screen until the sheet shows them (or 90 s pass)
+const kOf = a => a.c + '|' + a.n + '|' + a.t;
+function setOv(a, fields, add) { const k = kOf(a), o = OV[k] || (OV[k] = { base: Object.assign({}, a), f: {}, add: !!add }); Object.assign(o.f, fields); o.exp = Date.now() + 90000; }
+const same = (x, y) => String(x == null ? '' : x) === String(y == null ? '' : y);
+function applyOv(d) {
+  const L = d.assignments || [], now = Date.now();
+  Object.keys(OV).forEach(k => {
+    const o = OV[k]; if (now > o.exp) { delete OV[k]; return; }
+    const cur = L.find(x => kOf(x) === kOf(Object.assign({}, o.base, o.f))) || L.find(x => kOf(x) === k);
+    if (cur && Object.keys(o.f).every(p => same(cur[p], o.f[p]))) { delete OV[k]; return; }
+    if (cur) Object.assign(cur, o.f); else if (o.add) L.push(Object.assign({}, o.base, o.f));
+  });
+}
+function editing() { const a = document.activeElement; return a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && !a.closest('.modal,.drawer') ? true : $('modal').classList.contains('on'); }
+
+function load(silent) {
+  if (DEMO) { if (!data) { data = demoData(); lastSync = Date.now(); setSync('ok'); renderAll(); } return Promise.resolve(); }
+  if (!KEY) { setSync('off', 'not connected'); renderAll(); return Promise.resolve(); }
+  if (fetching) return Promise.resolve(); fetching = true; if (!silent) setSync('busy');
+  return fetch(API + '?token=' + encodeURIComponent(KEY)).then(r => r.json()).then(d => {
+    fetching = false;
+    if (d.error) { setSync('off', d.error === 'bad token' ? 'wrong connection key' : d.error); if (d.error === 'bad token') { data = null; renderAll(); } return; }
+    applyOv(d); lastSync = Date.now(); setSync('ok');
+    if (editing()) { pendingData = d; return; }
+    data = d; store.set('desk-cache', d); renderAll();
+  }).catch(() => { fetching = false; setSync('off', 'offline — showing last copy'); });
+}
+let pendingData = null;
+setInterval(() => { if (pendingData && !editing()) { data = pendingData; pendingData = null; renderAll(); } }, 1500);
+function setSync(s, msg) {
+  syncState = s; const el = $('sync'); el.className = 'sync' + (s === 'off' ? ' off' : s === 'busy' ? ' busy' : '');
+  el.querySelector('span').textContent = msg || (s === 'busy' ? 'syncing…' : s === 'ok' ? (DEMO ? 'demo data' : 'synced ' + fmtT(lastSync)) : 'offline');
+}
+function post(body) {
+  if (DEMO) return Promise.resolve({ ok: true });
+  return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(Object.assign({ token: KEY }, body)) })
+    .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error((j && j.error) || 'save failed'); return j; });
+}
+const cached = store.get('desk-cache', null);
+if (!DEMO && cached && KEY) { data = cached; }
+
+// ===================== course info =====================
+function courseList() {
+  const out = [], seen = new Set();
+  ((data && data.courses) || []).forEach(s => { const code = s.split(' ')[0]; if (!seen.has(code)) { seen.add(code); out.push({ code, name: s.slice(code.length + 1) }); } });
+  return out;
+}
+const courseName = code => (courseList().find(c => c.code === code) || {}).name || '';
+function typesFor(code) {
+  const g = gradeOf(code), set = new Map();
+  if (g) g.cats.forEach(k => set.set(k.abbr, k.name));
+  ((data && data.assignments) || []).forEach(a => { if (a.c === code && a.y && !set.has(a.y)) set.set(a.y, a.y); });
+  return [...set].map(([abbr, name]) => ({ abbr, name }));
+}
+const gradeOf = code => data && data.grades && data.grades.courses.find(c => c.code === code);
+function revive(o) { return JSON.parse(JSON.stringify(o), (k, v) => v === '-inf' ? -Infinity : v === 'inf' ? Infinity : v); }
+
+// ===================== actions =====================
+let toastT = null, undoFn = null;
+function toast(msg, undo) { $('toast-msg').textContent = msg; $('toast-btn').style.display = undo ? '' : 'none'; undoFn = undo || null; $('toast').classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $('toast').classList.remove('on'), undo ? 4000 : 2600); }
+$('toast-btn').onclick = () => { if (undoFn) undoFn(); $('toast').classList.remove('on'); };
+const find = (r, n, c) => data.assignments.find(x => String(x.r) === String(r) && x.n === n && x.c === c);
+
+function toggleDone(a) {
+  const to = !a.d; a.d = to; setOv(a, { d: to }); renderAll();
+  let undone = false;
+  const t = setTimeout(() => { if (undone) return;
+    post({ action: to ? 'done' : 'undone', row: a.r, n: a.n, c: a.c }).catch(() => { a.d = !to; setOv(a, { d: !to }); renderAll(); toast('couldn’t save — try again'); }); }, 2500);
+  toast(to ? 'marked done' : 'marked not done', () => { undone = true; clearTimeout(t); a.d = !to; setOv(a, { d: !to }); renderAll(); });
+}
+function saveField(a, field, raw, input) {
+  const key = field === 'g' ? 'grade' : field === 'o' ? 'outOf' : field;
+  let v = String(raw).trim(); const prev = a[field];
+  if (field === 'o' && v !== '' && isNaN(Number(v))) { input && input.classList.add('bad'); return; }
+  if (field === 'g' && v !== '' && !/^-?[\d.]+(\s*\/\s*[\d.]+|\s*%)?$/.test(v)) { input && input.classList.add('bad'); return; }
+  const val = v === '' ? '' : (isNaN(Number(v)) ? v : Number(v));
+  if (same(prev, val)) return;
+  a[field] = val; setOv(a, { [field]: val }); if (input) { input.classList.remove('bad'); input.classList.add('saving'); }
+  if (field === 'g' && val !== '' && !a.d) { a.d = true; setOv(a, { d: true }); }      // a grade means it's done
+  post({ action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: Object.assign({ [key]: val }, field === 'g' && a.d ? { done: true } : {}) })
+    .then(() => { if (input) input.classList.remove('saving'); if (field === 'g' && !DEMO) setTimeout(() => load(true), 1500); else if (DEMO) { regrade(); renderAll(); } })
+    .catch(() => { a[field] = prev; setOv(a, { [field]: prev }); renderAll(); toast('couldn’t save — try again'); });
+}
+
+// ===================== render =====================
+let VIEW = store.get('desk-view', 'dash'), weekOff = 0, showGrades = false;
+function go(v) { VIEW = v; store.set('desk-view', v); document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v)); document.querySelectorAll('.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + v)); renderAll(); $('main').scrollTop = 0; }
+function renderAll() {
+  if (!DEMO && !KEY) { $('v-' + VIEW).innerHTML = connectHtml(); return; }
+  const fn = { dash: renderDash, sheet: renderSheet, grades: renderGrades, att: renderAtt, extra: renderExtra, settings: renderSettings }[VIEW];
+  const v = $('v-' + VIEW);
+  if (!data && VIEW !== 'settings') { v.innerHTML = '<div class="empty" style="padding-top:20vh">loading…</div>'; return; }
+  const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.k ? { k: ae.dataset.k, s: ae.selectionStart, e: ae.selectionEnd } : null;
+  fn(v);
+  if (keep) { const el = v.querySelector('[data-k="' + CSS.escape(keep.k) + '"]'); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (x) {} } }
+}
+function connectHtml() {
+  return `<div class="connect card"><div class="ct">connect to your sheet</div><p>Paste the connection key from your Apps Script backend (Project Settings → Script properties → <b>TOKEN</b>). It stays in this browser only.</p>
+    <div style="display:flex;gap:8px"><input class="txt" id="key-in" style="flex:1" placeholder="connection key" autocomplete="off"><button class="btn tint" data-act="savekey">connect</button></div>
+    <p class="muted" style="font-size:12px">Or open <a href="?demo">the demo</a> to look around with made-up data.</p></div>`;
+}
+const greet = () => { const h = new Date().getHours(), n = store.get('wheel-greet', {}).name || 'sam'; return (h < 5 ? 'up late' : h < 12 ? 'good morning' : h < 17 ? 'good afternoon' : 'good evening') + ', ' + n; };
+
+function chipHtml(a, showDay) {
+  const col = colorFor(a.c), meta = [spaceCode(a.c), a.y, showDay ? dayLabel(a.t) : '', fmtG(a.g)].filter(Boolean).join(' · ');
+  return `<div class="chip${a.d ? ' done' : ''}" style="--c:${col}" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}">` +
+    `<button class="chk" data-act="done" aria-label="done">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${esc(meta)}</div></div></div>`;
+}
+
+// ---------- dashboard ----------
+function renderDash(v) {
+  const A = data.assignments, ws = addDays(weekStart(Date.now()), weekOff * 7), we = addDays(ws, 7), T = today();
+  const wk = A.filter(a => a.t >= ws && a.t < we), done = wk.filter(a => a.d).length;
+  const late = A.filter(a => !a.d && a.t < T && !isExtra(a.c)).sort((x, y) => x.t - y.t);
+  const lbl = weekOff === 0 ? 'this week' : weekOff === -1 ? 'last week' : weekOff === 1 ? 'next week' : weekOff > 0 ? 'in ' + weekOff + ' weeks' : -weekOff + ' weeks ago';
+  let days = '';
+  for (let i = 0; i < 7; i++) {
+    const d0 = addDays(ws, i), list = wk.filter(a => D0(a.t) === D0(d0)).sort((x, y) => (x.d - y.d) || String(x.c).localeCompare(y.c));
+    const left = list.filter(a => !a.d).length;
+    days += `<div class="day${D0(d0) === T ? ' today' : D0(d0) < T ? ' past' : ''}"><div class="dh"><span class="dn">${DAYS[new Date(d0).getDay()]}</span><span class="dd">${md(d0)}</span>${list.length ? `<span class="dc">${left ? left + ' left' : 'done'}</span>` : ''}</div>` +
+      (list.map(a => chipHtml(a)).join('') || '<div class="muted" style="font-size:12px;padding:0 2px">nothing due</div>') + '</div>';
+  }
+  v.innerHTML = `<div class="head"><h1>${esc(greet())}</h1><span class="sub">${DAYS[new Date().getDay()]} ${MONS[new Date().getMonth()]} ${new Date().getDate()}</span>
+      <div class="tools"><button class="btn" data-act="paste">paste from moodle</button><button class="btn tint" data-act="add">add</button></div></div>
+    <div class="dash">
+      <div class="glance">
+        <div class="card"><div class="wk"><button class="iconbtn" data-act="wk-" aria-label="previous week">‹</button><span class="lbl">${lbl}</span><button class="iconbtn" data-act="wk+" aria-label="next week">›</button></div>
+          <div class="wheel"><svg viewBox="0 0 200 200">${wheelSvg(wk)}</svg><div class="c"><div class="wpct">${wk.length ? Math.round(done / wk.length * 100) : 0}%</div><div class="wfrac">${done}/${wk.length} done</div></div></div>
+          <div class="legend">${wheelCourses(wk).map(c => `<span><b style="background:${colorFor(c)}"></b>${esc(spaceCode(c))}</span>`).join('')}</div></div>
+        <div class="col">${nextUpHtml()}</div>
+        <div class="col">${budgetHtml()}${countdownHtml()}</div>
+        <div class="col c3">${dashGradesHtml()}</div>
+      </div>
+      ${late.length ? `<div class="overdue"><div class="ct"><span class="late">overdue · ${late.length}</span></div><div class="chips">${late.map(a => chipHtml(a, true)).join('')}</div></div>` : ''}
+      <div><div class="ct">${lbl}<span class="r">${wk.length - done} to do</span></div><div class="days">${days}</div></div>
+      <div class="lower">${dashExtrasHtml()}<div></div></div>
+    </div>`;
+}
+function wheelCourses(wk) { const seen = []; wk.forEach(a => { if (!seen.includes(a.c) && a.c && !/^\W*$/.test(a.c.replace(/[‎‏\s]/g, ''))) seen.push(a.c); }); return seen.sort(); }
+function wheelSvg(wk) {
+  const R = 96, CUT = .54, MAXT = 20, GAP = 2.5, cs = wheelCourses(wk);
+  if (!cs.length) return `<circle cx="100" cy="100" r="${R - 9}" fill="none" stroke-width="18" stroke="var(--track)"/>`;
+  const th = Math.min(MAXT, R * (1 - CUT) / cs.length); let h = '';
+  cs.forEach((c, i) => {
+    const mine = wk.filter(a => a.c === c), pct = mine.filter(a => a.d).length / mine.length, rad = R - i * th - th / 2, w = Math.max(th - GAP, 2), col = colorFor(c);
+    h += `<circle cx="100" cy="100" r="${rad}" fill="none" stroke-width="${w}" stroke="var(--track)"/>`;
+    if (pct >= .999) h += `<circle cx="100" cy="100" r="${rad}" fill="none" stroke="${col}" stroke-width="${w}"/>`;
+    else if (pct > 0) {
+      const t1 = pct * 2 * Math.PI, r1 = rad - w / 2, r2 = rad + w / 2, tc = Math.max(t1 - Math.min(.41 * w / rad, t1 * .6), 0), big = tc > Math.PI ? 1 : 0;
+      const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
+      h += `<path d="M${P(r2, 0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(rad, t1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, 0)}Z" fill="${col}"/>`;
+    }
+  });
+  return h;
+}
+function nextUpHtml() {
+  const ev = data.events, now = Date.now();
+  if (!ev) return '';
+  const up = ev.filter(e => !e.a && (e.t > now || e.e > now)).slice(0, 4);
+  return `<div class="card tile"><div class="ct">next up</div>` + (up.length ? up.map(e => `<div class="ev"><div class="n">${esc(e.n)}</div><div class="w">${e.t <= now ? 'now · until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ' · ' + fmtT(e.t)}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') + '</div>';
+}
+function budgetHtml() {
+  const W = data.weeks; if (!W || !W.length) return '';
+  const T = today(), next = W.find(w => w.t >= T && w.budget != null), prev = [...W].reverse().find(w => w.t < T && w.budget != null);
+  if (!next) return '';
+  const perWeek = prev ? prev.budget - next.budget : null, days = Math.round((next.t - T) / 864e5);
+  return `<div class="card tile"><div class="ct">food budget<span class="r muted">GET</span></div><div class="big">$${f2(next.budget)}</div>
+    <div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div>
+    ${perWeek != null ? `<div class="muted" style="margin-top:6px">$${f2(perWeek)} to spend this week</div>` : ''}</div>`;
+}
+function countdownHtml() {
+  const cd = store.get('wheel-cd', {}), ldoc = fromYmd(cd.ldoc || '2026-12-08'), T = today(), d = Math.round((ldoc - T) / 864e5);
+  const togo = data.assignments.filter(a => !a.d && a.t < ldoc + 864e5 && !isExtra(a.c)).length, all = data.assignments.filter(a => !isExtra(a.c)).length;
+  return `<div class="card tile"><div class="ct">last day of classes</div><div class="big">${d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>
+    <div class="muted">${togo} assignment${togo === 1 ? '' : 's'} to go</div><div class="bar"><i style="width:${all ? Math.round((1 - togo / all) * 100) : 0}%"></i></div></div>`;
+}
+function dashGradesHtml() {
+  const g = data.grades; if (!g) return '';
+  return `<div class="card gcard"><div class="ct">grades<span class="r"><button class="eye" data-act="eye">${showGrades ? 'hide' : 'show'}</button></span></div>
+    <div class="${showGrades ? '' : 'masked'}"><div class="gmini">${g.courses.map(c => `<button class="gm" data-act="course" data-code="${esc(c.code)}" style="--c:${colorFor(c.code)}">
+      <span class="dl" style="color:${colorFor(c.code)}">${esc(c.letter || '–')}</span><span><div class="cn">${esc(spaceCode(c.code))}</div><div class="cp">${c.raw != null ? f2(c.raw) + (c.scaleGP ? ' pts' : '%') : 'no grades yet'}</div></span></button>`).join('')}</div></div></div>`;
+}
+function dashExtrasHtml() {
+  const T = today(), ra = (data.ra || []).filter(x => !x.d && x.t != null && x.t >= T - 7 * 864e5 && x.t < T + 14 * 864e5).sort((x, y) => x.t - y.t);
+  const ex = data.assignments.filter(a => isExtra(a.c) && !a.d && a.c && a.t < T + 14 * 864e5 && !/^\W*$/.test(a.c.replace(/[‎‏\s]/g, ''))).sort((x, y) => x.t - y.t);
+  if (!ra.length && !ex.length) return '';
+  return `<div class="card"><div class="ct">ra &amp; extras · next two weeks<span class="r"><button class="eye" data-act="go" data-view="extra">open</button></span></div><div class="xlist">` +
+    ra.slice(0, 5).map(x => xiHtml(x, 'ra')).join('') + ex.slice(0, 5).map(a => `<div class="xi"><button class="chk" style="--c:${colorFor(a.c)}" data-act="done" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}">${CHECK}</button><span class="t">${esc(a.n)}</span><span class="d">${esc(a.c)} · ${dayLabel(a.t)}</span></div>`).join('') + '</div></div>';
+}
+const xiHtml = (x, kind) => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted">· ${esc(x.note)}</span>` : ''}</span><span class="d">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
+
+// ---------- sheet ----------
+let SF = store.get('desk-sf', { f: 'upcoming', cls: [], q: '' });
+function renderSheet(v) {
+  const A = data.assignments, T = today(), ws = weekStart(Date.now()), nws = addDays(ws, 7), pws = addDays(ws, -7);
+  const F = [['upcoming', 'upcoming'], ['week', 'this week'], ['grade', 'to grade'], ['done', 'done'], ['all', 'all']];
+  let list = A.filter(a => SF.f === 'upcoming' ? !a.d : SF.f === 'done' ? a.d : SF.f === 'grade' ? (a.d && (a.g == null || a.g === '') && !isExtra(a.c)) : SF.f === 'week' ? (a.t >= ws && a.t < nws) : true);
+  if (SF.cls.length) list = list.filter(a => SF.cls.includes(a.c));
+  if (SF.q) { const q = SF.q.toLowerCase(); list = list.filter(a => (a.n + ' ' + a.c + ' ' + a.y).toLowerCase().includes(q)); }
+  list.sort((x, y) => (x.t - y.t) || String(x.c).localeCompare(y.c) || (x.r - y.r)); if (SF.f === 'done') list.reverse();
+  const classes = [...new Set(A.map(a => a.c).filter(c => c && !/^\W*$/.test(c.replace(/[‎‏\s]/g, ''))))].sort();
+  const weeks = data.weeks || [];
+  let rows = '', lastW = null;
+  list.forEach(a => {
+    const w = weekStart(a.t);
+    if (w !== lastW) {
+      lastW = w; const div = weeks.find(x => x.t >= w && x.t < addDays(w, 7));
+      const w6 = addDays(w, 6), lab = w === ws ? 'this week' : w === nws ? 'next week' : w === pws ? 'last week' : MONS[new Date(w).getMonth()] + ' ' + new Date(w).getDate() + ' – ' + MONS[new Date(w6).getMonth()] + ' ' + new Date(w6).getDate();
+      rows += `<tr class="wkh"><td colspan="7">${lab}${div && div.budget != null ? `<span>$${f2(div.budget)} food budget by ${dayLabel(div.t)}</span>` : ''}</td></tr>`;
+    }
+    const col = colorFor(a.c), late = !a.d && a.t < T;
+    rows += `<tr class="row${a.d ? ' done' : ''}${late ? ' late' : ''}" style="--c:${col}" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}">
+      <td class="w36"><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td><td class="due">${dayLabel(a.t)}</td>
+      <td class="nm" data-act="edit">${esc(a.n)}</td><td class="cls"><b>${esc(a.c)}</b></td><td class="ty">${esc(a.y)}</td>
+      <td><input class="gin" data-f="g" data-k="g|${esc(kOf(a))}" value="${esc(fmtG(a.g))}" placeholder="–" autocomplete="off"></td>
+      <td><input class="gin o" data-f="o" data-k="o|${esc(kOf(a))}" value="${a.o == null ? '' : esc(a.o)}" placeholder="" autocomplete="off"></td></tr>`;
+  });
+  v.innerHTML = `<div class="head"><h1>sheet</h1><span class="sub">${list.length} shown</span><div class="tools"><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">open google sheet</a><button class="btn" data-act="paste">paste from moodle</button><button class="btn tint" data-act="add">add</button></div></div>
+    <div class="toolbar"><div class="seg">${F.map(f => `<button class="${SF.f === f[0] ? 'on' : ''}" data-act="sf" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
+      <div class="chips">${classes.map(c => `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><b></b>${esc(c)}</button>`).join('')}</div>
+      <input class="txt" id="sq" data-k="sq" placeholder="search  /" value="${esc(SF.q)}" style="margin-left:auto;width:220px"></div>
+    <table class="grid"><colgroup><col style="width:44px"><col style="width:100px"><col><col style="width:96px"><col style="width:70px"><col style="width:100px"><col style="width:84px"></colgroup><thead><tr><th></th><th>due</th><th>name</th><th>class</th><th>type</th><th>grade</th><th>out of</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="empty">' + ({ upcoming: 'all caught up', grade: 'everything is graded', done: 'nothing done yet', week: 'nothing due this week' }[SF.f] || 'nothing here') + '</td></tr>'}</tbody></table>
+    <p class="muted" style="font-size:12px;margin-top:10px">grades can be typed as 43, 43/50 or 86%. a grade also marks the assignment done.</p>`;
+}
+
+// ---------- grades ----------
+const OPS = [1, .8, .62, .48, .38, .3, .24, .2];
+function donutSvg(c, col) {
+  const cats = c.cats.filter(k => k.share > 0), R = 76, Cc = 2 * Math.PI * R; let off = 0, h = '';
+  cats.forEach((k, i) => {
+    const len = k.share * Cc, seg = Math.max(len - 3, 1), fill = k.poss ? Math.min(k.graded / k.poss, 1) : 0;
+    const ring = (d, stroke, op) => `<circle cx="100" cy="100" r="${R}" fill="none" stroke="${stroke}" stroke-width="22" stroke-dasharray="${d} ${Cc - d}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"${op != null ? ` stroke-opacity="${op}"` : ''}/>`;
+    h += ring(seg, 'var(--dtrack)');
+    if (fill > 0) h += ring(seg * fill, col, OPS[i % OPS.length]);
+    off += len;
+  });
+  return `<svg viewBox="0 0 200 200">${h}</svg>`;
+}
+function renderGrades(v) {
+  const g = data.grades;
+  if (!g) { v.innerHTML = '<div class="head"><h1>grades</h1></div><div class="empty">grades aren’t connected yet</div>'; return; }
+  const lg = g.courses.filter(c => c.gp != null), pf = g.courses.filter(c => c.passFail);
+  v.innerHTML = `<div class="head"><h1>grades</h1><span class="sub">${g.engine ? 'from the rules tab' : 'from the sheet formulas'}</span><div class="tools"><button class="btn" data-act="eye">${showGrades ? 'hide grades' : 'show grades'}</button></div></div>` +
+    (!showGrades ? `<div class="card hidden-note"><div class="big" style="font-size:22px">grades are hidden</div><p class="muted">so they stay private when your screen is visible.</p><button class="btn tint" data-act="eye">show grades</button></div>` :
+    `<div class="gtop"><div class="card gpa"><div class="ct">term gpa</div><div class="big">${g.gpa != null ? Number(g.gpa).toFixed(3) : '–'}</div>
+      <div class="rows"><div><span>letter-graded credits</span><b>${lg.reduce((s, c) => s + c.credits, 0)}</b></div>${pf.length ? `<div><span>pass/fail (not in GPA)</span><b>${pf.map(c => spaceCode(c.code)).join(', ')}</b></div>` : ''}</div></div>
+      <div class="card"><div class="ct">how to read this</div><p class="muted" style="margin:0">Each ring is one class: segments are its grading categories sized by weight, filled by how much of each has been graded. Click a class to see exactly how its grade was calculated, try what-if grades, or flag something that looks wrong.</p></div></div>
+    <div class="ccards">${g.courses.map(c => { const col = colorFor(c.code); return `<button class="cc" style="--c:${col}" data-act="course" data-code="${esc(c.code)}">
+      <div class="top"><span class="code">${esc(spaceCode(c.code))}</span><span class="nmx">${esc(c.name)}</span>${c.passFail ? '<span class="pf">S/U</span>' : `<span class="pf">${c.credits} cr</span>`}</div>
+      <div class="donut">${donutSvg(c, col)}<div class="c"><div class="dl" style="color:${col}">${esc(c.letter || '–')}</div><div class="cp">${c.raw != null ? f2(c.raw) + (c.scaleGP ? ' pts' : '%') : ''}</div></div></div></button>`; }).join('')}</div>`);
+}
+
+// ---------- grade inspector + what-if ----------
+let WI = null;   // { code, items: [...], base }
+function openCourse(code) {
+  const c = gradeOf(code); if (!c) return;
+  const col = colorFor(code);
+  const items = data.assignments.filter(a => a.c === code).sort((x, y) => x.t - y.t).map(a => ({ r: a.r, name: a.n, cls: a.c, type: a.y, due: ymd(a.t), grade: a.g === '' ? null : a.g, possible: a.o, real: a.g }));
+  WI = { code, items, rule: c.rule ? revive(c.rule) : null };
+  const absences = {}; (data.attendance || []).forEach(x => absences[String(x.code).toLowerCase()] = x.dates.length);
+  WI.ctx = { absences };
+  const cats = c.cats.map(k => `<tr><td><b>${esc(k.name)}</b> <span class="muted">${esc(k.abbr)}</span>${(k.notes || []).length ? `<div class="note">${esc(k.notes.join('; '))}</div>` : ''}</td>
+    <td class="n">${k.kind === 'normal' || !k.kind ? Math.round((k.share || 0) * 1000) / 10 + '%' : esc(k.kind)}</td><td class="n">${k.graded}${k.poss ? ' / ' + k.poss : ''}</td><td class="n">${k.pct != null ? f2(k.pct) : '–'}</td></tr>`).join('');
+  $('drawer').innerHTML = `<div class="dhd"><h2 style="color:${col}">${esc(spaceCode(code))}</h2><span class="muted">${esc(c.name)}</span><button class="iconbtn x" data-act="close" aria-label="close">×</button></div>
+    <div class="kv"><div class="card"><div class="k">grade</div><div class="v">${c.raw != null ? f2(c.raw) : '–'}</div></div><div class="card"><div class="k">letter</div><div class="v" style="color:${col}">${esc(c.letter || '–')}</div></div>
+      <div class="card"><div class="k">${c.passFail ? 'grading' : 'grade points'}</div><div class="v">${c.passFail ? 'S/U' : c.gp != null ? c.gp : '–'}</div></div></div>
+    <div class="card"><div class="ct">categories</div><table class="cats"><thead><tr><th>category</th><th class="n">weight</th><th class="n">graded</th><th class="n">score</th></tr></thead><tbody>${cats}</tbody></table></div>
+    ${c.trace ? `<div class="card sec"><div class="ct">how it was calculated</div><ol class="trace">${c.trace.map(t => `<li>${esc(t)}</li>`).join('')}</ol></div>` : ''}
+    ${WI.rule ? `<div class="card sec"><div class="ct">what if<span class="r"><button class="btn ghost" data-act="wi-reset">reset</button></span></div>
+      <p class="muted" style="margin:0 0 10px;font-size:13px">Type grades to see where you'd land. Nothing here is saved.</p>
+      <div id="wi-out" style="margin-bottom:12px"></div><div class="wi"><span class="h">assignment</span><span class="h">grade</span><span class="h">out of</span>
+      ${items.map((it, i) => `<span class="nm" title="${esc(it.name)}">${esc(it.name)} <small>${esc(it.type)} · ${esc(dayLabel(fromYmd(it.due)))}</small></span><input class="gin" data-wi="${i}" data-wf="grade" value="${esc(fmtG(it.grade))}" placeholder="–"><input class="gin o" data-wi="${i}" data-wf="possible" value="${it.possible == null ? '' : esc(it.possible)}">`).join('')}</div></div>` : ''}
+    <div class="card sec"><div class="ct">flag something</div><textarea class="txt" id="flag-txt" placeholder="what looks wrong? e.g. moodle shows 92.4 for this class"></textarea>
+      <div class="actions"><span class="l">saved to the Notes tab of your sheet</span><button class="btn tint" data-act="flag">flag</button></div></div>`;
+  openLayer('drawer'); whatIf();
+}
+function whatIf() {
+  const out = $('wi-out'); if (!out || !WI || !WI.rule) return;
+  const c = gradeOf(WI.code), g = Engine.grade(WI.rule, WI.items, WI.ctx), changed = WI.items.some(it => !same(it.grade, it.real === '' ? null : it.real) || it.possibleChanged);
+  const d = g.value != null && c.raw != null ? g.value - c.raw : null;
+  out.innerHTML = `<div class="kv" style="margin:0"><div class="card"><div class="k">what-if grade</div><div class="v">${g.value != null ? f2(g.value) : '–'}</div></div><div class="card"><div class="k">letter</div><div class="v" style="color:${colorFor(WI.code)}">${esc(g.letter || '–')}</div></div>
+    <div class="card"><div class="k">change</div><div class="v delta ${d > 1e-9 ? 'up' : d < -1e-9 ? 'dn' : ''}">${changed && d != null ? (d > 0 ? '+' : '') + f2(d) : '–'}</div></div></div>`;
+}
+
+// ---------- attendance ----------
+function renderAtt(v) {
+  const at = data.attendance || [];
+  v.innerHTML = `<div class="head"><h1>attendance</h1><span class="sub">${at.reduce((s, x) => s + x.dates.length, 0)} absences logged</span></div><div class="acards">` +
+    at.map(x => { const col = colorFor(x.code), g = gradeOf(x.code), linked = g && g.cats.some(k => (k.notes || []).some(n => /absence/.test(n)));
+      return `<div class="card ac" style="--c:${col}"><div class="ct"><b style="color:${col}">${esc(spaceCode(x.code))}</b>${linked ? '<span class="r muted">counts toward grade</span>' : ''}</div><div class="n">${x.dates.length}</div><div class="rule">${esc(x.rule || 'no rule noted')}</div>
+      <div class="dates">${x.dates.sort((a, b) => a - b).map(d => `<span class="dchip">${dayLabel(d)}<button data-act="abs-rm" data-code="${esc(x.code)}" data-d="${ymd(d)}" aria-label="remove">×</button></span>`).join('')}</div>
+      <div style="display:flex;gap:6px"><input type="date" class="txt" id="abs-${esc(x.code)}" value="${ymd(Date.now())}" style="flex:1"><button class="btn" data-act="abs-add" data-code="${esc(x.code)}" style="white-space:nowrap">add absence</button></div></div>`; }).join('') + '</div>';
+}
+
+// ---------- RA & extras ----------
+let showRaDone = false;
+function renderExtra(v) {
+  const ra = (data.ra || []).filter(x => showRaDone || !x.d).sort((x, y) => (x.t == null) - (y.t == null) || (x.t || 0) - (y.t || 0));
+  const ex = data.assignments.filter(a => isExtra(a.c) && a.c && !/^\W*$/.test(a.c.replace(/[‎‏\s]/g, ''))).sort((x, y) => (x.d - y.d) || (x.t - y.t));
+  v.innerHTML = `<div class="head"><h1>ra &amp; extras</h1><span class="sub">wolf village, lab, honors council</span><div class="tools"><button class="btn tint" data-act="add" data-cls="wv">add</button></div></div>
+    <div class="two"><div class="card"><div class="ct">ra tasks from your boss<span class="r"><button class="eye" data-act="radone">${showRaDone ? 'hide done' : 'show done'}</button></span></div>
+      <div class="xlist">${ra.map(x => xiHtml(x)).join('') || '<div class="empty">no open RA tasks</div>'}</div></div>
+    <div class="card"><div class="ct">your extracurricular due dates</div><div class="xlist">${ex.map(a => `<div class="xi${a.d ? ' done' : ''}"><button class="chk${a.d ? ' on' : ''}" style="--c:${colorFor(a.c)}" data-act="done" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}">${CHECK}</button><span class="t">${esc(a.n)}</span><span class="d">${esc(a.c)} · ${dayLabel(a.t)}</span></div>`).join('') || '<div class="empty">nothing yet</div>'}</div></div></div>`;
+}
+
+// ---------- settings ----------
+function renderSettings(v) {
+  const th = [['default', 'dark'], ['light', 'light'], ['elegant', 'elegant'], ['moody', 'moody']];
+  v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="set">
+    <div class="card"><div class="ct">theme</div><div class="themes">${th.map(([k, l]) => `<button class="btn${THEME === k ? ' tint' : ''}" data-act="theme" data-t="${k}">${l}</button>`).join('')}</div></div>
+    <div class="card"><div class="ct">connection</div>
+      <div class="row"><span>connection key<div class="muted" style="font-size:12px">kept in this browser only</div></span><input class="txt" id="key-in" type="password" placeholder="paste key" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>
+      <div class="row"><span>data</span><span class="muted">${DEMO ? 'demo (made-up data)' : syncState === 'ok' ? 'live · synced ' + fmtT(lastSync) : 'not synced'}</span><button class="btn" data-act="sync">refresh</button></div>
+      <div class="row"><span>google sheet</span><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">open</a></div></div>
+    <div class="card"><div class="ct">keyboard</div><div class="muted" style="font-size:13px">1–5 switch views · n add assignment · p paste from moodle · / search the sheet · esc close</div></div></div>`;
+}
+
+// ===================== add + paste =====================
+function openLayer(id) { $('scrim').classList.add('on'); $(id).classList.add('on'); }
+function closeLayers() { const ae = document.activeElement; if (ae && ae.closest && ae.closest('.drawer,.modal')) ae.blur(); ['drawer', 'modal'].forEach(id => $(id).classList.remove('on')); $('scrim').classList.remove('on'); WI = null; if (pendingData) { data = pendingData; pendingData = null; } renderAll(); }
+function classOptions(sel) {
+  const cs = courseList().map(c => c.code).concat(EXTRA.slice(0, 3));
+  return [...new Set(cs)].map(c => `<option value="${esc(c)}"${c === sel ? ' selected' : ''}>${esc(spaceCode(c))}${courseName(c) ? ' · ' + esc(courseName(c)) : c === 'wv' ? ' · wolf village' : c === 'hc' ? ' · honors council' : ''}</option>`).join('');
+}
+let lastAdd = store.get('desk-lastadd', { c: '', y: '' });
+function openAdd(cls) {
+  const c = cls || lastAdd.c || (courseList()[0] || {}).code || '';
+  $('modal').innerHTML = `<div class="dhd"><h2>add assignment</h2><button class="iconbtn x" data-act="close">×</button></div>
+    <div class="form"><label class="full">name<input class="txt" id="a-name" autocomplete="off"></label>
+      <label>class<select class="txt" id="a-cls">${classOptions(c)}</select></label>
+      <label>type<input class="txt" id="a-type" list="a-types" autocomplete="off" value="${esc(c === lastAdd.c ? lastAdd.y : '')}" style="text-transform:uppercase"><datalist id="a-types">${typesFor(c).map(t => `<option value="${esc(t.abbr)}">${esc(t.name)}</option>`).join('')}</datalist></label>
+      <label>due<input class="txt" type="date" id="a-due" value="${ymd(Date.now() + 7 * 864e5)}"></label><label>out of (points, optional)<input class="txt" id="a-out" inputmode="decimal"></label></div>
+    <div class="actions"><span class="l">enter adds · shift+enter adds and keeps this open</span><button class="btn" data-act="close">cancel</button><button class="btn tint" data-act="add-save">add</button></div>`;
+  openLayer('modal'); setTimeout(() => $('a-name').focus(), 50);
+}
+function addOne(keepOpen) {
+  const f = { name: $('a-name').value.trim(), className: $('a-cls').value, type: $('a-type').value.trim().toUpperCase(), due: $('a-due').value, outOf: $('a-out').value.trim() };
+  if (!f.name || !f.due) { $('a-name').focus(); return; }
+  lastAdd = { c: f.className, y: f.type }; store.set('desk-lastadd', lastAdd);
+  const a = { r: 0, n: f.name, c: f.className, y: f.type, t: fromYmd(f.due), d: false, g: '', o: f.outOf === '' ? null : Number(f.outOf) };
+  data.assignments.push(a); setOv(a, {}, true); renderAll();
+  post({ action: 'add', fields: f }).then(() => { if (!DEMO) setTimeout(() => load(true), 1200); }).catch(() => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; renderAll(); toast('couldn’t add — try again'); });
+  toast('added ' + f.name);
+  if (keepOpen) { $('a-name').value = ''; $('a-out').value = ''; $('a-name').focus(); } else closeLayers();
+}
+
+// paste from Moodle: one assignment per line (or a name line followed by a date line); dates, class codes and points are picked out of the text
+function parsePaste(text, defCls, defType) {
+  const yr = new Date().getFullYear(), MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+  const codes = courseList().map(c => c.code).concat(['wv']);   // 'lab' and 'honors' are too common as words to detect; pick those from the class menu
+  const dateIn = s => {
+    let m, d = null, t = s;
+    if ((m = s.match(/(\d{4})-(\d{1,2})-(\d{1,2})/))) d = new Date(+m[1], m[2] - 1, +m[3]);
+    else if ((m = s.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/))) d = new Date(m[3] ? (+m[3] < 100 ? 2000 + +m[3] : +m[3]) : yr, m[1] - 1, +m[2]);
+    else if ((m = s.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?!\d)(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?/i))) d = new Date(m[3] ? +m[3] : yr, MONTHS[m[1].toLowerCase()], +m[2]);
+    else if ((m = s.match(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?(?:,?\s+(\d{4}))?/i))) d = new Date(m[3] ? +m[3] : yr, MONTHS[m[2].toLowerCase()], +m[1]);
+    if (!d) return null;
+    t = s.replace(m[0], ' ').replace(/\b(sun|mon|tue|wed|thu|fri|sat)[a-z]*,?/ig, ' ').replace(/\b\d{1,2}:\d{2}\s*(am|pm)?\b/ig, ' ').replace(/\bdue\b:?/ig, ' ');
+    return { t: d.getTime(), rest: t };
+  };
+  const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean), out = [];
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i], dt = dateIn(line);
+    if (!dt && lines[i + 1]) { const nx = dateIn(lines[i + 1]); if (nx && !nx.rest.replace(/[\s,·|\-–:]+/g, '')) { dt = nx; dt.rest = line; i++; } }
+    let rest = dt ? dt.rest : line, cls = defCls, out_ = '', m;
+    for (const c of codes) { const re = new RegExp('\\b' + c.replace(/^([a-z]+)(\d+)$/i, '$1\\s?$2') + '\\b', 'i'); if (re.test(rest)) { cls = c; rest = rest.replace(re, ' '); break; } }
+    if ((m = rest.match(/\(?\s*(?:out of\s*|\/\s*)?(\d+(?:\.\d+)?)\s*(?:pts?|points)\s*\)?/i)) || (m = rest.match(/\bout of\s*(\d+(?:\.\d+)?)/i))) { out_ = m[1]; rest = rest.replace(m[0], ' '); }
+    let name = rest.split(/\t|\s\|\s/).map(s => s.trim()).filter(Boolean)[0] || rest;
+    name = name.replace(/\s{2,}/g, ' ').replace(/^[\s,·|\-–:]+|[\s,·|\-–:]+$/g, '').trim();
+    if (!name) continue;
+    let type = defType;
+    const cats = typesFor(cls); const low = name.toLowerCase();
+    const hit = cats.find(k => k.name && k.name !== k.abbr && low.includes(String(k.name).toLowerCase().split(/[\s&]/)[0].replace(/s$/, '')));
+    if (hit) type = hit.abbr; else if (/\bquiz/.test(low) && cats.some(k => k.abbr === 'QZ')) type = 'QZ'; else if (/\bhomework|\bhw\b/.test(low) && cats.some(k => k.abbr === 'HW')) type = 'HW'; else if (/\bexam\b/.test(low) && cats.some(k => k.abbr === 'EX')) type = 'EX';
+    out.push({ name, className: cls, type, due: dt ? ymd(dt.t) : '', outOf: out_ });
+  }
+  return out;
+}
+let PASTE = [];
+function openPaste() {
+  const c = lastAdd.c || (courseList()[0] || {}).code || '';
+  $('modal').innerHTML = `<div class="dhd"><h2>paste from moodle</h2><button class="iconbtn x" data-act="close">×</button></div>
+    <p class="muted" style="margin-top:0">Copy the upcoming list or a gradebook from Moodle and paste it here. Each line becomes an assignment; dates, class codes and points are picked out, and you can fix anything before adding.</p>
+    <div class="form"><label>class (when a line doesn't say)<select class="txt" id="p-cls">${classOptions(c)}</select></label><label>type (when it can't tell)<input class="txt" id="p-type" style="text-transform:uppercase" value="${esc(c === lastAdd.c ? lastAdd.y : '')}"></label>
+      <label class="full">text<textarea class="txt" id="p-text" style="min-height:140px" placeholder="Quiz 14\tNov 25\nHomework 13 (4 pts) due 12/7"></textarea></label></div>
+    <div id="p-prev"></div>
+    <div class="actions"><span class="l" id="p-count"></span><button class="btn" data-act="close">cancel</button><button class="btn tint" data-act="paste-save" id="p-save" disabled>add</button></div>`;
+  openLayer('modal'); PASTE = []; setTimeout(() => $('p-text').focus(), 50);
+}
+function previewPaste() {
+  PASTE = parsePaste($('p-text').value, $('p-cls').value, $('p-type').value.trim().toUpperCase());
+  renderPastePreview();
+}
+function savePaste() {
+  const rows = PASTE.filter(r => r.name && r.due).map(r => Object.assign({}, r, { type: String(r.type || '').toUpperCase() }));
+  if (!rows.length) return;
+  const added = rows.map(f => { const a = { r: 0, n: f.name, c: f.className, y: f.type, t: fromYmd(f.due), d: false, g: '', o: f.outOf === '' ? null : Number(f.outOf) }; data.assignments.push(a); setOv(a, {}, true); return a; });
+  lastAdd = { c: $('p-cls').value, y: $('p-type').value.trim().toUpperCase() }; store.set('desk-lastadd', lastAdd);
+  closeLayers(); toast('added ' + rows.length + ' assignment' + (rows.length === 1 ? '' : 's'));
+  post({ action: 'add_many', rows }).then(() => { if (!DEMO) setTimeout(() => load(true), 1200); })
+    .catch(() => { added.forEach(a => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; }); renderAll(); toast('couldn’t add — try again'); });
+}
+
+// ===================== events =====================
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act],[data-view]'); if (!t) return;
+  const act = t.dataset.act;
+  if (!act && t.dataset.view) return go(t.dataset.view);
+  const row = t.closest('[data-r]');
+  switch (act) {
+    case 'go': return go(t.dataset.view);
+    case 'done': { const src = t.dataset.r != null ? t : row; const a = src && find(src.dataset.r, src.dataset.n, src.dataset.c); if (a) toggleDone(a); return; }
+    case 'edit': { const a = row && find(row.dataset.r, row.dataset.n, row.dataset.c); if (a) openEdit(a); return; }
+    case 'wk-': weekOff--; return renderAll();
+    case 'wk+': weekOff++; return renderAll();
+    case 'eye': showGrades = !showGrades; return renderAll();
+    case 'course': if (!showGrades && VIEW === 'dash') return; return openCourse(t.dataset.code);
+    case 'close': return closeLayers();
+    case 'add': return openAdd(t.dataset.cls);
+    case 'add-save': return addOne(false);
+    case 'paste': return openPaste();
+    case 'paste-save': return savePaste();
+    case 'p-rm': PASTE.splice(+t.dataset.pi, 1); renderPastePreview(); return;
+    case 'sf': SF.f = t.dataset.f; store.set('desk-sf', SF); return renderAll();
+    case 'scls': { const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); store.set('desk-sf', SF); return renderAll(); }
+    case 'wi-reset': return openCourse(WI.code);
+    case 'flag': { const txt = $('flag-txt').value.trim(); if (!txt) return; post({ action: 'note_add', text: 'flag ' + WI.code + ': ' + txt, ts: Date.now(), from: 'desktop' }).then(() => toast('flag saved to your sheet')).catch(() => toast('couldn’t save the flag')); $('flag-txt').value = ''; return; }
+    case 'abs-add': { const code = t.dataset.code, d = $('abs-' + code).value; if (!d) return; const x = data.attendance.find(y => y.code === code); const ms = fromYmd(d); if (x.dates.some(z => D0(z) === ms)) return; x.dates.push(ms); renderAll();
+      post({ action: 'absence_add', className: code, date: d }).catch(() => { x.dates.splice(x.dates.indexOf(ms), 1); renderAll(); toast('couldn’t save — try again'); }); return; }
+    case 'abs-rm': { const code = t.dataset.code, d = t.dataset.d, x = data.attendance.find(y => y.code === code), i = x.dates.findIndex(z => D0(z) === fromYmd(d)); if (i < 0) return; const ms = x.dates.splice(i, 1)[0]; renderAll();
+      post({ action: 'absence_remove', className: code, date: d }).catch(() => { x.dates.push(ms); renderAll(); toast('couldn’t save — try again'); }); return; }
+    case 'ra': { const x = (data.ra || []).find(y => String(y.r) === t.dataset.r && y.n === t.dataset.n); if (!x) return; x.d = !x.d; renderAll();
+      post({ action: 'ra_done', row: x.r, n: x.n, done: x.d }).catch(() => { x.d = !x.d; renderAll(); toast('couldn’t save — try again'); }); return; }
+    case 'radone': showRaDone = !showRaDone; return renderAll();
+    case 'theme': THEME = t.dataset.t; store.set('wheel-theme', THEME); try { localStorage.setItem('wheel-theme', THEME); } catch (x) {} if (THEME === 'default') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', THEME); return renderAll();
+    case 'savekey': { KEY = $('key-in').value.trim(); store.set('wheel-token', KEY); data = null; return load(); }
+    case 'sync': return load();
+    case 'edit-save': return saveEdit();
+  }
+});
+function renderPastePreview() {
+  const ok = PASTE.filter(r => r.name && r.due).length;
+  $('p-prev').innerHTML = (PASTE.length ? `<table class="prev"><thead><tr><th>name</th><th>class</th><th>type</th><th>due</th><th>out of</th><th></th></tr></thead><tbody>${PASTE.map((r, i) => `<tr>
+    <td><input class="txt" data-pi="${i}" data-pf="name" value="${esc(r.name)}"></td><td><select class="txt" data-pi="${i}" data-pf="className">${classOptions(r.className)}</select></td>
+    <td><input class="txt" data-pi="${i}" data-pf="type" value="${esc(r.type)}" style="width:60px;text-transform:uppercase"></td><td><input class="txt" type="date" data-pi="${i}" data-pf="due" value="${esc(r.due)}"${r.due ? '' : ' style="box-shadow:0 0 0 2px var(--red)"'}></td>
+    <td><input class="txt" data-pi="${i}" data-pf="outOf" value="${esc(r.outOf)}" style="width:54px"></td><td><button class="btn ghost" data-act="p-rm" data-pi="${i}">×</button></td></tr>`).join('')}</tbody></table>` : '');
+  $('p-count').textContent = PASTE.length ? ok + ' ready' + (PASTE.length > ok ? ' · ' + (PASTE.length - ok) + ' need a date' : '') : '';
+  $('p-save').disabled = !ok; $('p-save').textContent = ok ? 'add ' + ok : 'add';
+}
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'sq') { SF.q = t.value; store.set('desk-sf', SF); renderAll(); return; }
+  if (t.id === 'p-text' || t.id === 'p-type') { previewPaste(); return; }
+  if (t.dataset.pi != null && t.dataset.pf) { PASTE[+t.dataset.pi][t.dataset.pf] = t.value; const ok = PASTE.filter(r => r.name && r.due).length; $('p-count').textContent = ok + ' ready'; $('p-save').disabled = !ok; $('p-save').textContent = ok ? 'add ' + ok : 'add'; return; }
+  if (t.dataset.wi != null && WI) { const it = WI.items[+t.dataset.wi], v = t.value.trim();
+    if (t.dataset.wf === 'grade') it.grade = v === '' ? null : (isNaN(Number(v)) ? v : Number(v)); else { it.possible = v === '' ? null : Number(v); it.possibleChanged = true; }
+    t.classList.toggle('changed', t.dataset.wf === 'grade' ? !same(it.grade, it.real === '' ? null : it.real) : true); whatIf(); return; }
+  if (t.classList.contains('gin')) t.classList.remove('bad');
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'p-cls') { previewPaste(); return; }
+  if (t.id === 'a-cls') { $('a-types').innerHTML = typesFor(t.value).map(x => `<option value="${esc(x.abbr)}">${esc(x.name)}</option>`).join(''); return; }
+});
+document.addEventListener('focusout', e => {
+  const t = e.target; if (!t.classList || !t.classList.contains('gin') || t.dataset.f == null) return;
+  const row = t.closest('[data-r]'), a = row && find(row.dataset.r, row.dataset.n, row.dataset.c); if (a) saveField(a, t.dataset.f, t.value, t);
+});
+document.addEventListener('keydown', e => {
+  const t = e.target, typing = /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName) && !(t.closest('.drawer,.modal') && !t.closest('.on'));
+  if (e.key === 'Escape') { if ($('modal').classList.contains('on') || $('drawer').classList.contains('on')) closeLayers(); else if (typing) t.blur(); return; }
+  if (e.key === 'Enter' && t.classList.contains('gin') && t.dataset.f != null) { t.blur(); return; }
+  if (e.key === 'Enter' && $('modal').classList.contains('on') && $('a-name') && t.closest('#modal') && t.tagName !== 'TEXTAREA') { e.preventDefault(); if ($('e-save')) saveEdit(); else addOne(e.shiftKey); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  const views = ['dash', 'sheet', 'grades', 'att', 'extra'];
+  if (/^[1-5]$/.test(e.key)) { go(views[+e.key - 1]); return; }
+  if (e.key === 'n') { e.preventDefault(); openAdd(); }
+  if (e.key === 'p') { e.preventDefault(); openPaste(); }
+  if (e.key === '/') { e.preventDefault(); if (VIEW !== 'sheet') go('sheet'); setTimeout(() => $('sq') && $('sq').focus(), 30); }
+});
+document.querySelectorAll('.nav').forEach(n => n.addEventListener('click', () => go(n.dataset.view)));
+$('scrim').addEventListener('click', closeLayers);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(true); });
+setInterval(() => { if (!document.hidden) load(true); }, 120000);
+
+// edit any field of an assignment
+let EDIT = null;
+function openEdit(a) {
+  EDIT = a;
+  $('modal').innerHTML = `<div class="dhd"><h2>edit assignment</h2><button class="iconbtn x" data-act="close">×</button></div>
+    <div class="form"><label class="full">name<input class="txt" id="a-name" value="${esc(a.n)}"></label><label>class<select class="txt" id="a-cls">${classOptions(a.c)}</select></label>
+      <label>type<input class="txt" id="a-type" value="${esc(a.y)}" style="text-transform:uppercase"></label><label>due<input class="txt" type="date" id="a-due" value="${ymd(a.t)}"></label>
+      <label>grade<input class="txt" id="a-grade" value="${esc(fmtG(a.g))}"></label><label>out of<input class="txt" id="a-out" value="${a.o == null ? '' : esc(a.o)}"></label></div>
+    <div class="actions"><button class="btn" data-act="close">cancel</button><button class="btn tint" data-act="edit-save" id="e-save">save</button></div>`;
+  openLayer('modal');
+}
+function saveEdit() {
+  const a = EDIT; if (!a) return;
+  const f = { name: $('a-name').value.trim(), className: $('a-cls').value, type: $('a-type').value.trim().toUpperCase(), due: $('a-due').value, grade: $('a-grade').value.trim(), outOf: $('a-out').value.trim() };
+  if (!f.name || !f.due) return;
+  const prev = Object.assign({}, a), match = { n: a.n, c: a.c };
+  Object.assign(a, { n: f.name, c: f.className, y: f.type, t: fromYmd(f.due), g: f.grade === '' ? '' : (isNaN(Number(f.grade)) ? f.grade : Number(f.grade)), o: f.outOf === '' ? null : Number(f.outOf) });
+  setOv(prev, { n: a.n, c: a.c, y: a.y, t: a.t, g: a.g, o: a.o }); closeLayers();
+  post({ action: 'edit', row: a.r, match, fields: f }).then(() => { if (!DEMO) setTimeout(() => load(true), 1200); else { regrade(); renderAll(); } }).catch(() => { Object.assign(a, prev); renderAll(); toast('couldn’t save — try again'); });
+}
+
+// ===================== demo (made-up classes, nothing real) =====================
+function demoData() {
+  const T = today(), sem0 = weekStart(T) - 11 * 6048e5, end = weekStart(T) + 6 * 6048e5;
+  const C = [['ch201', 'organic chem', 4], ['ma241', 'calculus iii', 4], ['bio183', 'intro bio', 3], ['eng210', 'tech writing', 3], ['mus101', 'music theory', 1]];
+  Object.assign(COLORS, { ch201: '#b2e2b6', ma241: '#9ed2f6', bio183: '#91e3d6', eng210: '#fbe0a3', mus101: '#c2c7f8' });
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const A = []; let r = 3;
+  const add = (c, y, n, t, o, pg) => { const d = t < T - 2 * 864e5 || (t < T && rnd() < .7); A.push({ r: r++, n, c, y, t, d, g: d && pg != null && t < T - 3 * 864e5 ? pg : '', o }); };
+  for (let w = 0; w < 17; w++) {
+    const ws = sem0 + w * 6048e5;
+    add('ch201', 'HW', 'Problem Set ' + (w + 1), ws + 2 * 864e5, 20, Math.round((15 + rnd() * 5) * 2) / 2);
+    add('ma241', 'HW', 'WebAssign ' + (w + 1), ws + 4 * 864e5, null, Math.round(80 + rnd() * 20));
+    if (w % 2 === 0) add('bio183', 'QZ', 'Quiz ' + (w / 2 + 1), ws + 3 * 864e5, 10, Math.round(6 + rnd() * 4));
+    if (w % 3 === 1) add('eng210', 'ES', 'Draft ' + ((w - 1) / 3 + 1), ws + 5 * 864e5, null, Math.round(85 + rnd() * 13));
+    add('mus101', 'PA', 'Listening log ' + (w + 1), ws + 1 * 864e5, null, 100);
+    if (w % 2 === 1) add('wv', 'WV', ['Bulletin board', 'Community event', 'Floor meeting'][w % 3], ws + 6 * 864e5, null, null);
+  }
+  [[4, 'Exam 1', 84], [9, 'Exam 2', 78], [14, 'Exam 3', null]].forEach(([w, n, g]) => { add('ch201', 'EX', n, sem0 + w * 6048e5 + 864e5, 100, g); add('ma241', 'EX', n, sem0 + w * 6048e5 + 3 * 864e5, 100, g && g + 9); });
+  add('bio183', 'EX', 'Midterm', sem0 + 7 * 6048e5 + 2 * 864e5, null, 91); add('bio183', 'EX', 'Final', end + 2 * 864e5, null, null);
+  add('eng210', 'PR', 'Final portfolio', end, null, null);
+  const R = {
+    ch201: { code: 'ch201', method: 'points', cutoffs: Engine.STD_CUTOFFS, categories: [{ abbr: 'HW', name: 'problem sets', weight: 340, expect: 17, drop: 2 }, { abbr: 'EX', name: 'exams', weight: 300, expect: 3 }] },
+    ma241: { code: 'ma241', method: 'weighted', progressive: true, cutoffs: Engine.STD_CUTOFFS, categories: [{ abbr: 'HW', name: 'webassign', weight: 25, drop: 2 }, { abbr: 'EX', name: 'exams', weight: 75, expect: 3 }] },
+    bio183: { code: 'bio183', method: 'weighted', progressive: true, cutoffs: Engine.STD_CUTOFFS, categories: [{ abbr: 'QZ', name: 'quizzes', weight: 30, within: 'points' }, { abbr: 'EX', name: 'exams', weight: 70, expect: 2 }] },
+    eng210: { code: 'eng210', method: 'weighted', progressive: true, round: 0, cutoffs: Engine.STD_CUTOFFS, categories: [{ abbr: 'ES', name: 'drafts', weight: 60 }, { abbr: 'PR', name: 'portfolio', weight: 40 }] },
+    mus101: { code: 'mus101', method: 'weighted', progressive: true, cutoffs: { S: 70, U: -Infinity }, scale: {}, categories: [{ abbr: 'PA', name: 'listening logs', weight: 100 }] }
+  };
+  DEMO_RULES = R;
+  const d = { v: 3, courses: C.map(c => c[0] + ' ' + c[1]), assignments: A, attendance: [{ code: 'ch201', rule: 'none', dates: [sem0 + 15 * 864e5] }, { code: 'eng210', rule: '3 free, then −1 point each', dates: [sem0 + 22 * 864e5, sem0 + 50 * 864e5] }],
+    weeks: Array.from({ length: 17 }, (_, w) => ({ t: sem0 + w * 6048e5 + 6 * 864e5, label: 'end of week ' + (w + 1), budget: Math.round(1000 - w * 1000 / 16) })),
+    ra: [{ r: 2, n: 'Roommate agreements', t: sem0 + 20 * 864e5, d: true, note: '' }, { r: 3, n: 'Closing information post', t: T + 9 * 864e5, d: false, note: '' }, { r: 4, n: 'Winter break duty sign-up', t: T + 2 * 864e5, d: false, note: 'staff meeting' }],
+    events: [{ n: 'Staff meeting', t: T + 864e5 + 19 * 36e5, e: T + 864e5 + 21 * 36e5 }, { n: 'Office hours (CH 201)', t: T + 2 * 864e5 + 14 * 36e5, e: T + 2 * 864e5 + 15 * 36e5 }, { n: 'Study group', t: T + 3 * 864e5 + 18 * 36e5, e: T + 3 * 864e5 + 20 * 36e5 }] };
+  d.grades = { engine: true, courses: C.map(c => ({ code: c[0], name: c[1], credits: c[2] })) };
+  data = d; regrade(); return d;
+}
+let DEMO_RULES = null;
+function regrade() {   // demo only: the live app gets grades from the backend
+  if (!DEMO || !data || !DEMO_RULES) return;
+  const items = data.assignments.map(a => ({ name: a.n, cls: a.c, type: a.y, due: ymd(a.t), grade: a.g === '' ? null : a.g, possible: a.o }));
+  const abs = {}; data.attendance.forEach(x => abs[x.code] = x.dates.length);
+  data.grades.courses.forEach(c => {
+    const R = DEMO_RULES[c.code], g = Engine.grade(R, items, { absences: abs }), counted = g.cats.filter(k => k.kind === 'normal'), tot = counted.reduce((s, k) => s + k.weight, 0);
+    Object.assign(c, { raw: g.value, letter: g.letter || '', gp: g.gp, passFail: !!R.cutoffs.S, trace: g.trace, rule: JSON.parse(JSON.stringify(R, (k, v) => v === -Infinity ? '-inf' : v)),
+      cats: g.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? k.weight / tot : 0, notes: k.notes })) });
+  });
+  data.grades.gpa = Engine.gpa(data.grades.courses);
+}
+
+// ===================== start =====================
+go(VIEW);
+load();
+</script>
+</body>
+</html>
