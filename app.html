@@ -193,7 +193,7 @@
   .sheet.show { transform: none; }
   .grab { width: 36px; height: 5px; border-radius: 3px; background: rgba(235,235,245,.3); margin: 8px auto 0; flex: none; }
   .sh-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 4px; flex: none; }
-  #sh-title { font-size: 17px; font-weight: 600; text-transform: lowercase; }
+  #sh-title, #a-title { font-size: 17px; font-weight: 600; text-transform: lowercase; }
   .sh-bar button { border: 0; background: none; color: var(--tint); font-family: inherit; font-size: 17px; padding: 10px 12px; min-width: 76px; }
   #sh-save { font-weight: 600; text-align: right; } #sh-cancel { text-align: left; } #sh-save:disabled { opacity: .35; }
   .sh-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 12px calc(env(safe-area-inset-bottom) + 16px); }
@@ -271,7 +271,103 @@
   .abig { font-size: 64px; font-weight: 700; letter-spacing: -2px; line-height: 68px; text-align: center; margin-top: 6px; } .asub { color: var(--sub); font-size: 15px; text-align: center; margin-top: 2px; }
   .rm { border: 0; background: none; color: #FF453A; font-family: inherit; font-size: 15px; padding: 8px 0 8px 12px; }
   .gpa { cursor: pointer; } .gpa:active { background: #2C2C2E; } .gpa .ts { margin-top: 2px; }
+  /* --- 2.23: themes --- */
+  :root { --track: #38383A; --press: #2C2C2E; --navtxt: #fff; --chkc: #1C1C1E; --ph: #636366; --serif: ui-serif, "New York", "Iowan Old Style", Georgia, "Times New Roman", serif; color-scheme: dark; }
+  .nav-bar::before { left: 0; right: 0; top: 0; height: 50%; border-radius: 32px 32px 0 0; }
+  .nav-item { color: var(--navtxt); } .nav-item.active { color: var(--tint); }
+  .task:active, .lrow:active, .gpa:active { background: var(--press); }
+  .frow input::placeholder, .gin::placeholder { color: var(--ph); }
+  .chk i svg path { stroke: var(--chkc); }
+  .sel, .sin { background: none; border: 0; outline: 0; color: var(--tint); font-family: inherit; font-size: 17px; text-align: right; text-align-last: right; min-width: 0; max-width: 62%; -webkit-user-select: text; user-select: text; -webkit-appearance: none; appearance: none; padding: 0; }
+  input.sin[type=date] { -webkit-appearance: auto; appearance: auto; color-scheme: inherit; height: 34px; }
+  .sel option { color: #000; }
+  .throw { color: var(--text); } .throw .tick { margin-left: auto; color: var(--tint); display: flex; }
+  .tile .tl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+
+  /* light: modeled on Apple's default light appearance */
+  html[data-theme=light] { --bg: #F2F2F7; --card: #FFFFFF; --text: #000; --sub: #6C6C70; --tint: #007AFF; --sep: rgba(60,60,67,.22); --fill: rgba(120,120,128,.12);
+    --track: #E5E5EA; --press: #E5E5EA; --navtxt: #1C1C1E; --chkc: #fff; --ph: #C7C7CC; color-scheme: light; }
+  html[data-theme=light] .week-label { color: #8E8E93; }
+  html[data-theme=light] .chev { color: #C7C7CC; }
+  html[data-theme=light] .seg i { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.04); }
+  html[data-theme=light] .nav-bar { background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.34)), rgba(242,242,247,.3);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 0 0 .5px rgba(0,0,0,.08), 0 8px 26px rgba(0,0,0,.16); }
+  html[data-theme=light] .nav-bar::before { background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0)); }
+  html[data-theme=light] .nav-indicator { background: rgba(120,120,128,.14); box-shadow: inset 0 0 0 .5px rgba(0,0,0,.06); }
+  html[data-theme=light] .topbar#topbar::before { background: linear-gradient(180deg, rgba(242,242,247,.95) 0%, rgba(242,242,247,.55) 45%, rgba(242,242,247,.03) 100%); }
+  html[data-theme=light] .undo { background: rgba(255,255,255,.78); box-shadow: 0 8px 26px rgba(0,0,0,.16), inset 0 0 0 .5px rgba(0,0,0,.06); color: #000; }
+  html[data-theme=light] .fab, html[data-theme=light] .plus { background: rgba(255,255,255,.8); color: var(--tint); box-shadow: 0 3px 12px rgba(0,0,0,.14), inset 0 0 0 .5px rgba(0,0,0,.06); }
+  html[data-theme=light] .sheet { background: rgba(247,247,250,.9); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 -10px 40px rgba(0,0,0,.18); }
+  html[data-theme=light] .sheet .group { background: #fff; }
+  html[data-theme=light] .scrim { background: rgba(0,0,0,.28); }
+  html[data-theme=light] .grab { background: rgba(60,60,67,.3); }
+  html[data-theme=light] .gin:focus { background: rgba(120,120,128,.2); }
+  html[data-theme=light] .sw i { background: rgba(120,120,128,.16); }
+  html[data-theme=light] .frow input[type=date] { color-scheme: light; }
+
+  /* elegant: tan paper with deep green type (from the Journal Club deck), moody mauve highlights, Newsreader serif */
+  html[data-theme=elegant] { --bg: #E4D9C2; --card: #F2EAD9; --text: #183C40; --sub: #5E6E63; --tint: #2F6B4A; --sep: rgba(24,60,64,.17); --fill: rgba(24,60,64,.09);
+    --track: #D3C7AB; --press: #E8DEC8; --navtxt: #F2EAD9; --chkc: #F2EAD9; --ph: #A39C86; --dtrack: rgba(24,60,64,.12); --serif: "Newsreader", ui-serif, "New York", Georgia, serif; color-scheme: light; }
+  html[data-theme=elegant] body { background: #E4D9C2; }
+  html[data-theme=elegant] h1, html[data-theme=elegant] .wheel-pct, html[data-theme=elegant] .tv, html[data-theme=elegant] .gv, html[data-theme=elegant] .abig,
+  html[data-theme=elegant] #tb-title, html[data-theme=elegant] #sh-title, html[data-theme=elegant] #a-title, html[data-theme=elegant] #c-title, html[data-theme=elegant] .dn .cl, html[data-theme=elegant] .dn .cp,
+  html[data-theme=elegant] .gpa .tl, html[data-theme=elegant] .gpa .ts, html[data-theme=elegant] .gr, html[data-theme=elegant] .wheel-frac { font-family: var(--serif); font-weight: 500; letter-spacing: 0; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
+  html[data-theme=elegant] h1 { font-weight: 500; font-size: 38px; line-height: 41px; letter-spacing: -.5px; }
+  html[data-theme=elegant] .tv, html[data-theme=elegant] .wheel-pct { font-weight: 600; }
+  html[data-theme=elegant] .grp { letter-spacing: .06em; }
+  html[data-theme=elegant] .group, html[data-theme=elegant] .tile { box-shadow: inset 0 0 0 .5px rgba(24,60,64,.14), 0 1px 3px rgba(24,60,64,.06); }
+  html[data-theme=elegant] .grp.late { color: #A33A55; }
+  html[data-theme=elegant] .week-label { color: #7C8576; }
+  html[data-theme=elegant] .chev { color: #B6AA8E; }
+  html[data-theme=elegant] .seg i { background: #F8F2E4; box-shadow: 0 1px 4px rgba(24,60,64,.2); }
+  html[data-theme=elegant] .nav-bar { background: linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.08) 48%, rgba(255,255,255,.22) 100%), rgba(24,60,64,.05);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.7), inset 0 -1px 0 rgba(255,255,255,.2), inset 0 0 0 .5px rgba(24,60,64,.16), inset 0 0 22px rgba(255,255,255,.12), 0 10px 30px rgba(24,60,64,.22); }
+  html[data-theme=elegant] .nav-bar::before { background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,0)); }
+  html[data-theme=elegant] .nav-item { color: #183C40; } html[data-theme=elegant] .nav-item.active { color: #396E4C; }
+ { background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0)); }
+  html[data-theme=elegant] .nav-indicator { background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 .5px rgba(24,60,64,.12), 0 2px 8px rgba(24,60,64,.14); }
+  html[data-theme=elegant] .topbar#topbar::before { background: linear-gradient(180deg, rgba(228,217,194,.95) 0%, rgba(228,217,194,.55) 45%, rgba(228,217,194,.03) 100%); }
+  html[data-theme=elegant] .undo { background: linear-gradient(180deg, rgba(255,255,255,.4), rgba(255,255,255,.12)), rgba(242,234,217,.25); color: #183C40; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), inset 0 0 0 .5px rgba(24,60,64,.14), 0 8px 24px rgba(24,60,64,.2); }
+  html[data-theme=elegant] .undo button { color: #2F7A52; }
+  html[data-theme=elegant] .fab, html[data-theme=elegant] .plus { background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.14)), rgba(242,234,217,.25); color: #183C40; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), inset 0 0 0 .5px rgba(24,60,64,.14), 0 3px 12px rgba(24,60,64,.2); }
+  html[data-theme=elegant] .sheet { background: rgba(238,229,209,.93); box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 -10px 40px rgba(24,60,64,.28); }
+  html[data-theme=elegant] .sheet .group { background: #F8F2E4; }
+  html[data-theme=elegant] .scrim { background: rgba(24,60,64,.32); }
+  html[data-theme=elegant] .grab { background: rgba(24,60,64,.28); }
+  html[data-theme=elegant] .sw i { background: rgba(24,60,64,.18); }
+  html[data-theme=elegant] .sw input:checked + i { background: #426345; }
+  html[data-theme=elegant] .gin:focus { background: rgba(47,107,74,.18); }
+  html[data-theme=elegant] .nav-bar { -webkit-backdrop-filter: blur(26px) saturate(100%) brightness(1.03); backdrop-filter: blur(26px) saturate(100%) brightness(1.03); }
+  html[data-theme=elegant] .topbar#topbar::before, html[data-theme=elegant] .undo, html[data-theme=elegant] .fab, html[data-theme=elegant] .sheet { -webkit-backdrop-filter: blur(24px) saturate(100%); backdrop-filter: blur(24px) saturate(100%); }
+  html[data-theme=elegant] .frow input[type=date] { color-scheme: light; }
+  /* moody: elegant's palette on raisin black */
+  html[data-theme=moody] { --bg: #141413; --card: #1F1F1C; --text: #E6DCC8; --sub: #A8A599; --tint: #9DB27F; --sep: rgba(225,216,204,.14); --fill: rgba(225,216,204,.10);
+    --track: #2D2D29; --press: #2A2A26; --navtxt: #E6DCC8; --chkc: #141413; --ph: #66665C; --dtrack: rgba(225,216,204,.12); --serif: "Newsreader", ui-serif, "New York", Georgia, serif; }
+  html[data-theme=moody] body { background: #141413; }
+  html[data-theme=moody] h1, html[data-theme=moody] .wheel-pct, html[data-theme=moody] .tv, html[data-theme=moody] .gv, html[data-theme=moody] .abig, html[data-theme=moody] #tb-title, html[data-theme=moody] #sh-title, html[data-theme=moody] #a-title, html[data-theme=moody] #c-title, html[data-theme=moody] .dn .cl, html[data-theme=moody] .dn .cp,
+  html[data-theme=moody] .gpa .tl, html[data-theme=moody] .gpa .ts, html[data-theme=moody] .gr, html[data-theme=moody] .wheel-frac { font-family: var(--serif); font-weight: 500; letter-spacing: 0; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
+  html[data-theme=moody] h1 { font-weight: 500; font-size: 38px; line-height: 41px; letter-spacing: -.5px; }
+  html[data-theme=moody] .tv, html[data-theme=moody] .wheel-pct { font-weight: 600; }
+  html[data-theme=moody] .grp { letter-spacing: .06em; }
+  html[data-theme=moody] .group, html[data-theme=moody] .tile { box-shadow: inset 0 0 0 .5px rgba(225,216,204,.10); }
+  html[data-theme=moody] .grp.late { color: #D8728A; }
+  html[data-theme=moody] .week-label { color: #76766C; }
+  html[data-theme=moody] .chev { color: #4A4A42; }
+  html[data-theme=moody] .seg i { background: #3A3A35; }
+  html[data-theme=moody] .nav-item.active { color: #B2C894; }
+  html[data-theme=moody] .nav-bar, html[data-theme=moody] .topbar#topbar::before, html[data-theme=moody] .undo, html[data-theme=moody] .fab, html[data-theme=moody] .sheet { -webkit-backdrop-filter: blur(26px) saturate(110%); backdrop-filter: blur(26px) saturate(110%); }
+  html[data-theme=moody] .topbar#topbar::before { background: linear-gradient(180deg, rgba(20,20,19,.9) 0%, rgba(20,20,19,.42) 40%, rgba(20,20,19,.03) 100%); }
+  html[data-theme=moody] .sheet { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), rgba(28,28,25,.88); }
+  html[data-theme=moody] .sheet .group { background: rgba(225,216,204,.08); }
+  html[data-theme=moody] .sw input:checked + i { background: #6B7F52; }
+  html[data-theme=moody] .gin:focus { background: rgba(157,178,127,.25); }
+  html[data-theme=moody] .fab, html[data-theme=moody] .plus { color: #E6DCC8; }
+  :root { --dtrack: rgba(255,255,255,.1); } .dtr { stroke: var(--dtrack); }
+  html[data-theme=light] { --dtrack: rgba(60,60,67,.12); }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
+<script>try{var t=localStorage.getItem('wheel-theme');if(t==='light'||t==='elegant'||t==='moody')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 </head>
 <body>
 
@@ -330,7 +426,7 @@
 
   <div class="sheet" id="asheet">
     <div class="grab"></div>
-    <div class="sh-bar"><button id="a-cancel">cancel</button><span>new absence</span><button id="a-save">add</button></div>
+    <div class="sh-bar"><button id="a-cancel">cancel</button><span id="a-title">new absence</span><button id="a-save">add</button></div>
     <div class="sh-body">
       <div class="group">
         <div class="frow"><label for="a-class">class</label><select id="a-class"></select></div>
@@ -398,11 +494,22 @@
       'phi325':'#fbe0a3','bioethics':'#fbe0a3','e115':'#e2d5f8','computing':'#e2d5f8'
     };
 
+    let THEME = document.documentElement.getAttribute('data-theme') || 'default';
+    const TMAP = {
+      light: { '#b2e2b6':'#2FA84F','#9ed2f6':'#2F8FD8','#e4b39b':'#D9714A','#d3f1bf':'#6BB33A','#91e3d6':'#14A89A','#c2c7f8':'#6670D8','#fbe0a3':'#E09A14','#e2d5f8':'#9A62D8','#A6A6B1':'#8E8E93' },
+      elegant: { '#b2e2b6':'#426345','#9ed2f6':'#4F7F86','#e4b39b':'#8C5A7A','#d3f1bf':'#5E9A5A','#91e3d6':'#3F7A5C','#c2c7f8':'#6A5A8C','#fbe0a3':'#A0627A','#e2d5f8':'#5E7A56','#A6A6B1':'#7A8478' }
+    };
+    TMAP.moody = TMAP.elegant;
     function colorFor(name) {
-      let n = String(name || '').toLowerCase();
-      if (COLORS[n]) return COLORS[n];
-      for (let k in COLORS) if (n.includes(k)) return COLORS[k];
-      return '#A6A6B1';
+      let n = String(name || '').toLowerCase(), c = '#A6A6B1';
+      if (COLORS[n]) c = COLORS[n]; else for (let k in COLORS) if (n.includes(k)) { c = COLORS[k]; break; }
+      const m = TMAP[THEME]; return (m && m[c]) || c;
+    }
+    function applyTheme(t) {
+      THEME = t; try { localStorage.setItem('wheel-theme', t); } catch (e) {}
+      if (t === 'default') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+      const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = ({ light: '#F2F2F7', elegant: '#E4D9C2', moody: '#141413' })[t] || '#000000';
+      drawWheel(false); renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
     }
 
     function getWeekRange() {
@@ -422,12 +529,13 @@
       else lbl.textContent = `${Math.abs(weekOffset)} wks ago`;
     }
 
+    let wheelTok = 0;
     function drawWheel(animate = false) {
       updateWeekLabel();
       const svg = document.getElementById('wheel-svg');
       
       if (!appData || !appData.assignments) {
-        svg.innerHTML = `<circle cx="100" cy="100" r="${R-9}" fill="none" stroke-width="18" stroke="#38383A"/>`;
+        svg.innerHTML = `<circle cx="100" cy="100" r="${R-9}" fill="none" stroke-width="18" style="stroke:var(--track)"/>`;
         document.getElementById('wheel-pct').textContent = '–';
         document.getElementById('wheel-frac').textContent = 'loading...';
         return;
@@ -441,45 +549,37 @@
       const belongs = (c, a) => a.c && c.toLowerCase().includes(String(a.c).toLowerCase());
       const activeCourses = appData.courses.filter(c => weekTasks.some(a => belongs(c, a)));
 
-      let html = '';
+      let html = '', rings = [];
       if (activeCourses.length === 0) {
-        html = `<circle cx="100" cy="100" r="${R-9}" fill="none" stroke-width="18" stroke="#38383A"/>`;
+        html = `<circle cx="100" cy="100" r="${R-9}" fill="none" stroke-width="18" style="stroke:var(--track)"/>`;
       } else {
-        let thick = Math.min(MAX_THICK, (R * (1 - CUTOUT)) / activeCourses.length);
+        const thick = Math.min(MAX_THICK, (R * (1 - CUTOUT)) / activeCourses.length);
         activeCourses.forEach((c, i) => {
-          let mine = weekTasks.filter(a => belongs(c, a));
-          let pct = mine.length ? (mine.filter(a => a.d).length / mine.length) * 100 : 0;
-          let rad = R - (i * thick) - (thick / 2);
-          let w = Math.max(thick - GAP, 2);
-          
-          let circ = 2 * Math.PI * rad;
-          let dash = (pct / 100) * circ;
-          
-          let base = `<circle cx="100" cy="100" r="${rad}" fill="none" stroke-width="${w}"`;
-          html += `${base} stroke="#38383A"/>`;
-          if (pct > 0) {
-            html += `${base} class="wheel-ring" stroke="${colorFor(c)}" stroke-dasharray="${animate ? '0 1000' : `${dash} ${circ - dash}`}" transform="rotate(-90 100 100)"/>`;
-          }
+          const mine = weekTasks.filter(a => belongs(c, a));
+          const pct = mine.length ? (mine.filter(a => a.d).length / mine.length) : 0;
+          const rad = R - (i * thick) - (thick / 2), w = Math.max(thick - GAP, 2);
+          html += `<circle cx="100" cy="100" r="${rad}" fill="none" stroke-width="${w}" style="stroke:var(--track)"/>`;
+          if (pct > 0) rings.push({ rad, w, pct, col: colorFor(c) });
         });
       }
-      
-      svg.innerHTML = html;
+      // coloured arcs end in a chevron (same shape as the grade summary); drawn as paths so they can animate
+      const arcs = f => rings.map(g => {
+        const t1 = g.pct * f * 2 * Math.PI; if (t1 <= 0.001) return '';
+        if (g.pct >= 0.999 && f >= 0.999) return `<circle cx="100" cy="100" r="${g.rad}" fill="none" stroke="${g.col}" stroke-width="${g.w}"/>`;
+        const r1 = g.rad - g.w / 2, r2 = g.rad + g.w / 2, tc = Math.max(t1 - Math.min(.41 * g.w / g.rad, t1 * .6), 0), big = tc > Math.PI ? 1 : 0;
+        const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
+        return `<path d="M${P(r2, 0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(g.rad, t1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, 0)}Z" fill="${g.col}"/>`;
+      }).join('');
+      const tok = ++wheelTok;
+      svg.innerHTML = html + '<g id="wg"></g>';
+      const wg = svg.querySelector('#wg');
+      if (animate && rings.length) {
+        const t0 = performance.now();
+        const step = now => { if (tok !== wheelTok) return; const q = Math.min((now - t0) / 800, 1); wg.innerHTML = arcs(1 - Math.pow(1 - q, 4)); if (q < 1) requestAnimationFrame(step); };
+        requestAnimationFrame(step);
+      } else wg.innerHTML = arcs(1);
       document.getElementById('wheel-pct').textContent = weekTasks.length ? Math.round((doneTasks.length / weekTasks.length) * 100) + '%' : '0%';
       document.getElementById('wheel-frac').textContent = `${doneTasks.length}/${weekTasks.length} done`;
-
-      // Trigger CSS animation for the strokes if requested
-      if (animate && activeCourses.length > 0) {
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-          const rings = svg.querySelectorAll('.wheel-ring');
-          activeCourses.forEach((c, i) => {
-            let mine = weekTasks.filter(a => belongs(c, a));
-            let pct = mine.length ? (mine.filter(a => a.d).length / mine.length) * 100 : 0;
-            let rad = R - (i * Math.min(MAX_THICK, (R * (1 - CUTOUT)) / activeCourses.length)) - (Math.min(MAX_THICK, (R * (1 - CUTOUT)) / activeCourses.length) / 2);
-            let circ = 2 * Math.PI * rad;
-            if (rings[i]) rings[i].setAttribute('stroke-dasharray', `${(pct / 100) * circ} ${circ}`);
-          });
-        }));
-      }
     }
 
     function fetchData(silent) {
@@ -540,7 +640,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.21';
+    const BUILD = '2.33';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
     const $ = id => document.getElementById(id);
@@ -713,7 +813,12 @@
       fetch('https://api.open-meteo.com/v1/forecast?latitude=' + LOC.lat + '&longitude=' + LOC.lon + '&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=auto&forecast_days=1')
         .then(r => r.json()).then(j => { WX = { t: Math.round(j.current.temperature_2m), k: wxKind(j.current.weather_code), day: !!j.current.is_day, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]) }; renderSide(); }).catch(() => {});
     }
-    const LDOC = new Date(2026, 11, 8).getTime();   // last day of classes: Tue 12/8
+    // countdown settings (2.23)
+    const CD = { mode: 'ldoc', ldoc: '2026-12-08', title: '', date: '' };
+    try { Object.assign(CD, JSON.parse(localStorage.getItem('wheel-cd') || '{}')); } catch (e) {}
+    const saveCD = () => { try { localStorage.setItem('wheel-cd', JSON.stringify(CD)); } catch (e) {} };
+    const pd = s => { const p = String(s || '').split('-'); return p.length === 3 ? new Date(+p[0], p[1] - 1, +p[2]).getTime() : NaN; };
+    const spaceCode = c => String(c || '').replace(/^([a-z]+)(\d+)$/i, '$1 $2');
     const whenTxt = (e, now) => e.t <= now ? 'now · until ' + fmtT(e.e) : new Date(e.t).setHours(0, 0, 0, 0) === new Date(now).setHours(0, 0, 0, 0) ? fmtT(e.t) + ' · ' + untilTxt(e.t - now) : dayLabel(e.t) + ' · ' + fmtT(e.t);
     function renderSide() {
       const w = WX ? `<div class="tile wx"><div class="wtxt"><div class="tv">${WX.t}°</div><div class="ts">${WXL[WX.k]} · ${WX.hi}/${WX.lo}</div></div><div class="wxart"><svg viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div></div>`
@@ -722,25 +827,49 @@
       const c = EV === null ? '<div class="tl">next up</div><div class="ts">calendar not connected</div>'
         : up.length ? '<div class="tl">next up</div>' + up.map(e => `<div class="ev"><div class="tn">${esc(e.n)}</div><div class="ts">${whenTxt(e, now)}</div></div>`).join('')
         : '<div class="tl">next up</div><div class="ts">nothing coming up</div>';
-      const d = Math.round((LDOC - new Date().setHours(0, 0, 0, 0)) / 864e5);
-      const togo = appData && appData.assignments ? appData.assignments.filter(a => !a.d && a.t < LDOC + 864e5).length : null;
-      const cd = `<div class="tl">${togo == null ? 'last day of classes' : togo ? togo + ' assignment' + (togo === 1 ? '' : 's') + ' to go' : 'all done'}</div><div class="tv">${d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
+      const today = new Date().setHours(0, 0, 0, 0), A = appData && appData.assignments;
+      let target = NaN, lab = '';
+      if (CD.mode === 'exam') {
+        const ex = A ? A.filter(a => !a.d && /^ex$/i.test(a.y) && a.t >= today).sort((x, y) => x.t - y.t)[0] : null;
+        if (ex) { target = ex.t; lab = esc(spaceCode(ex.c) + ' ' + ex.n); } else lab = A ? 'no exams ahead' : 'loading…';
+      } else if (CD.mode === 'custom') { target = pd(CD.date); lab = esc(CD.title || 'countdown'); }
+      else {
+        target = pd(CD.ldoc); if (isNaN(target)) target = pd('2026-12-08');
+        const togo = A ? A.filter(a => !a.d && a.t < target + 864e5).length : null;
+        lab = togo == null ? 'last day of classes' : togo ? togo + ' assignment' + (togo === 1 ? '' : 's') + ' to go' : 'all done';
+      }
+      const d = Math.round((target - today) / 864e5);
+      const cd = `<div class="tl">${lab}</div><div class="tv">${isNaN(d) ? '–' : d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
       $('side').innerHTML = w + `<div class="tile big">${c}</div><div class="tile">${cd}</div>`;
     }
     $('side').addEventListener('click', e => { if (DEMO && e.target.closest('.wx')) { wxi = (wxi + 1) % WXD.length; setDemoWx(wxi); renderSide(); } });  // demo: tap weather to preview conditions
 
     function renderSettings() {
       const r = (k, v) => `<div class="task srow"><span>${k}</span><span class="tg">${v}</span></div>`;
-      $('settings-card').innerHTML = '<div class="grp" style="margin-top:0">app info</div><div class="group">' + r('build', BUILD) + r('data', DEMO ? 'demo snapshot' : 'live · google sheets') +
+      const ae = document.activeElement; if (ae && ae.closest && ae.closest('#settings-card') && /INPUT|SELECT/.test(ae.tagName)) return;
+      const th = '<div class="grp" style="margin-top:0">theme</div><div class="group">' + [['default', 'dark'], ['light', 'light'], ['elegant', 'elegant'], ['moody', 'moody']].map(([k, l]) =>
+        `<button class="lrow throw" data-theme-set="${k}">${l}<span class="tick">${THEME === k ? TICK : ''}</span></button>`).join('') + '</div>';
+      const opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
+      const row = (k, inner) => `<div class="task srow"><span>${k}</span>${inner}</div>`;
+      const gr = '<div class="grp">greeting</div><div class="group">' + row('randomize', `<label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label>`) +
+        row('name', `<input class="sin" type="text" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}">`) + '</div>';
+      const dl = `<div class="grp">countdown</div><div class="group">` + row('show', `<select class="sel" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>`) +
+        (CD.mode === 'ldoc' ? row('date', `<input class="sin" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">`) : '') +
+        (CD.mode === 'custom' ? row('title', `<input class="sin" type="text" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}">`) + row('date', `<input class="sin" type="date" data-cd="date" value="${esc(CD.date)}">`) : '') + '</div>';
+      const links = '<div class="grp">links</div><div class="group"><a class="lrow" href="' + SHEET_URL + '" target="_blank" rel="noopener">open spreadsheet</a><a class="lrow" href="https://go.ncsu.edu/timeclock" target="_blank" rel="noopener">time clock</a><button class="lrow" id="btn-sync">refresh data</button>' + (DEMO ? '' : '<button class="lrow" id="btn-loc">update location</button>') + '</div>';
+      $('settings-card').innerHTML = th + dl + links + gr + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('data', DEMO ? 'demo snapshot' : 'live · google sheets') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
         r('screen', innerWidth + '×' + innerHeight + ' of ' + screen.width + '×' + screen.height + (navigator.standalone ? ' · app' : ' · browser')) +
         r('layout', document.documentElement.clientHeight + ' · bar bottom ' + Math.round(innerHeight - $('nav-bar').getBoundingClientRect().bottom)) +
-        '</div><div class="grp">links</div><div class="group"><a class="lrow" href="' + SHEET_URL + '" target="_blank" rel="noopener">open spreadsheet</a><a class="lrow" href="https://go.ncsu.edu/timeclock" target="_blank" rel="noopener">time clock</a><button class="lrow" id="btn-sync">refresh data</button>' + (DEMO ? '' : '<button class="lrow" id="btn-loc">update location</button>') + '</div>';
+        '</div>';
     }
 
     $('seg').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; gradeHold.clear(); renderTasks(); } });
     document.addEventListener('click', e => { const b = e.target.closest('.task .chk'); if (b) toggle(b.closest('.task')); });
     $('undo-btn').addEventListener('click', undo);
+    $('settings-card').addEventListener('click', e => { const b = e.target.closest('[data-theme-set]'); if (b) applyTheme(b.dataset.themeSet); });
+    $('settings-card').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.gr; if (!k) return; GR[k] = k === 'rand' ? e.target.checked : e.target.value; saveGR(); GP.key = ''; setGreeting(); });
+    $('settings-card').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.cd; if (!k) return; CD[k] = e.target.value; saveCD(); if (e.target.blur) e.target.blur(); renderSide(); if (k === 'mode') renderSettings(); });
     $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); if (e.target.id === 'btn-loc') { locAsked = false; withLoc(loadWx2, true); } });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) { setGreeting(); renderSide(); fetchData(true); loadWx(); } });
     // Large title -> inline title when scrolled (iOS navigation bar behavior)
@@ -758,6 +887,19 @@
     const CHEV = '<svg class="chev" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l6 6-6 6"/></svg>';
     const cname = c => String(c.name || '').toLowerCase();
     let gpaShown = false;
+    // serif digits sit differently in the 46px line box; nudge them so the ink is centred (dark/light untouched)
+    function fixGv() {
+      document.querySelectorAll('#gpa-card .gv').forEach(el => {
+        el.style.transform = '';
+        if (THEME !== 'elegant' && THEME !== 'moody') return;
+        if (el.querySelector('svg')) return;
+        const cs = getComputedStyle(el), cx = document.createElement('canvas').getContext('2d');
+        cx.font = cs.fontStyle + ' ' + cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+        const m = cx.measureText('H'); if (!m.fontBoundingBoxAscent) return;
+        const L = parseFloat(cs.lineHeight), A = m.fontBoundingBoxAscent, D = m.fontBoundingBoxDescent, base = (L - (A + D)) / 2 + A, ctr = base - m.actualBoundingBoxAscent / 2;
+        el.style.transform = 'translateY(' + (L / 2 - ctr).toFixed(2) + 'px)';
+      });
+    }
     function renderGrades() {
       const box = $('grades-box'), g = appData && appData.grades;
       if (!g) { box.innerHTML = '<div class="empty">' + (appData ? 'grades aren’t connected yet' : 'loading…') + '</div>'; return; }
@@ -768,6 +910,7 @@
             `<div class="tsub">${c.credits} credit${c.credits === 1 ? '' : 's'}</div></div>` +
             `<span class="gr">${c.raw != null ? f2(c.raw) + (c.letter ? ' <i>(' + esc(c.letter) + ')</i>' : '') : '–'}</span>${CHEV}</div>`;
         }).join('') + '</div>';
+      fixGv();
     }
     // shaded edge = chevron pointing clockwise (set CHEVRON = false to go back to the plain arc)
     const CHEVRON = true;
@@ -782,7 +925,7 @@
       cats.forEach((k, i) => {
         const len = k.share * C, seg = Math.max(len - 3, 1), fill = k.poss ? Math.min(k.graded / k.poss, 1) : 0;
         const ring = (d, stroke, extra) => `<circle cx="100" cy="100" r="${R}" fill="none" stroke="${stroke}" stroke-width="22" stroke-dasharray="${d} ${C - d}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)" ${extra || ''}/>`;
-        h += ring(seg, 'rgba(255,255,255,.1)');
+        h += ring(seg, 'rgba(255,255,255,.1)', 'class="dtr"');
         if (fill > 0) h += (CHEVRON && fill < 0.999) ? chev(off, seg * fill, col, OPS[i % OPS.length]) : ring(seg * fill, col, `stroke-opacity="${OPS[i % OPS.length]}"`);
         off += len;
       });
@@ -826,10 +969,50 @@
     })();
 
     // --- greeting (2am-12pm morning, 12-5pm afternoon, 5pm-2am evening) ---
-    function setGreeting() {
-      const h = new Date().getHours(), g = h >= 2 && h < 12 ? 'good morning' : h >= 12 && h < 17 ? 'good afternoon' : 'good evening';
-      $('dash-title').textContent = g + '!';
+    const GR = { rand: false, name: 'sam' };
+    try { Object.assign(GR, JSON.parse(localStorage.getItem('wheel-greet') || '{}')); } catch (e) {}
+    const saveGR = () => { try { localStorage.setItem('wheel-greet', JSON.stringify(GR)); } catch (e) {} };
+    const DOTW = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    function holidayOf(d) {
+      const m = d.getMonth(), n = d.getDate(), w = d.getDay();
+      if (m === 0 && n === 1) return 'happy new year!';
+      if (m === 1 && n === 14) return 'happy valentine’s day!';
+      if (m === 2 && n === 17) return 'happy st. patrick’s day!';
+      if (m === 6 && n === 4) return 'happy 4th of july!';
+      if (m === 9 && n === 31) return 'happy halloween!';
+      if (m === 10 && w === 4 && n >= 22 && n <= 28) return 'happy thanksgiving!';
+      if (m === 11 && n === 24) return 'happy christmas eve!';
+      if (m === 11 && n === 25) return 'merry christmas!';
+      if (m === 11 && n === 31) return 'happy new year’s eve!';
+      return null;
     }
+    let GP = { key: '', text: '' }, demoG = null, demoI = -1;
+    // demo only: tap the greeting to flip through every possible saying (like tapping the weather)
+    $('dash-title').addEventListener('click', () => {
+      if (!DEMO) return;
+      const h = new Date().getHours(), part = h >= 2 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : 'evening', g = 'good ' + part, nm = String(GR.name || 'sam').toLowerCase();
+      const all = [g + '!', g, g + ', ' + nm];
+      if (part === 'morning') DOTW.forEach(d => { if (d === 'monday') all.push('happy ' + d + '!', 'happy ' + d, 'happy ' + d + ', ' + nm); });
+      all.push('happy thanksgiving!', 'merry christmas!', 'happy new year!', 'happy halloween!');
+      demoI = (demoI + 1) % all.length; demoG = all[demoI]; $('dash-title').textContent = demoG;
+    });
+    function setGreeting() {
+      if (DEMO && demoG != null) { $('dash-title').textContent = demoG; return; }
+      const now = new Date(), h = now.getHours(), part = h >= 2 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : 'evening', g = 'good ' + part;
+      if (!GR.rand) { $('dash-title').textContent = g; return; }
+      const name = String(GR.name || '').trim().toLowerCase(), key = part + '|' + now.toDateString() + '|' + name;
+      if (GP.key !== key) {
+        const hol = holidayOf(now), dw = DOTW[now.getDay()];
+        let opts = [g + '!', g];
+        if (name) opts.push(g + ', ' + name);
+        if (part === 'morning') { opts.push('happy ' + dw + '!', 'happy ' + dw); if (name) opts.push('happy ' + dw + ', ' + name); }
+        GP = { key, text: hol || opts[Math.floor(Math.random() * opts.length)] };
+      }
+      $('dash-title').textContent = GP.text;
+    }
+    // a fresh greeting each time the app is opened
+    let hiddenAt = 0;
+    document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 30000) { GP.key = ''; setGreeting(); } });
     // --- EDIT / ADD / GRADE SHEET ---
     let editing = null, shT = null;
     const p2 = n => String(n).padStart(2, '0');
