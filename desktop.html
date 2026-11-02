@@ -106,13 +106,12 @@
   .one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cdbody { height: 86px; display: flex; flex-direction: column; } .cdsub { font-size: 13px; line-height: 1.35; } .cdsub .one { max-width: 100%; }
   .cdf { display: grid; gap: 8px; align-content: start; } .cdf .txt { width: 100%; height: 36px; padding-top: 0; padding-bottom: 0; } .cdf .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .dcell { position: relative; display: flex; align-items: center; gap: 6px; height: 30px; }
+  .dcell { position: relative; display: flex; align-items: center; gap: 6px; height: 30px; padding-left: 6px; }
   .calbtn { border: 0; background: none; padding: 0; color: var(--sub); opacity: .55; display: flex; flex: none; } .calbtn:hover { opacity: 1; color: var(--text); }
   .dtxt { font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; white-space: nowrap; }
   .grid tr.row.late .dtxt { color: var(--red); font-weight: 700; }
   .dpick { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; padding: 0; border: 0; }
-  .testbar { display: flex; align-items: center; gap: 8px; padding: 9px 14px; margin: 0 0 10px; border-radius: 12px; background: var(--fill); font-size: 13px; color: var(--sub); } .testbar span { flex: 1; } .testbar b { color: var(--text); }
-  .cell.num.test { color: var(--tint); font-weight: 700; font-style: italic; } .fchip .g.test { color: var(--tint); font-weight: 700; }
+  .fchip .g.test { color: var(--tint); font-weight: 700; }
   .gl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
   .gl button { display: flex; align-items: baseline; gap: 6px; border: 0; background: var(--card2); border-radius: 9px; padding: 7px 9px; text-align: left; min-width: 0; }
   .gl .dl { font-weight: 800; font-size: 17px; min-width: 24px; } .gl .cn { font-size: 12px; font-weight: 700; white-space: nowrap; } .gl .cp { font-size: 11px; color: var(--sub); margin-left: auto; }
@@ -161,7 +160,7 @@
   table.grid { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
   .grid.h { background: var(--card); border-radius: 14px 14px 0 0; }
   .grid.b { background: var(--card); border-radius: 0 0 14px 14px; overflow: hidden; }
-  .grid th { text-align: left; font-size: 12px; color: var(--sub); font-weight: 700; padding: 10px 8px; border-bottom: .5px solid var(--sep); user-select: none; }
+  .grid th { text-align: left; font-size: 12px; color: var(--sub); font-weight: 700; padding: 10px 8px 10px 14px; border-bottom: .5px solid var(--sep); user-select: none; }
   .grid th.s { cursor: pointer; } .grid th.s:hover { color: var(--text); } .grid th.on { color: var(--tint); }
   .grid td { padding: 3px 8px; border-bottom: .5px solid var(--sep); vertical-align: middle; height: 38px; }
   .grid tr.row:hover td { background: var(--fill); }
@@ -173,7 +172,7 @@
   .cell:hover { background: var(--fill); } .cell:focus { background: var(--card2); box-shadow: 0 0 0 2px var(--tint); }
   .cell.nm { font-weight: 600; } .cell.ty { color: var(--sub); text-transform: uppercase; } .cell.cl { font-weight: 700; color: var(--c); -webkit-appearance: none; appearance: none; cursor: pointer; }
   .cell.due { font-variant-numeric: tabular-nums; font-size: 13px; padding-right: 2px; } .cell.due::-webkit-calendar-picker-indicator { opacity: .35; }
-  .cell.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .cell.num { text-align: left; font-variant-numeric: tabular-nums; }
   .cell.saving { opacity: .5; } .cell.bad { box-shadow: 0 0 0 2px var(--red); }
   .grid .w36 { padding-left: 12px; }
 
@@ -281,7 +280,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.3';
+const BUILD = 'd1.4';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -405,7 +404,7 @@ let LIVE = null;
 function engineItems(list) { return list.map(a => ({ name: a.n, cls: a.c, type: a.y, due: ymd(a.t), grade: a.g === '' ? null : a.g, possible: a.o })); }
 function absences() { const o = {}; ((data && data.attendance) || []).forEach(x => o[String(x.code).toLowerCase()] = x.dates.length); return o; }
 // grade testing: grades typed in the sheet's "to grade" view are only "what if" until you save them
-let TEST = {};
+let TEST = {}, STAY = new Set();   // TEST: grade being typed (preview) · STAY: graded here, keep listed until you leave "to grade"
 const testing = () => VIEW === 'sheet' && SF.f === 'grade';
 function live() {
   const tk = testing() ? JSON.stringify(TEST) : '';
@@ -440,11 +439,7 @@ function toggleDone(a) {
 const FIELD = { n: 'name', t: 'due', c: 'className', y: 'type', g: 'grade', o: 'outOf' };
 function saveCell(a, f, raw, el) {
   let v = String(raw).trim();
-  if (f === 'g' && testing()) {                       // test grade: never saved, never marks done
-    if (v !== '' && !/^-?[\d.]+(\s*\/\s*[\d.]+|\s*%)?$/.test(v)) { el.classList.add('bad'); return; }
-    if (v === '') delete TEST[kOf(a)]; else TEST[kOf(a)] = isNaN(Number(v)) ? v : Number(v);
-    el.classList.remove('bad'); return changed();
-  }
+  if (f === 'g' && testing()) { delete TEST[kOf(a)]; STAY.add(kOf(a)); }
   if (f === 'y') v = v.toUpperCase();
   if (f === 'n' && !v) { el.value = a.n; return; }
   if (f === 'o' && v !== '' && isNaN(Number(v))) { el.classList.add('bad'); return; }
@@ -484,6 +479,7 @@ function saveDraft(id) {
 // ===================== render =====================
 let VIEW = store.get('desk-view', 'dash'), weekOff = 0, showGrades = false, showGpa = false, showRaDone = false;
 function go(v, fade) {
+  if (v !== 'sheet') { STAY.clear(); TEST = {}; }
   if (v === 'extra') v = 'tasks';
   VIEW = v; store.set('desk-view', v);
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
@@ -662,7 +658,7 @@ function dateCell(ms, attrs) {
 function renderSheet(v) {
   const A = data.assignments, T = today(), ws = weekStart(Date.now()), nws = addDays(ws, 7);
   const F = [['upcoming', 'upcoming'], ['week', 'this week'], ['grade', 'to grade'], ['done', 'done'], ['all', 'all']];
-  let list = A.filter(a => !blankCls(a.c) || a.c === '').filter(a => SF.f === 'upcoming' ? !a.d : SF.f === 'done' ? a.d : SF.f === 'grade' ? (a.d && (a.g == null || a.g === '') && !isExtra(a.c)) : SF.f === 'week' ? (a.t >= ws && a.t < nws) : true);
+  let list = A.filter(a => !blankCls(a.c) || a.c === '').filter(a => SF.f === 'upcoming' ? !a.d : SF.f === 'done' ? a.d : SF.f === 'grade' ? (a.d && ((a.g == null || a.g === '') || STAY.has(kOf(a))) && !isExtra(a.c)) : SF.f === 'week' ? (a.t >= ws && a.t < nws) : true);
   if (SF.cls.length) list = list.filter(a => SF.cls.includes(a.c));
   if (SF.q) { const q = SF.q.toLowerCase(); list = list.filter(a => (a.n + ' ' + a.c + ' ' + a.y).toLowerCase().includes(q)); }
   const key = { due: a => a.t, name: a => a.n.toLowerCase(), cls: a => a.c, type: a => a.y, grade: a => a.g === '' || a.g == null ? -Infinity : (typeof a.g === 'number' ? a.g : (Engine.parseGrade({ grade: a.g, possible: a.o }).pct || 0)), out: a => a.o == null ? -Infinity : a.o }[SF.sort] || (a => a.t);
@@ -693,14 +689,13 @@ function renderSheet(v) {
       <td><input class="cell nm" data-f="n" data-k="${k}n" value="${esc(a.n)}" title="${esc(a.n)}" autocomplete="off"></td>
       <td><select class="cell cl" data-f="c" data-k="${k}c">${classOptions(a.c)}</select></td>
       <td><input class="cell ty" data-f="y" data-k="${k}y" value="${esc(a.y)}" autocomplete="off" spellcheck="false"></td>
-      <td>${(() => { const tg = tst ? TEST[kOf(a)] : null; return `<input class="cell num${tg != null ? ' test' : ''}" data-f="g" data-k="${k}g" value="${esc(fmtG(tg != null ? tg : a.g))}" placeholder="${tst ? 'test' : '–'}" autocomplete="off">`; })()}</td>
+      <td>${(() => { const tg = tst ? TEST[kOf(a)] : null; return `<input class="cell num" data-f="g" data-k="${k}g" value="${esc(fmtG(tg != null ? tg : a.g))}" placeholder="–" autocomplete="off">`; })()}</td>
       ${SF.out ? `<td><input class="cell num" data-f="o" data-k="${k}o" value="${a.o == null ? '' : esc(a.o)}" autocomplete="off"></td>` : ''}</tr>`;
     DRAFTS.filter(d => d.after === i).forEach(d => { rows += draftRow(d); });
   });
   v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">google sheet ↗</a><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="toolbar"><div class="seg">${F.map(f => `<button class="${SF.f === f[0] ? 'on' : ''}" data-act="sf" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
       <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" placeholder="search" value="${esc(SF.q)}" autocomplete="off"></div>
-    ${tst ? `<div class="testbar">${nTest ? `<span><b>${nTest}</b> test grade${nTest === 1 ? '' : 's'} — class grades above include them</span><button class="btn sm" data-act="test-clear">clear</button><button class="btn sm tint" data-act="test-save">save to sheet</button>` : '<span>grades you type here are only a test — the class grades above update right away, nothing is saved or marked done</span>'}</div>` : ''}
     <table class="grid h">${colg}<thead><tr>${th}</tr></thead></table></div>
     <table class="grid b">${colg}<tbody>${rows}${list.length || DRAFTS.length ? '' : `<tr><td colspan="${ncol}" class="empty">${({ upcoming: 'all caught up', grade: 'everything is graded', done: 'nothing done yet', week: 'nothing due this week' }[SF.f] || 'nothing here')}</td></tr>`}</tbody></table>
     `;
@@ -827,7 +822,7 @@ document.addEventListener('click', e => {
     case 'course': if (VIEW === 'dash' && !showGrades) return; return openCourse(t.dataset.code);
     case 'close': return closeDrawer();
     case 'add': return startAdd();
-    case 'sf': SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
+    case 'sf': if (t.dataset.f !== 'grade') { STAY.clear(); TEST = {}; } SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
     case 'scls': { const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
     case 'insert': return startAdd(+t.dataset.i);
     case 'draft-x': DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); return renderAll();
@@ -846,8 +841,6 @@ document.addEventListener('click', e => {
     case 'theme': THEME = t.dataset.t; try { localStorage.setItem('wheel-theme', THEME); } catch (x) {} if (THEME === 'default') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', THEME); return renderAll();
     case 'savekey': { KEY = $('key-in').value.trim(); store.set('wheel-token', KEY); data = null; LIVE = null; return load(); }
     case 'sync': return load();
-    case 'test-save': return saveTests();
-    case 'test-clear': TEST = {}; return changed();
     case 'pick': { const inp = t.parentNode.querySelector('input[type=date]'); if (inp) { try { inp.showPicker(); } catch (x) { inp.focus(); inp.click(); } } return; }
   }
 });
@@ -857,13 +850,6 @@ function checkOff(x, save, msg) {
   let undone = false;
   const tm = setTimeout(() => { if (undone) return; save().catch(() => { x.d = !x.d; renderAll(); toast('couldn’t save — try again'); }); }, 3500);
   toast(msg, () => { undone = true; clearTimeout(tm); x.d = !x.d; renderAll(); });
-}
-function saveTests() {
-  const list = data.assignments.filter(a => TEST[kOf(a)] != null); if (!list.length) return;
-  list.forEach(a => { const val = TEST[kOf(a)], prev = Object.assign({}, a), match = { n: a.n, c: a.c };
-    a.g = val; setOv(prev, { g: val });
-    post({ action: 'edit', row: a.r, match, fields: { grade: val } }).catch(() => { a.g = prev.g; setOv(prev, { g: prev.g }); changed(); toast('couldn’t save ' + a.n); }); });
-  TEST = {}; changed(); toast('saved ' + list.length + ' grade' + (list.length === 1 ? '' : 's') + ' to the sheet');
 }
 function addTodo() {
   const inp = $('td-new'), title = inp && inp.value.trim(); if (!title) return;
@@ -880,6 +866,11 @@ document.addEventListener('input', e => {
     if (t.dataset.wf === 'grade') it.grade = v === '' ? null : (isNaN(Number(v)) ? v : Number(v)); else it.possible = v === '' ? null : Number(v);
     t.classList.toggle('changed', !same(t.dataset.wf === 'grade' ? it.grade : it.possible, t.dataset.wf === 'grade' ? it.real : it.realOut)); whatIf(); return; }
   if (t.classList.contains('cell')) t.classList.remove('bad');
+  if (t.dataset.f === 'g' && testing() && t.closest('tr.row')) {          // class grades follow what you type
+    const a = byIdx(t.closest('tr.row').dataset.i), v = t.value.trim(); if (!a) return;
+    if (v === '' || !/^-?[\d.]+(\s*\/\s*[\d.]+|\s*%)?$/.test(v)) delete TEST[kOf(a)]; else TEST[kOf(a)] = isNaN(Number(v)) ? v : Number(v);
+    changed();
+  }
 });
 document.addEventListener('change', e => {
   const t = e.target;
