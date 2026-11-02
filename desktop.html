@@ -42,7 +42,6 @@
   .nav svg { width: 20px; height: 20px; flex: none; }
   .nav:hover { background: var(--fill); color: var(--text); }
   .nav.on { background: var(--fill); color: var(--tint); }
-  .nav kbd { margin-left: auto; font: 11px ui-monospace, monospace; color: var(--ph); }
   .side .grow { flex: 1; }
   .sync { font-size: 12px; color: var(--sub); padding: 8px 10px; display: flex; align-items: center; gap: 6px; }
   .sync i { width: 7px; height: 7px; border-radius: 50%; background: #30D158; }
@@ -96,6 +95,16 @@
   .ev { padding: 8px 0; border-top: .5px solid var(--sep); } .ev:first-of-type { border-top: 0; padding-top: 2px; }
   .ev .n { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ev .w { color: var(--sub); font-size: 12px; }
   .bar { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; margin-top: 10px; } .bar i { display: block; height: 100%; background: var(--tint); border-radius: 3px; }
+  .glist { display: grid; gap: 2px; }
+  .glist button { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; border: 0; background: none; padding: 4px 2px; text-align: left; border-bottom: .5px solid var(--sep); font-size: 13px; }
+  .glist button:last-child { border-bottom: 0; } .glist button:hover { background: var(--fill); border-radius: 6px; }
+  .glist .nm { color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .glist .g { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .eyebtn { border: 0; background: none; color: var(--sub); padding: 2px 0; display: flex; } .eyebtn:hover { color: var(--text); }
+  .iconbtn.sm { width: 24px; height: 24px; font-size: 13px; padding: 0; color: var(--sub); }
+  .btn.sm { padding: 4px 10px; font-size: 12px; }
+  .cdot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; }
+  .one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cdf { display: grid; gap: 8px; } .cdf .txt { width: 100%; }
   .gl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
   .gl button { display: flex; align-items: baseline; gap: 6px; border: 0; background: var(--card2); border-radius: 9px; padding: 7px 9px; text-align: left; min-width: 0; }
   .gl .dl { font-weight: 800; font-size: 17px; min-width: 24px; } .gl .cn { font-size: 12px; font-weight: 700; white-space: nowrap; } .gl .cp { font-size: 11px; color: var(--sub); margin-left: auto; }
@@ -133,7 +142,14 @@
   .fchip .a { font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 5px; } .fchip .a b { width: 8px; height: 8px; border-radius: 4px; background: var(--c); }
   .fchip .g { font-size: 11px; color: var(--sub); font-weight: 600; font-variant-numeric: tabular-nums; }
   .fchip.on { box-shadow: inset 0 0 0 2px var(--c); background: var(--card); }
-  .search { width: 190px; flex: none; }
+  .search { width: 190px; flex: none; height: 41px; }
+  .toolbar .seg { height: 41px; align-items: stretch; } .toolbar .seg button { padding: 0 12px; }
+  .grid tr.draft td { background: var(--fill); }
+  .grid td.w36 { position: relative; }
+  .ins { position: absolute; left: -9px; bottom: -9px; z-index: 2; width: 18px; height: 18px; border-radius: 9px; border: 0; background: var(--tint); color: #fff; font-size: 14px; line-height: 18px; padding: 0; opacity: 0; transition: opacity .12s; }
+  html[data-theme=elegant] .ins, html[data-theme=moody] .ins { color: var(--bg); }
+  .grid tr.row:hover .ins, .ins:focus { opacity: 1; }
+  .grid.b { overflow: visible; } .grid.b tr:last-child td:first-child { border-bottom-left-radius: 14px; } .grid.b tr:last-child td:last-child { border-bottom-right-radius: 14px; }
   table.grid { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
   .grid.h { background: var(--card); border-radius: 14px 14px 0 0; }
   .grid.b { background: var(--card); border-radius: 0 0 14px 14px; overflow: hidden; }
@@ -145,8 +161,6 @@
   .grid tr.row.late .cell.due { color: var(--red); font-weight: 700; }
   .grid tr.row.xp .cell.nm, .grid tr.row.xp .cell.ty { font-weight: 800; font-style: italic; }
   .grid tr.wkh td { background: var(--card2); font-size: 12px; font-weight: 700; color: var(--sub); height: 30px; text-transform: lowercase; }
-  .grid tr.add td { background: var(--card); }
-  .grid tr.add .cell { background: var(--fill); }
   .cell { width: 100%; border: 0; background: transparent; padding: 6px 6px; border-radius: 7px; outline: none; min-width: 0; text-overflow: ellipsis; }
   .cell:hover { background: var(--fill); } .cell:focus { background: var(--card2); box-shadow: 0 0 0 2px var(--tint); }
   .cell.nm { font-weight: 600; } .cell.ty { color: var(--sub); text-transform: uppercase; } .cell.cl { font-weight: 700; color: var(--c); -webkit-appearance: none; appearance: none; cursor: pointer; }
@@ -167,7 +181,16 @@
   .donut .dl { font-size: 34px; font-weight: 800; line-height: 1; } .donut .cp { color: var(--sub); font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
   .gpa { max-width: 640px; }
   .gpa .big { font-size: 44px; }
-  .gpa .hid { display: flex; align-items: center; gap: 14px; }
+  .gpa { cursor: pointer; } .eyebig { color: var(--sub); height: 52px; display: flex; align-items: center; }
+  .how { display: grid; gap: 1px; font-size: 12px; margin-top: 4px; }
+  .how div { display: grid; grid-template-columns: minmax(0, 1fr) 48px 44px; gap: 6px; padding: 3px 0; border-top: .5px solid var(--sep); }
+  .how .k { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--sub); } .how .w, .how .s { text-align: right; font-variant-numeric: tabular-nums; } .how .s { font-weight: 600; }
+  .cc .more { font-size: 12px; color: var(--tint); font-weight: 600; margin-top: 4px; }
+  .sw { position: relative; width: 44px; height: 26px; flex: none; } .sw input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
+  .sw i { position: absolute; inset: 0; border-radius: 13px; background: var(--fill); transition: background .2s; }
+  .sw i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 11px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s var(--spring); }
+  .sw input:checked + i { background: #30D158; } .sw input:checked + i::after { transform: translateX(18px); }
+  html[data-theme=elegant] .sw input:checked + i { background: #426345; } html[data-theme=moody] .sw input:checked + i { background: #6B7F52; }
   table.cats { width: 100%; border-collapse: collapse; font-size: 13px; }
   .cats th { text-align: left; color: var(--sub); font-weight: 700; font-size: 12px; padding: 6px 4px; border-bottom: .5px solid var(--sep); }
   .cats td { padding: 7px 4px; border-bottom: .5px solid var(--sep); vertical-align: top; } .cats .n { text-align: right; font-variant-numeric: tabular-nums; }
@@ -223,14 +246,14 @@
   <nav class="side" id="side">
     <div class="brand">tracker</div>
     <button class="addbtn" data-act="add"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>add assignment</button>
-    <button class="nav" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard<kbd>1</kbd></button>
-    <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet<kbd>2</kbd></button>
-    <button class="nav" data-view="grades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades<kbd>3</kbd></button>
-    <button class="nav" data-view="att"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>attendance<kbd>4</kbd></button>
-    <button class="nav" data-view="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>tasks<kbd>5</kbd></button>
+    <button class="nav" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard</button>
+    <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet</button>
+    <button class="nav" data-view="grades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades</button>
+    <button class="nav" data-view="att"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>attendance</button>
+    <button class="nav" data-view="tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.2 1.2L7 5M3.5 12l1.2 1.2L7 11M3.5 18l1.2 1.2L7 17"/></svg>tasks</button>
     <div class="grow"></div>
     <button class="nav" data-view="settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.47.47 0 0 0-.47.41l-.36 2.54a7.4 7.4 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.73 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.04.3-.08.63-.08.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>settings</button>
-    <div class="sync" id="sync"><i></i><span>loading…</span></div>
+    <div class="sync" id="sync" hidden><i></i><span></span></div>
   </nav>
 
   <main id="main">
@@ -250,7 +273,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.1';
+const BUILD = 'd1.2';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -279,10 +302,15 @@ const fmtG = g => g == null || g === '' ? '' : (typeof g === 'number' ? f2(g) : 
 const fmtT = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
 const same = (x, y) => String(x == null ? '' : x) === String(y == null ? '' : y);
 const CHECK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--chkc)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const EXTRA = ['wv', 'lab', 'hc'];   // extracurricular "classes": never graded
+const EYE_SHUT = '<svg viewBox="2 9 20 11" width="22" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.2 3.6 5.4 5.4 9 5.4s6.8-1.8 9-5.4"/><path d="M5.2 14.6 3.5 16.6M9.2 16.4l-.9 2.4M14.8 16.4l.9 2.4M18.8 14.6l1.7 2"/></svg>';
+const EYE_OPEN = '<svg viewBox="1 5 22 14" width="22" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
+const PENCIL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>';
+const CD = Object.assign({ mode: 'ldoc', ldoc: '2026-12-08', title: '', date: '' }, store.get('wheel-cd', {}));   // same countdown settings as the phone
+const saveCD = () => store.set('wheel-cd', CD);
+const EXTRA = ['wv'];   // wolf village: on the sheet, never graded
 const blankCls = c => /^\W*$/.test(String(c || '').replace(/[‎‏\s]/g, ''));
 const isExtra = c => EXTRA.includes(String(c || '').toLowerCase()) || blankCls(c);
-const bigType = y => /^(EX|PR)/i.test(String(y || ''));   // exams and projects stand out, like on the sheet
+const bigType = y => /^(EX|PR|ES)/i.test(String(y || ''));   // exams, projects and essays stand out, like on the sheet
 
 const COLORS = { bch351: '#b2e2b6', bio240: '#9ed2f6', bsc494: '#e4b39b', gn427: '#d3f1bf', gn521: '#91e3d6', pb421: '#c2c7f8', phi325: '#fbe0a3', e115: '#e2d5f8', wv: '#A6A6B1', lab: '#A6A6B1', hc: '#A6A6B1' };
 const SPARE = ['#b2e2b6', '#9ed2f6', '#e4b39b', '#d3f1bf', '#91e3d6', '#c2c7f8', '#fbe0a3', '#e2d5f8', '#f6b8c9', '#bfe6ef'];
@@ -360,7 +388,7 @@ function courseList() {
   ((data && data.courses) || []).forEach(s => { const code = s.split(' ')[0]; if (!seen.has(code)) { seen.add(code); out.push({ code, name: s.slice(code.length + 1) }); } });
   return out;
 }
-const courseName = code => (courseList().find(c => c.code === code) || {}).name || ({ wv: 'wolf village', lab: 'lab', hc: 'honors council' })[code] || '';
+const courseName = code => (courseList().find(c => c.code === code) || {}).name || ({ wv: 'wolf village' })[code] || '';
 function revive(o) { return JSON.parse(JSON.stringify(o), (k, v) => v === '-inf' ? -Infinity : v === 'inf' ? Infinity : v); }
 // Grades are recalculated here with the same engine as the sheet, so a grade typed in the app shows up right away.
 let LIVE = null;
@@ -412,18 +440,28 @@ function saveCell(a, f, raw, el) {
   changed();
 }
 let lastAdd = store.get('desk-lastadd', { c: '', y: '', due: '' }), justAdded = null;
-function addInline() {
-  const g = id => $(id) && $(id).value.trim();
-  const f = { name: g('n-name'), due: g('n-due'), className: g('n-cls'), type: (g('n-type') || '').toUpperCase(), grade: g('n-grade') || '', outOf: g('n-out') || '' };
-  if (!f.name) { $('n-name').focus(); return; }
-  if (!f.due) { $('n-due').focus(); return; }
-  lastAdd = { c: f.className, y: f.type, due: f.due }; store.set('desk-lastadd', lastAdd);
-  const a = { r: 0, n: f.name, c: f.className, y: f.type, t: fromYmd(f.due), d: false, g: f.grade === '' ? '' : (isNaN(Number(f.grade)) ? f.grade : Number(f.grade)), o: f.outOf === '' ? null : Number(f.outOf) };
-  data.assignments.push(a); setOv(a, {}, true); justAdded = a;
-  post({ action: 'add', fields: f }).then(() => { if (!DEMO) setTimeout(() => load(true), 1500); }).catch(() => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; changed(); toast('couldn’t add — try again'); });
-  changed(); setTimeout(() => { const n = $('n-name'); if (n) { n.value = ''; n.focus(); } }, 0);
+// new rows: "add assignment" opens a fresh one at the top every time; the + at a row's left edge opens one right under it
+let DRAFTS = [], draftSeq = 0;
+function newDraft(after) {
+  const a = after != null ? byIdx(after) : null, T = today();
+  const due = a ? ymd(a.t) : (lastAdd.due && fromYmd(lastAdd.due) >= T ? lastAdd.due : ymd(addDays(T, 7)));
+  const d = { id: ++draftSeq, after: a ? after : null, f: { n: '', t: due, c: a ? a.c : (lastAdd.c || (courseList()[0] || {}).code || ''), y: a ? a.y : lastAdd.y, g: '', o: '' } };
+  DRAFTS.push(d); return d;
 }
-
+function saveDraft(id) {
+  const d = DRAFTS.find(x => x.id === id); if (!d) return;
+  const f = d.f, name = String(f.n).trim();
+  const el = n => document.querySelector(`[data-draft="${id}"][data-df="${n}"]`);
+  if (!name) { el('n') && el('n').focus(); return; }
+  if (!f.t) { el('t') && el('t').focus(); return; }
+  const fields = { name, due: f.t, className: f.c, type: String(f.y || '').trim().toUpperCase(), grade: String(f.g || '').trim(), outOf: String(f.o || '').trim() };
+  lastAdd = { c: fields.className, y: fields.type, due: fields.due }; store.set('desk-lastadd', lastAdd);
+  const a = { r: 0, n: fields.name, c: fields.className, y: fields.type, t: fromYmd(fields.due), d: false, g: fields.grade === '' ? '' : (isNaN(Number(fields.grade)) ? fields.grade : Number(fields.grade)), o: fields.outOf === '' ? null : Number(fields.outOf) };
+  data.assignments.push(a); setOv(a, {}, true); justAdded = a;
+  DRAFTS.splice(DRAFTS.indexOf(d), 1);
+  post({ action: 'add', fields }).then(() => { if (!DEMO) setTimeout(() => load(true), 1500); }).catch(() => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; changed(); toast('couldn’t add — try again'); });
+  changed(); toast('added ' + fields.name);
+}
 // ===================== render =====================
 let VIEW = store.get('desk-view', 'dash'), weekOff = 0, showGrades = false, showGpa = false, showRaDone = false;
 function go(v, fade) {
@@ -447,7 +485,29 @@ function connectHtml() {
     <div style="display:flex;gap:8px"><input class="txt" id="key-in" style="flex:1" placeholder="connection key" autocomplete="off"><button class="btn tint" data-act="savekey">connect</button></div>
     <p class="muted" style="font-size:12px">Or open <a href="?demo">the demo</a> to look around with made-up data.</p></div>`;
 }
-const greet = () => { const h = new Date().getHours(), n = store.get('wheel-greet', {}).name || 'sam'; return (h < 5 ? 'up late' : h < 12 ? 'good morning' : h < 17 ? 'good afternoon' : 'good evening') + ', ' + n; };
+const GR = Object.assign({ rand: false, name: 'sam' }, store.get('wheel-greet', {}));
+const DOTW = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+let GP = { key: '', text: '' };
+function holidayOf(d) {
+  const m = d.getMonth(), n = d.getDate(), w = d.getDay();
+  if (m === 0 && n === 1) return 'happy new year!'; if (m === 1 && n === 14) return 'happy valentine’s day!'; if (m === 2 && n === 17) return 'happy st. patrick’s day!';
+  if (m === 6 && n === 4) return 'happy 4th of july!'; if (m === 9 && n === 31) return 'happy halloween!'; if (m === 10 && w === 4 && n >= 22 && n <= 28) return 'happy thanksgiving!';
+  if (m === 11 && n === 24) return 'happy christmas eve!'; if (m === 11 && n === 25) return 'merry christmas!'; if (m === 11 && n === 31) return 'happy new year’s eve!';
+  return null;
+}
+// same greeting as the phone: plain "good morning", or a random one (your name, the weekday, a holiday) when randomize is on
+function greet() {
+  const now = new Date(), h = now.getHours(), part = h >= 2 && h < 12 ? 'morning' : h >= 12 && h < 17 ? 'afternoon' : 'evening', g = 'good ' + part;
+  if (!GR.rand) return g;
+  const name = String(GR.name || '').trim().toLowerCase(), key = part + '|' + now.toDateString() + '|' + name;
+  if (GP.key !== key) {
+    const hol = holidayOf(now), dw = DOTW[now.getDay()], opts = [g + '!', g];
+    if (name) opts.push(g + ', ' + name);
+    if (part === 'morning') { opts.push('happy ' + dw + '!', 'happy ' + dw); if (name) opts.push('happy ' + dw + ', ' + name); }
+    GP = { key, text: hol || opts[Math.floor(Math.random() * opts.length)] };
+  }
+  return GP.text;
+}
 
 function chipHtml(a, showDay) {
   const col = colorFor(a.c), meta = [spaceCode(a.c), a.y, showDay ? dayLabel(a.t) : '', fmtG(a.g)].filter(Boolean).join(' · ');
@@ -468,6 +528,7 @@ function renderDash(v) {
     days += `<div class="day${d0 === T ? ' today' : d0 < T ? ' past' : ''}"><div class="dh"><span class="dn">${DAYS[new Date(d0).getDay()]}</span><span class="dd">${md(d0)}</span>${list.length ? `<span class="dc">${left ? left + ' left' : 'done'}</span>` : ''}</div>` +
       list.map(a => chipHtml(a)).join('') + '</div>';
   }
+  const wn = weekNo(ws);
   v.innerHTML = `<div class="head"><h1>${esc(greet())}</h1><div class="tools"><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="glance">
       <div class="card"><div class="wk"><button class="iconbtn" data-act="wk-" aria-label="previous week">‹</button><span class="lbl">${rel}</span><button class="iconbtn" data-act="wk+" aria-label="next week">›</button></div>
@@ -478,7 +539,8 @@ function renderDash(v) {
       ${dashGradesHtml()}
     </div>
     ${late.length ? `<div class="overdue"><div class="weekbar"><span class="t late">overdue · ${late.length}</span></div><div class="row">${late.map(a => chipHtml(a, true)).join('')}</div></div>` : ''}
-    <div class="weekbar"><span class="t">${esc(weekTitle(ws))}</span><span class="r">${wk.length - done} to do ${weekOff ? '<button class="link" data-act="wk0">this week</button>' : ''}<button class="iconbtn" data-act="wk-" aria-label="previous week">‹</button><button class="iconbtn" data-act="wk+" aria-label="next week">›</button></span></div>
+    <div class="weekbar"><span class="t">${wn < 1 ? 'before the semester' : 'week ' + wn}</span>${weekOff ? '<button class="btn sm" data-act="wk0">this week</button>' : ''}
+      <span class="r">${wk.length - done} to do<button class="iconbtn" data-act="wk-" aria-label="previous week">‹</button><button class="iconbtn" data-act="wk+" aria-label="next week">›</button></span></div>
     <div class="days">${days}</div>
     <div class="pair">${raHtml(8)}${todoHtml(8)}</div>`;
 }
@@ -502,7 +564,8 @@ function wheelSvg(wk) {
 function nextUpHtml() {
   const ev = data.events, now = Date.now();
   const up = ev ? ev.filter(e => !e.a && (e.t > now || e.e > now)).slice(0, 4) : [];
-  return `<div class="card"><div class="ct">next up</div>` + (!ev ? '<div class="muted">calendar not connected</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${esc(e.n)}</div><div class="w">${e.t <= now ? 'now · until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ' · ' + fmtT(e.t)}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') + '</div>';
+  const dot = e => e.col ? `<i class="cdot" style="background:${esc(e.col)}" title="${esc(e.cal || '')}"></i>` : '';
+  return `<div class="card"><div class="ct">next up</div>` + (!ev ? '<div class="muted">calendar not connected</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${dot(e)}${esc(e.n)}</div><div class="w">${e.t <= now ? 'now · until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ' · ' + fmtT(e.t)}${e.cal && ev.some(x => x.cal && x.cal !== e.cal) ? ' · ' + esc(e.cal) : ''}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') + '</div>';
 }
 function budgetHtml() {
   const W = data.weeks || [], T = today(), next = W.find(w => w.t >= T && w.budget != null);
@@ -510,16 +573,33 @@ function budgetHtml() {
   const days = Math.round((next.t - T) / 864e5);
   return `<div class="card"><div class="ct">food budget</div><div class="big">$${f2(next.budget)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
 }
+let cdEdit = false;
+function cdForm() {
+  const opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
+  return `<div class="cdf"><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>` +
+    (CD.mode === 'ldoc' ? `<input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">` : '') +
+    (CD.mode === 'custom' ? `<input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}">` : '') + '</div>';
+}
 function countdownHtml() {
-  const cd = store.get('wheel-cd', {}), ldoc = fromYmd(cd.ldoc || '2026-12-08'), T = today(), d = Math.round((ldoc - T) / 864e5);
-  const togo = data.assignments.filter(a => !a.d && a.t < ldoc + 864e5 && !isExtra(a.c)).length, all = data.assignments.filter(a => !isExtra(a.c)).length;
-  return `<div class="card"><div class="ct">last day of classes</div><div class="big">${d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>
-    <div class="muted">${togo} assignment${togo === 1 ? '' : 's'} to go</div><div class="bar"><i style="width:${all ? Math.round((1 - togo / all) * 100) : 0}%"></i></div></div>`;
+  const T = today(), A = data.assignments;
+  let target = NaN, title = '', sub = '', bar = '';
+  if (CD.mode === 'exam') {
+    const ex = A.filter(a => !a.d && /^ex/i.test(a.y) && a.t >= T).sort((x, y) => x.t - y.t)[0];
+    title = 'next exam'; if (ex) { target = ex.t; sub = spaceCode(ex.c) + ' · ' + ex.n; } else sub = 'no exams ahead';
+  } else if (CD.mode === 'custom') { target = fromYmd(CD.date); title = CD.title || 'countdown'; }
+  else {
+    target = fromYmd(CD.ldoc || '2026-12-08'); title = 'last day of classes';
+    const togo = A.filter(a => !a.d && a.t < target + 864e5 && !isExtra(a.c)).length, all = A.filter(a => !isExtra(a.c)).length;
+    sub = togo + ' assignment' + (togo === 1 ? '' : 's') + ' to go'; bar = `<div class="bar"><i style="width:${all ? Math.round((1 - togo / all) * 100) : 0}%"></i></div>`;
+  }
+  const d = Math.round((target - T) / 864e5);
+  return `<div class="card"><div class="ct">${esc(title)}<span class="r"><button class="iconbtn sm" data-act="cdedit" aria-label="edit countdown">${cdEdit ? '✓' : PENCIL}</button></span></div>` +
+    (cdEdit ? cdForm() : `<div class="big">${isNaN(d) ? '–' : d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div><div class="muted one">${esc(sub)}</div>${bar}`) + '</div>';
 }
 function dashGradesHtml() {
   const L = live(); if (!L) return '<div class="card"><div class="ct">grades</div><div class="muted">not connected</div></div>';
-  return `<div class="card"><div class="ct">grades<span class="r"><button class="link" data-act="eye">${showGrades ? 'hide' : 'show'}</button></span></div>
-    <div class="gl${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><span class="dl" style="color:${colorFor(c.code)}">${esc(c.letter || '–')}</span><span class="cn">${esc(spaceCode(c.code))}</span><span class="cp">${c.raw != null ? f2(c.raw) : ''}</span></button>`).join('')}</div></div>`;
+  return `<div class="card"><div class="ct">grades<span class="r"><button class="eyebtn" data-act="eye" aria-label="${showGrades ? 'hide grades' : 'show grades'}">${showGrades ? EYE_OPEN : EYE_SHUT}</button></span></div>
+    <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${colorFor(c.code)}">${esc(spaceCode(c.code))}</b><span class="nm">${esc(c.name)}</span><span class="g">${c.raw != null ? f2(c.raw) + ' (' + esc(c.letter || '–') + ')' : '–'}</span></button>`).join('')}</div></div>`;
 }
 const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted">· ${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
 function raHtml(limit) {
@@ -529,18 +609,23 @@ function raHtml(limit) {
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
   return `<div class="card"><div class="ct">ra tasks<span class="r"><button class="link" data-act="radone">${showRaDone ? 'hide done' : 'show done'}</button></span></div><div class="xlist">${list.map(raItem).join('') || '<div class="empty">no open RA tasks</div>'}</div>${more ? `<div class="muted" style="font-size:12px;margin-top:6px"><button class="link" data-act="go" data-view="tasks">${more} more</button></div>` : ''}</div>`;
 }
+function todoOrder() {
+  const td = data.todo || [];
+  if (!data._todoOrder) data._todoOrder = td.slice().sort((x, y) => (x.d - y.d) || (x.t == null) - (y.t == null) || (x.t || 0) - (y.t || 0)).map(x => x.id);
+  const pos = id => { const i = data._todoOrder.indexOf(id); return i < 0 ? 1e9 : i; };
+  return td.slice().sort((x, y) => pos(x.id) - pos(y.id));
+}
 function todoHtml(limit) {
   const td = data.todo;
   const head = '<div class="ct">to-do<span class="r muted">google tasks</span></div>';
   if (td === undefined) return `<div class="card">${head}<div class="muted">update the backend to see your Google Tasks</div></div>`;
   if (td === null) return `<div class="card">${head}<div class="muted">turn on Google Tasks in the backend: in Apps Script, Services (+) → Google Tasks API → Add, then deploy a new version.</div></div>`;
-  let list = td.slice().sort((x, y) => (x.d - y.d) || (x.t == null) - (y.t == null) || (x.t || 0) - (y.t || 0));
+  let list = todoOrder();
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
   return `<div class="card">${head}<div class="xlist">${list.map(x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:var(--tint)" data-act="todo" data-id="${esc(x.id)}">${CHECK}</button><span class="t">${esc(x.n)}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : ''}</span></div>`).join('') || '<div class="empty">nothing to do</div>'}</div>
     ${more ? `<div class="muted" style="font-size:12px;margin-top:6px"><button class="link" data-act="go" data-view="tasks">${more} more</button></div>` : ''}
     <div class="addline"><input class="txt" id="td-new" data-k="td-new" placeholder="add a to-do" autocomplete="off"><input class="txt" type="date" id="td-due"></div></div>`;
 }
-
 // ---------- sheet ----------
 let SF = Object.assign({ f: 'upcoming', cls: [], q: '', sort: 'due', dir: 1, out: false }, store.get('desk-sf', {}));
 const saveSF = () => store.set('desk-sf', SF);
@@ -556,45 +641,49 @@ function renderSheet(v) {
   if (SF.q) { const q = SF.q.toLowerCase(); list = list.filter(a => (a.n + ' ' + a.c + ' ' + a.y).toLowerCase().includes(q)); }
   const key = { due: a => a.t, name: a => a.n.toLowerCase(), cls: a => a.c, type: a => a.y, grade: a => a.g === '' || a.g == null ? -Infinity : (typeof a.g === 'number' ? a.g : (Engine.parseGrade({ grade: a.g, possible: a.o }).pct || 0)), out: a => a.o == null ? -Infinity : a.o }[SF.sort] || (a => a.t);
   list.sort((x, y) => { const p = key(x), q = key(y); return (p < q ? -1 : p > q ? 1 : 0) * SF.dir || (x.t - y.t) || String(x.c).localeCompare(y.c); });
-  const classes = [...new Set(A.map(a => a.c).filter(c => c && !blankCls(c)))].sort();
+  const classes = [...new Set(A.map(a => a.c).filter(c => c && !isExtra(c)))].sort();
   const L = live();
-  const chip = c => { const g = L && L.courses.find(x => x.code === c); return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + f2(g.raw) : 'no grades') : esc(courseName(c))}</span></button>`; };
-  const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 72], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : []);
+  const chip = c => { const g = L && L.courses.find(x => x.code === c); return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + f2(g.raw) : 'no grades') : ''}</span></button>`; };
+  const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : []);
   const colg = '<colgroup>' + cols.map(c => `<col${c[2] ? ` style="width:${c[2]}px"` : ''}>`).join('') + '</colgroup>';
   const th = cols.map(c => `<th class="${c[1] ? 's' : ''}${SF.sort === c[0] && c[1] ? ' on' : ''}${c[0] === 'done' ? ' w36' : ''}" ${c[1] ? `data-act="sort" data-s="${c[0]}"` : ''}>${c[1]}${SF.sort === c[0] && c[1] ? (SF.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('');
   const ncol = cols.length;
-  const def = lastAdd.due && fromYmd(lastAdd.due) >= T ? lastAdd.due : ymd(addDays(T, 7)), defCls = lastAdd.c || (courseList()[0] || {}).code || '';
-  let rows = `<tr class="add"><td class="w36"><span class="muted" style="font-size:18px;padding-left:2px">+</span></td><td><input class="cell due" type="date" id="n-due" data-k="n-due" value="${esc(def)}"></td>
-    <td><input class="cell nm" id="n-name" data-k="n-name" placeholder="add an assignment, then enter" autocomplete="off"></td>
-    <td><select class="cell cl" id="n-cls" data-k="n-cls" style="--c:${colorFor(defCls)}">${classOptions(defCls)}</select></td>
-    <td><input class="cell ty" id="n-type" data-k="n-type" value="${esc(lastAdd.y)}" list="types" autocomplete="off"></td><td><input class="cell num" id="n-grade" data-k="n-grade" autocomplete="off"></td>${SF.out ? '<td><input class="cell num" id="n-out" data-k="n-out" autocomplete="off"></td>' : ''}</tr>`;
+  const draftRow = d => `<tr class="draft" data-draft-row="${d.id}">
+    <td class="w36"><button class="iconbtn sm" data-act="draft-x" data-draft="${d.id}" aria-label="cancel">×</button></td>
+    <td><input class="cell due" type="date" data-draft="${d.id}" data-df="t" data-k="d${d.id}t" value="${esc(d.f.t)}"></td>
+    <td><input class="cell nm" data-draft="${d.id}" data-df="n" data-k="d${d.id}n" value="${esc(d.f.n)}" placeholder="new assignment — enter to save, esc to cancel" autocomplete="off"></td>
+    <td><select class="cell cl" data-draft="${d.id}" data-df="c" data-k="d${d.id}c" style="--c:${colorFor(d.f.c)}">${classOptions(d.f.c)}</select></td>
+    <td><input class="cell ty" data-draft="${d.id}" data-df="y" data-k="d${d.id}y" value="${esc(d.f.y)}" list="types" autocomplete="off"></td>
+    <td><input class="cell num" data-draft="${d.id}" data-df="g" data-k="d${d.id}g" value="${esc(d.f.g)}" autocomplete="off"></td>
+    ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}</tr>`;
+  let rows = DRAFTS.filter(d => d.after == null || !list.includes(byIdx(d.after))).map(draftRow).join('');
   let lastW = null;
   list.forEach(a => {
-    if (SF.sort === 'due') { const w = weekStart(a.t); if (w !== lastW) { lastW = w; rows += `<tr class="wkh"><td colspan="${ncol}">${esc(weekTitle(w))}${w === ws ? ' · this week' : ''}</td></tr>`; } }
+    if (SF.sort === 'due') { const w = weekStart(a.t); if (w !== lastW) { lastW = w; const n = weekNo(w); rows += `<tr class="wkh"><td colspan="${ncol}">${n < 1 ? 'before the semester' : 'week ' + n}${w === ws ? ' · this week' : ''}</td></tr>`; } }
     const i = data.assignments.indexOf(a), col = colorFor(a.c), late = !a.d && a.t < T, k = 'r' + i + '|';
     rows += `<tr class="row${a.d ? ' done' : ''}${late ? ' late' : ''}${bigType(a.y) ? ' xp' : ''}" style="--c:${col}" data-i="${i}">
-      <td class="w36"><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td>
+      <td class="w36"><button class="ins" data-act="insert" data-i="${i}" title="add a row below" aria-label="add a row below">+</button><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td>
       <td><input class="cell due" type="date" data-f="t" data-k="${k}t" value="${ymd(a.t)}"></td>
       <td><input class="cell nm" data-f="n" data-k="${k}n" value="${esc(a.n)}" title="${esc(a.n)}" autocomplete="off"></td>
       <td><select class="cell cl" data-f="c" data-k="${k}c">${classOptions(a.c)}</select></td>
       <td><input class="cell ty" data-f="y" data-k="${k}y" value="${esc(a.y)}" list="types" autocomplete="off"></td>
       <td><input class="cell num" data-f="g" data-k="${k}g" value="${esc(fmtG(a.g))}" placeholder="–" autocomplete="off"></td>
       ${SF.out ? `<td><input class="cell num" data-f="o" data-k="${k}o" value="${a.o == null ? '' : esc(a.o)}" autocomplete="off"></td>` : ''}</tr>`;
+    DRAFTS.filter(d => d.after === i).forEach(d => { rows += draftRow(d); });
   });
   const types = [...new Set(A.map(a => a.y).filter(Boolean))].sort();
-  v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">google sheet ↗</a></div></div>
+  v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">google sheet ↗</a><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="toolbar"><div class="seg">${F.map(f => `<button class="${SF.f === f[0] ? 'on' : ''}" data-act="sf" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
       <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" placeholder="search" value="${esc(SF.q)}" autocomplete="off"></div>
     <table class="grid h">${colg}<thead><tr>${th}</tr></thead></table></div>
-    <table class="grid b">${colg}<tbody>${rows}${list.length ? '' : `<tr><td colspan="${ncol}" class="empty">${({ upcoming: 'all caught up', grade: 'everything is graded', done: 'nothing done yet', week: 'nothing due this week' }[SF.f] || 'nothing here')}</td></tr>`}</tbody></table>
+    <table class="grid b">${colg}<tbody>${rows}${list.length || DRAFTS.length ? '' : `<tr><td colspan="${ncol}" class="empty">${({ upcoming: 'all caught up', grade: 'everything is graded', done: 'nothing done yet', week: 'nothing due this week' }[SF.f] || 'nothing here')}</td></tr>`}</tbody></table>
     <datalist id="types">${types.map(t => `<option value="${esc(t)}">`).join('')}</datalist>`;
   if (justAdded) { const i = data.assignments.indexOf(justAdded); justAdded = null; const r = v.querySelector(`tr[data-i="${i}"]`); if (r) { r.querySelectorAll('td').forEach(td => { td.style.transition = 'background 1.2s'; td.style.background = 'var(--fill)'; }); setTimeout(() => r.querySelectorAll('td').forEach(td => td.style.background = ''), 900); } }
 }
-
 // ---------- grades ----------
 const OPS = [1, .8, .62, .48, .38, .3, .24, .2];
 function donutSvg(c, col) {
-  const cats = c.cats.filter(k => k.share > 0), R = 76, Cc = 2 * Math.PI * R; let off = 0, h = '';
+  const cats = (c.cats || []).filter(k => k.share > 0), R = 76, Cc = 2 * Math.PI * R; let off = 0, h = '';
   cats.forEach((k, i) => {
     const len = k.share * Cc, seg = Math.max(len - 3, 1), fill = k.poss ? Math.min(k.graded / k.poss, 1) : 0;
     const ring = (d, stroke, op) => `<circle cx="100" cy="100" r="${R}" fill="none" stroke="${stroke}" stroke-width="22" stroke-dasharray="${d} ${Cc - d}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"${op != null ? ` stroke-opacity="${op}"` : ''}/>`;
@@ -609,17 +698,18 @@ function renderGrades(v) {
   if (!L) { v.innerHTML = '<div class="head"><h1>grades</h1></div><div class="empty">grades aren’t connected yet</div>'; return; }
   const lg = L.courses.filter(c => c.gp != null && c.credits > 0), pf = L.courses.filter(c => c.passFail);
   const pts = lg.reduce((s, c) => s + c.gp * c.credits, 0), cr = lg.reduce((s, c) => s + c.credits, 0);
+  const how = c => !(c.cats || []).length ? '' : `<div class="how">${c.cats.filter(k => k.share > 0 || k.kind !== 'normal').map(k => `<div><span class="k">${esc(k.name)}</span><span class="w">${k.share > 0 ? Math.round(k.share * 1000) / 10 + '%' : esc(k.kind === 'bonus' ? 'bonus' : k.kind === 'flat' ? '± final' : 'extra')}</span><span class="s">${k.pct != null ? f2(k.pct) : '–'}</span></div>`).join('')}</div>`;
   v.innerHTML = `<div class="head"><h1>grades</h1></div>
     <div class="ccards">${L.courses.map(c => { const col = colorFor(c.code); return `<button class="cc" style="--c:${col}" data-act="course" data-code="${esc(c.code)}">
       <div class="top"><span class="code">${esc(spaceCode(c.code))}</span><span class="nmx">${esc(c.name)}</span>${c.passFail ? '<span class="pf">S/U</span>' : `<span class="pf">${c.credits} cr</span>`}</div>
-      <div class="donut">${donutSvg(c, col)}<div class="c"><div class="dl" style="color:${col}">${esc(c.letter || '–')}</div><div class="cp">${c.raw != null ? f2(c.raw) + (c.scaleGP ? ' pts' : '%') : ''}</div></div></div></button>`; }).join('')}</div>
-    <div class="card gpa"><div class="ct">term gpa<span class="r"><button class="link" data-act="gpa">${showGpa ? 'hide' : 'show'}</button></span></div>
+      <div class="donut">${donutSvg(c, col)}<div class="c"><div class="dl" style="color:${col}">${esc(c.letter || '–')}</div><div class="cp">${c.raw != null ? f2(c.raw) + (c._rule && c._rule.binCutoffs ? ' pts' : '%') : ''}</div></div></div>
+      ${how(c)}<div class="more">how it was calculated ›</div></button>`; }).join('')}</div>
+    <div class="card gpa" data-act="gpa"><div class="ct">term gpa</div>
       ${showGpa ? `<div class="big">${L.gpa != null ? Number(L.gpa).toFixed(3) : '–'}</div>
         <div class="sec"><div class="ct">how it was calculated</div><ol class="trace">${lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('')}
           ${pf.length ? `<li>${esc(pf.map(c => spaceCode(c.code)).join(', '))}: pass/fail, not in GPA</li>` : ''}<li>${f2(pts)} grade points ÷ ${cr} credits = ${cr ? (pts / cr).toFixed(3) : '–'}</li></ol></div>`
-      : `<div class="hid"><div class="big muted">•.•••</div></div>`}</div>`;
+      : `<div class="eyebig">${EYE_SHUT.replace('width="22" height="12"', 'width="54" height="29"')}</div>`}</div>`;
 }
-
 // ---------- grade inspector + what-if ----------
 let WI = null;
 function openCourse(code) {
@@ -665,29 +755,35 @@ function renderAtt(v) {
 
 // ---------- tasks ----------
 function renderTasks(v) {
-  const ex = data.assignments.filter(a => EXTRA.includes(String(a.c).toLowerCase())).sort((x, y) => (x.d - y.d) || (x.t - y.t));
-  v.innerHTML = `<div class="head"><h1>tasks</h1><div class="tools"><button class="btn tint" data-act="add" data-cls="wv">add to the sheet</button></div></div>
-    <div class="tri">${raHtml(0)}${todoHtml(0)}
-    <div class="card"><div class="ct">wolf village, lab, honors council</div><div class="xlist">${ex.map(a => `<div class="xi${a.d ? ' done' : ''}"><button class="chk${a.d ? ' on' : ''}" style="--c:${colorFor(a.c)}" data-act="done" data-i="${data.assignments.indexOf(a)}">${CHECK}</button><span class="t">${esc(a.n)}</span><span class="d">${esc(a.c)} · ${dayLabel(a.t)}</span></div>`).join('') || '<div class="empty">nothing yet</div>'}</div></div></div>`;
+  v.innerHTML = `<div class="head"><h1>tasks</h1></div><div class="pair">${raHtml(0)}${todoHtml(0)}</div>`;
 }
-
 // ---------- settings ----------
 function renderSettings(v) {
   const th = [['default', 'dark'], ['light', 'light'], ['elegant', 'elegant'], ['moody', 'moody']];
+  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && /INPUT|SELECT/.test(ae.tagName) && ae.type !== 'checkbox' && v.innerHTML) return;
   v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="set">
     <div class="card"><div class="ct">theme</div><div class="themes">${th.map(([k, l]) => `<button class="btn${THEME === k ? ' tint' : ''}" data-act="theme" data-t="${k}">${l}</button>`).join('')}</div></div>
+    <div class="card"><div class="ct">countdown</div>${(() => { const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
+      return `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
+        (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
+        (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : ''); })()}</div>
+    <div class="card"><div class="ct">greeting</div>
+      <div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
+      <div class="row"><span>name</span><input class="txt" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div></div>
     <div class="card"><div class="ct">connection</div>
-      <div class="row"><span>connection key<div class="muted" style="font-size:12px">kept in this browser only</div></span><input class="txt" id="key-in" type="password" placeholder="paste key" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>
-      <div class="row"><span>refresh</span><button class="btn" data-act="sync">refresh data</button></div></div>
+      <div class="row"><span>connection key<div class="muted" style="font-size:12px">kept in this browser only</div></span><input class="txt" id="key-in" type="password" placeholder="paste key" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div></div>
     <div class="card"><div class="ct">app info</div>
       <div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
-      <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo (made-up data)</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ↗</a>`}</div>
-      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '—'}</span></div>
-      <div class="row"><span>keyboard</span><span class="muted">1–5 views · n new assignment · / search · esc close</span></div></div></div>`;
+      <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ↗</a>`}</div>
+      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '—'}</span><button class="btn sm" data-act="sync">refresh</button></div></div></div>`;
 }
-
 // ===================== events =====================
-function startAdd() { if (VIEW !== 'sheet') go('sheet'); else renderAll(); $('main').scrollTop = 0; setTimeout(() => $('n-name') && $('n-name').focus(), 30); }
+function startAdd(after) {
+  const d = newDraft(after);
+  if (VIEW !== 'sheet') go('sheet'); else renderAll();
+  if (after == null) $('main').scrollTop = 0;
+  setTimeout(() => { const n = document.querySelector(`[data-draft="${d.id}"][data-df="n"]`); if (n) { n.focus(); if (after != null) n.scrollIntoView({ block: 'center' }); } }, 30);
+}
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act],[data-view]'); if (!t) return;
   const act = t.dataset.act;
@@ -700,12 +796,15 @@ document.addEventListener('click', e => {
     case 'wk+': weekOff++; return renderAll();
     case 'wk0': weekOff = 0; return renderAll();
     case 'eye': showGrades = !showGrades; return renderAll();
-    case 'gpa': showGpa = !showGpa; return renderAll();
+    case 'cdedit': cdEdit = !cdEdit; return renderAll();
+    case 'gpa': if (e.target.closest('a,button:not(.gpa)') && e.target.closest('[data-act]') !== t) return; showGpa = !showGpa; return renderAll();
     case 'course': if (VIEW === 'dash' && !showGrades) return; return openCourse(t.dataset.code);
     case 'close': return closeDrawer();
-    case 'add': if (t.dataset.cls) { lastAdd.c = t.dataset.cls; lastAdd.y = t.dataset.cls.toUpperCase(); } return startAdd();
-    case 'sf': SF.f = t.dataset.f; saveSF(); return renderAll();
-    case 'scls': { const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); saveSF(); return renderAll(); }
+    case 'add': return startAdd();
+    case 'sf': SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
+    case 'scls': { const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
+    case 'insert': return startAdd(+t.dataset.i);
+    case 'draft-x': DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); return renderAll();
     case 'sort': { const s = t.dataset.s; if (SF.sort === s) SF.dir = -SF.dir; else { SF.sort = s; SF.dir = 1; } saveSF(); return renderAll(); }
     case 'outof': SF.out = !SF.out; saveSF(); return renderAll();
     case 'wi-reset': return openCourse(WI.code);
@@ -726,12 +825,14 @@ document.addEventListener('click', e => {
 function addTodo() {
   const inp = $('td-new'), title = inp && inp.value.trim(); if (!title) return;
   const due = $('td-due').value, x = { id: 'tmp' + Date.now(), n: title, d: false, t: due ? fromYmd(due) : null };
-  data.todo.push(x); inp.value = ''; renderAll(); setTimeout(() => $('td-new') && $('td-new').focus(), 0);
-  post({ action: 'task_add', title, due }).then(j => { x.id = j.id || x.id; }).catch(() => { data.todo.splice(data.todo.indexOf(x), 1); renderAll(); toast('couldn’t add — try again'); });
+  data.todo.push(x); if (data._todoOrder) data._todoOrder.push(x.id); inp.value = ''; renderAll(); setTimeout(() => $('td-new') && $('td-new').focus(), 0);
+  post({ action: 'task_add', title, due }).then(j => { const old = x.id; x.id = j.id || x.id; if (data._todoOrder) data._todoOrder[data._todoOrder.indexOf(old)] = x.id; }).catch(() => { data.todo.splice(data.todo.indexOf(x), 1); renderAll(); toast('couldn’t add — try again'); });
 }
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'sq') { SF.q = t.value; saveSF(); renderAll(); return; }
+  if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; return; }
+  if (t.dataset.gr === 'name') { GR.name = t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
   if (t.dataset.wi != null && WI) { const it = WI.items[+t.dataset.wi], v = t.value.trim();
     if (t.dataset.wf === 'grade') it.grade = v === '' ? null : (isNaN(Number(v)) ? v : Number(v)); else it.possible = v === '' ? null : Number(v);
     t.classList.toggle('changed', !same(t.dataset.wf === 'grade' ? it.grade : it.possible, t.dataset.wf === 'grade' ? it.real : it.realOut)); whatIf(); return; }
@@ -739,13 +840,16 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.id === 'n-cls') { t.style.setProperty('--c', colorFor(t.value)); return; }
+  if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
+  if (t.dataset.cd) { CD[t.dataset.cd] = t.value; saveCD(); renderAll(); return; }
+  if (t.dataset.gr) { GR[t.dataset.gr] = t.type === 'checkbox' ? t.checked : t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
   if (t.dataset.f && t.closest('tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i); if (a) saveCell(a, t.dataset.f, t.value, t); }
 });
 document.addEventListener('keydown', e => {
   const t = e.target, typing = /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName) && !(t.closest('.drawer') && !t.closest('.on'));
+  if (e.key === 'Escape' && t.dataset && t.dataset.draft) { DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); t.blur(); renderAll(); return; }
   if (e.key === 'Escape') { if ($('drawer').classList.contains('on')) closeDrawer(); else if (typing) t.blur(); return; }
-  if (e.key === 'Enter' && t.closest && t.closest('tr.add')) { e.preventDefault(); addInline(); return; }
+  if (e.key === 'Enter' && t.dataset && t.dataset.draft) { e.preventDefault(); saveDraft(+t.dataset.draft); return; }
   if (e.key === 'Enter' && (t.id === 'td-new' || t.id === 'td-due')) { e.preventDefault(); addTodo(); return; }
   if (e.key === 'Enter' && t.classList && t.classList.contains('cell') && t.closest('tr.row')) { e.preventDefault(); t.blur(); return; }
   if (typing || e.metaKey || e.ctrlKey || e.altKey) return;

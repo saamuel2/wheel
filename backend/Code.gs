@@ -9,7 +9,9 @@
 
 // ====== SETTINGS ======
 var SHEET_ID   = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
-var CAL_ID     = 'sjstrimp@ncsu.edu';      // calendar shown in "next up"
+var CAL_ID     = 'sjstrimp@ncsu.edu';      // your main calendar (always included)
+// "next up" shows every calendar that's checked in Google Calendar's sidebar. To limit it, add a script property
+// CALENDARS with the calendar names to include, separated by commas.
 var TZ         = 'America/New_York';
 var EVENT_DAYS = 14;                       // how far ahead "next up" looks
 // ======================
@@ -76,8 +78,8 @@ function cellYmd_(v, ss) {
   return y + '-' + ('0' + m[1]).slice(-2) + '-' + ('0' + m[2]).slice(-2);
 }
 
-// ---------- assignments (Assignments rows from 3; A done, B due, C name, D class, E type, F grade; L = "out of", a hidden column) ----------
-var OUT_COL = 12;   // column L
+// ---------- assignments (the "fall 2026" table: rows from 3; A done, B due, C name, D class, E type, F grade, G out of) ----------
+var OUT_COL = 7;    // column G
 function readAssignments_(ss) {
   var sh = ss.getSheetByName('Assignments'), last = sh.getLastRow(), list = [];
   if (last < 3) return list;
@@ -359,17 +361,26 @@ function round2_(n) { return Math.round(n * 100) / 100; }
 
 // ---------- calendar ("next up") ----------
 function readEvents_() {
-  var cal = CalendarApp.getCalendarById(CAL_ID);
-  if (!cal) throw new Error('calendar ' + CAL_ID + ' not found for the account running this script');
-  var now = new Date(), evs = cal.getEvents(new Date(now.getTime() - 3600000), new Date(now.getTime() + EVENT_DAYS * 864e5)), out = [];
-  for (var i = 0; i < evs.length; i++) {
-    var ev = evs[i];
-    try { if (ev.getMyStatus() === CalendarApp.GuestStatus.NO) continue; } catch (x) {}
-    var t = ev.getStartTime().getTime(), e = ev.getEndTime().getTime();
-    out.push({ n: ev.getTitle(), t: t, e: e, a: ev.isAllDayEvent() || (e - t) >= 20 * 3600000 });
-  }
+  var only = String(PropertiesService.getScriptProperties().getProperty('CALENDARS') || '').split(',').map(function (x) { return x.trim().toLowerCase(); }).filter(String);
+  var cals = CalendarApp.getAllCalendars().filter(function (c) {
+    if (c.getId() === CAL_ID) return true;
+    if (only.length) return only.indexOf(String(c.getName()).toLowerCase()) > -1;
+    try { return c.isSelected() && !c.isHidden(); } catch (x) { return false; }
+  });
+  if (!cals.length) { var main = CalendarApp.getCalendarById(CAL_ID); if (main) cals = [main]; }
+  if (!cals.length) throw new Error('no calendars found for the account running this script');
+  var now = new Date(), from = new Date(now.getTime() - 3600000), to = new Date(now.getTime() + EVENT_DAYS * 864e5), out = [], seen = {};
+  cals.forEach(function (cal) {
+    var name = cal.getName(), color = cal.getColor();
+    cal.getEvents(from, to).forEach(function (ev) {
+      try { if (ev.getMyStatus() === CalendarApp.GuestStatus.NO) return; } catch (x) {}
+      var t = ev.getStartTime().getTime(), e = ev.getEndTime().getTime(), k = ev.getTitle() + '|' + t;
+      if (seen[k]) return; seen[k] = 1;                                     // same event on two calendars → once
+      out.push({ n: ev.getTitle(), t: t, e: e, a: ev.isAllDayEvent() || (e - t) >= 20 * 3600000, cal: name, col: color });
+    });
+  });
   out.sort(function (a, b) { return a.t - b.t; });
-  return out.slice(0, 60);
+  return out.slice(0, 80);
 }
 
 // ---------- run once from the editor (play button) to grant permissions and check everything ----------
@@ -384,7 +395,7 @@ function checkSetup() {
   msg.push('weeks: ' + readWeeks_(ss).length + ' dividers');
   var ra = readRA_(ss); msg.push('RA tasks: ' + (ra ? ra.length : 'no RA tab'));
   try { var td = readTodo_(); msg.push('google tasks: ' + (td ? td.length + ' tasks' : 'OFF — Services (+) → Google Tasks API → Add')); } catch (err) { msg.push('google tasks: PROBLEM — ' + err); }
-  try { var ev = readEvents_().filter(function (x) { return !x.a; }); msg.push('calendar: ' + ev.length + ' upcoming timed events'); }
+  try { var ev = readEvents_(), names = {}; ev.forEach(function (x) { names[x.cal] = 1; }); msg.push('calendar: ' + ev.filter(function (x) { return !x.a; }).length + ' upcoming timed events from ' + Object.keys(names).join(', ')); }
   catch (err) { msg.push('calendar: PROBLEM — ' + err); }
   Logger.log(msg.join('\n'));
 }
