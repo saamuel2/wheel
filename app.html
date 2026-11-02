@@ -345,24 +345,24 @@
   html[data-theme=elegant] .topbar#topbar::before, html[data-theme=elegant] .undo, html[data-theme=elegant] .fab, html[data-theme=elegant] .sheet { -webkit-backdrop-filter: blur(24px) saturate(100%); backdrop-filter: blur(24px) saturate(100%); }
   html[data-theme=elegant] .frow input[type=date] { color-scheme: light; }
   /* moody: elegant's palette on raisin black */
-  html[data-theme=moody] { --bg: #141413; --card: #1F1F1C; --text: #E6DCC8; --sub: #A8A599; --tint: #9DB27F; --sep: rgba(225,216,204,.14); --fill: rgba(225,216,204,.10);
-    --track: #2D2D29; --press: #2A2A26; --navtxt: #E6DCC8; --chkc: #141413; --ph: #66665C; --dtrack: rgba(225,216,204,.12); --serif: "Newsreader", ui-serif, "New York", Georgia, serif; }
-  html[data-theme=moody] body { background: #141413; }
+  html[data-theme=moody] { --bg: #111111; --card: #1B1B1B; --text: #E6DCC8; --sub: #A3A3A3; --tint: #9DB27F; --sep: rgba(255,255,255,.13); --fill: rgba(255,255,255,.09);
+    --track: #2B2B2B; --press: #272727; --navtxt: #E6DCC8; --chkc: #111111; --ph: #666666; --dtrack: rgba(255,255,255,.10); --serif: "Newsreader", ui-serif, "New York", Georgia, serif; }
+  html[data-theme=moody] body { background: #111111; }
   html[data-theme=moody] h1, html[data-theme=moody] .wheel-pct, html[data-theme=moody] .tv, html[data-theme=moody] .gv, html[data-theme=moody] .abig, html[data-theme=moody] #tb-title, html[data-theme=moody] #sh-title, html[data-theme=moody] #a-title, html[data-theme=moody] #c-title, html[data-theme=moody] .dn .cl, html[data-theme=moody] .dn .cp,
   html[data-theme=moody] .gpa .tl, html[data-theme=moody] .gpa .ts, html[data-theme=moody] .gr, html[data-theme=moody] .wheel-frac { font-family: var(--serif); font-weight: 500; letter-spacing: 0; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
   html[data-theme=moody] h1 { font-weight: 500; font-size: 38px; line-height: 41px; letter-spacing: -.5px; }
   html[data-theme=moody] .tv, html[data-theme=moody] .wheel-pct { font-weight: 600; }
   html[data-theme=moody] .grp { letter-spacing: .06em; }
-  html[data-theme=moody] .group, html[data-theme=moody] .tile { box-shadow: inset 0 0 0 .5px rgba(225,216,204,.10); }
+  html[data-theme=moody] .group, html[data-theme=moody] .tile { box-shadow: inset 0 0 0 .5px rgba(255,255,255,.07); }
   html[data-theme=moody] .grp.late { color: #D8728A; }
-  html[data-theme=moody] .week-label { color: #76766C; }
-  html[data-theme=moody] .chev { color: #4A4A42; }
-  html[data-theme=moody] .seg i { background: #3A3A35; }
+  html[data-theme=moody] .week-label { color: #747474; }
+  html[data-theme=moody] .chev { color: #4A4A4A; }
+  html[data-theme=moody] .seg i { background: #383838; }
   html[data-theme=moody] .nav-item.active { color: #B2C894; }
   html[data-theme=moody] .nav-bar, html[data-theme=moody] .topbar#topbar::before, html[data-theme=moody] .undo, html[data-theme=moody] .fab, html[data-theme=moody] .sheet { -webkit-backdrop-filter: blur(26px) saturate(110%); backdrop-filter: blur(26px) saturate(110%); }
-  html[data-theme=moody] .topbar#topbar::before { background: linear-gradient(180deg, rgba(20,20,19,.9) 0%, rgba(20,20,19,.42) 40%, rgba(20,20,19,.03) 100%); }
-  html[data-theme=moody] .sheet { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), rgba(28,28,25,.88); }
-  html[data-theme=moody] .sheet .group { background: rgba(225,216,204,.08); }
+  html[data-theme=moody] .topbar#topbar::before { background: linear-gradient(180deg, rgba(17,17,17,.9) 0%, rgba(17,17,17,.42) 40%, rgba(17,17,17,.03) 100%); }
+  html[data-theme=moody] .sheet { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)), rgba(24,24,24,.88); }
+  html[data-theme=moody] .sheet .group { background: rgba(255,255,255,.07); }
   html[data-theme=moody] .sw input:checked + i { background: #6B7F52; }
   html[data-theme=moody] .gin:focus { background: rgba(157,178,127,.25); }
   html[data-theme=moody] .fab, html[data-theme=moody] .plus { color: #E6DCC8; }
@@ -520,7 +520,7 @@
     function applyTheme(t) {
       THEME = t; try { localStorage.setItem('wheel-theme', t); } catch (e) {}
       if (t === 'default') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
-      const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = ({ light: '#F2F2F7', elegant: '#E4D9C2', moody: '#141413' })[t] || '#000000';
+      const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = ({ light: '#F2F2F7', elegant: '#E4D9C2', moody: '#111111' })[t] || '#000000';
       drawWheel(false); renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
     }
 
@@ -687,7 +687,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = '2.37';
+    const BUILD = '2.38';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
