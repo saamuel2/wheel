@@ -104,7 +104,15 @@
   .btn.sm { padding: 4px 10px; font-size: 12px; }
   .cdot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; }
   .one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .cdf { display: grid; gap: 8px; } .cdf .txt { width: 100%; }
+  .cdbody { height: 86px; display: flex; flex-direction: column; } .cdsub { font-size: 13px; line-height: 1.35; } .cdsub .one { max-width: 100%; }
+  .cdf { display: grid; gap: 8px; align-content: start; } .cdf .txt { width: 100%; height: 36px; padding-top: 0; padding-bottom: 0; } .cdf .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dcell { position: relative; display: flex; align-items: center; gap: 6px; height: 30px; }
+  .calbtn { border: 0; background: none; padding: 0; color: var(--sub); opacity: .55; display: flex; flex: none; } .calbtn:hover { opacity: 1; color: var(--text); }
+  .dtxt { font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; white-space: nowrap; }
+  .grid tr.row.late .dtxt { color: var(--red); font-weight: 700; }
+  .dpick { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; padding: 0; border: 0; }
+  .testbar { display: flex; align-items: center; gap: 8px; padding: 9px 14px; margin: 0 0 10px; border-radius: 12px; background: var(--fill); font-size: 13px; color: var(--sub); } .testbar span { flex: 1; } .testbar b { color: var(--text); }
+  .cell.num.test { color: var(--tint); font-weight: 700; font-style: italic; } .fchip .g.test { color: var(--tint); font-weight: 700; }
   .gl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
   .gl button { display: flex; align-items: baseline; gap: 6px; border: 0; background: var(--card2); border-radius: 9px; padding: 7px 9px; text-align: left; min-width: 0; }
   .gl .dl { font-weight: 800; font-size: 17px; min-width: 24px; } .gl .cn { font-size: 12px; font-weight: 700; white-space: nowrap; } .gl .cp { font-size: 11px; color: var(--sub); margin-left: auto; }
@@ -146,7 +154,7 @@
   .toolbar .seg { height: 41px; align-items: stretch; } .toolbar .seg button { padding: 0 12px; }
   .grid tr.draft td { background: var(--fill); }
   .grid td.w36 { position: relative; }
-  .ins { position: absolute; left: -9px; bottom: -9px; z-index: 2; width: 18px; height: 18px; border-radius: 9px; border: 0; background: var(--tint); color: #fff; font-size: 14px; line-height: 18px; padding: 0; opacity: 0; transition: opacity .12s; }
+  .ins { position: absolute; left: 2px; bottom: -9px; z-index: 2; width: 18px; height: 18px; border-radius: 9px; border: 0; background: var(--tint); color: #fff; font-size: 14px; line-height: 18px; padding: 0; opacity: 0; transition: opacity .12s; }
   html[data-theme=elegant] .ins, html[data-theme=moody] .ins { color: var(--bg); }
   .grid tr.row:hover .ins, .ins:focus { opacity: 1; }
   .grid.b { overflow: visible; } .grid.b tr:last-child td:first-child { border-bottom-left-radius: 14px; } .grid.b tr:last-child td:last-child { border-bottom-right-radius: 14px; }
@@ -273,7 +281,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.2';
+const BUILD = 'd1.3';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -302,7 +310,9 @@ const fmtG = g => g == null || g === '' ? '' : (typeof g === 'number' ? f2(g) : 
 const fmtT = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
 const same = (x, y) => String(x == null ? '' : x) === String(y == null ? '' : y);
 const CHECK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--chkc)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
-const EYE_SHUT = '<svg viewBox="2 9 20 11" width="22" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.2 3.6 5.4 5.4 9 5.4s6.8-1.8 9-5.4"/><path d="M5.2 14.6 3.5 16.6M9.2 16.4l-.9 2.4M14.8 16.4l.9 2.4M18.8 14.6l1.7 2"/></svg>';
+const EYE_SHUT = '<svg viewBox="1 5 22 14" width="22" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.2 3.6 5.4 5.4 9 5.4s6.8-1.8 9-5.4"/><path d="M5.2 14.6 3.5 16.6M9.2 16.4l-.9 2.4M14.8 16.4l.9 2.4M18.8 14.6l1.7 2"/></svg>';
+const TICK = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="miter"><path d="M4.5 12.5l5 5L19.5 7"/></svg>';
+const CAL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
 const EYE_OPEN = '<svg viewBox="1 5 22 14" width="22" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
 const PENCIL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>';
 const CD = Object.assign({ mode: 'ldoc', ldoc: '2026-12-08', title: '', date: '' }, store.get('wheel-cd', {}));   // same countdown settings as the phone
@@ -394,17 +404,21 @@ function revive(o) { return JSON.parse(JSON.stringify(o), (k, v) => v === '-inf'
 let LIVE = null;
 function engineItems(list) { return list.map(a => ({ name: a.n, cls: a.c, type: a.y, due: ymd(a.t), grade: a.g === '' ? null : a.g, possible: a.o })); }
 function absences() { const o = {}; ((data && data.attendance) || []).forEach(x => o[String(x.code).toLowerCase()] = x.dates.length); return o; }
+// grade testing: grades typed in the sheet's "to grade" view are only "what if" until you save them
+let TEST = {};
+const testing = () => VIEW === 'sheet' && SF.f === 'grade';
 function live() {
-  if (LIVE) return LIVE;
+  const tk = testing() ? JSON.stringify(TEST) : '';
+  if (LIVE && LIVE._tk === tk) return LIVE;
   const g = data && data.grades; if (!g) return null;
-  const items = engineItems(data.assignments), ctx = { absences: absences() };
+  const items = engineItems(tk ? data.assignments.map(a => TEST[kOf(a)] != null ? Object.assign({}, a, { g: TEST[kOf(a)] }) : a) : data.assignments), ctx = { absences: absences() };
   const courses = g.courses.map(c => {
     if (!c.rule) return c;
     const rule = c._rule || (c._rule = revive(c.rule)), r = Engine.grade(rule, items, ctx), counted = r.cats.filter(k => k.kind === 'normal'), tot = counted.reduce((s, k) => s + (k.weight || 0), 0);
     return Object.assign({}, c, { raw: r.value, letter: r.letter || '', gp: r.gp, trace: r.trace,
       cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes })) });
   });
-  return (LIVE = { courses, gpa: g.courses.some(c => c.rule) ? Engine.gpa(courses) : g.gpa, engine: g.engine });
+  return (LIVE = { courses, gpa: g.courses.some(c => c.rule) ? Engine.gpa(courses) : g.gpa, engine: g.engine, _tk: tk });
 }
 const gradeOf = code => { const L = live(); return L && L.courses.find(c => c.code === code); };
 
@@ -426,6 +440,11 @@ function toggleDone(a) {
 const FIELD = { n: 'name', t: 'due', c: 'className', y: 'type', g: 'grade', o: 'outOf' };
 function saveCell(a, f, raw, el) {
   let v = String(raw).trim();
+  if (f === 'g' && testing()) {                       // test grade: never saved, never marks done
+    if (v !== '' && !/^-?[\d.]+(\s*\/\s*[\d.]+|\s*%)?$/.test(v)) { el.classList.add('bad'); return; }
+    if (v === '') delete TEST[kOf(a)]; else TEST[kOf(a)] = isNaN(Number(v)) ? v : Number(v);
+    el.classList.remove('bad'); return changed();
+  }
   if (f === 'y') v = v.toUpperCase();
   if (f === 'n' && !v) { el.value = a.n; return; }
   if (f === 'o' && v !== '' && isNaN(Number(v))) { el.classList.add('bad'); return; }
@@ -576,16 +595,20 @@ function budgetHtml() {
 let cdEdit = false;
 function cdForm() {
   const opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
-  return `<div class="cdf"><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>` +
+  return `<div class="cdbody cdf"><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>` +
     (CD.mode === 'ldoc' ? `<input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">` : '') +
-    (CD.mode === 'custom' ? `<input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}">` : '') + '</div>';
+    (CD.mode === 'custom' ? `<div class="two"><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '') +
+    (CD.mode === 'exam' ? '<div class="muted" style="font-size:12px">counts down to your next EX row on the sheet</div>' : '') + '</div>';
 }
 function countdownHtml() {
   const T = today(), A = data.assignments;
   let target = NaN, title = '', sub = '', bar = '';
   if (CD.mode === 'exam') {
-    const ex = A.filter(a => !a.d && /^ex/i.test(a.y) && a.t >= T).sort((x, y) => x.t - y.t)[0];
-    title = 'next exam'; if (ex) { target = ex.t; sub = spaceCode(ex.c) + ' · ' + ex.n; } else sub = 'no exams ahead';
+    const ahead = A.filter(a => !a.d && /^ex/i.test(a.y) && a.t >= T).sort((x, y) => x.t - y.t);
+    title = 'next exam';
+    if (ahead.length) { target = ahead[0].t; const same = ahead.filter(a => D0(a.t) === D0(target));
+      sub = same.map(a => `<div class="one">${esc(spaceCode(a.c))} · ${esc(a.n)}</div>`).join(''); }
+    else sub = 'no exams ahead';
   } else if (CD.mode === 'custom') { target = fromYmd(CD.date); title = CD.title || 'countdown'; }
   else {
     target = fromYmd(CD.ldoc || '2026-12-08'); title = 'last day of classes';
@@ -593,8 +616,8 @@ function countdownHtml() {
     sub = togo + ' assignment' + (togo === 1 ? '' : 's') + ' to go'; bar = `<div class="bar"><i style="width:${all ? Math.round((1 - togo / all) * 100) : 0}%"></i></div>`;
   }
   const d = Math.round((target - T) / 864e5);
-  return `<div class="card"><div class="ct">${esc(title)}<span class="r"><button class="iconbtn sm" data-act="cdedit" aria-label="edit countdown">${cdEdit ? '✓' : PENCIL}</button></span></div>` +
-    (cdEdit ? cdForm() : `<div class="big">${isNaN(d) ? '–' : d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div><div class="muted one">${esc(sub)}</div>${bar}`) + '</div>';
+  return `<div class="card"><div class="ct">${esc(title)}<span class="r"><button class="iconbtn sm" data-act="cdedit" aria-label="${cdEdit ? 'done editing' : 'edit countdown'}">${cdEdit ? TICK : PENCIL}</button></span></div>` +
+    (cdEdit ? cdForm() : `<div class="cdbody"><div class="big">${isNaN(d) ? '–' : d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div><div class="muted cdsub">${CD.mode === 'exam' ? sub : `<div class="one">${esc(sub)}</div>`}</div>${bar}</div>`) + '</div>';
 }
 function dashGradesHtml() {
   const L = live(); if (!L) return '<div class="card"><div class="ct">grades</div><div class="muted">not connected</div></div>';
@@ -605,7 +628,7 @@ const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.
 function raHtml(limit) {
   const ra = data.ra; if (ra === undefined) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">update the backend to see RA tasks</div></div>';
   if (ra === null) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">no RA tab on this sheet</div></div>';
-  let list = ra.filter(x => showRaDone || !x.d).sort((x, y) => (x.d - y.d) || (x.t == null) - (y.t == null) || (x.t || 0) - (y.t || 0));
+  let list = ra.filter(x => (showRaDone || !x.d) && !x._gone).sort((x, y) => (x.d - y.d) || (x.t == null) - (y.t == null) || (x.t || 0) - (y.t || 0));
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
   return `<div class="card"><div class="ct">ra tasks<span class="r"><button class="link" data-act="radone">${showRaDone ? 'hide done' : 'show done'}</button></span></div><div class="xlist">${list.map(raItem).join('') || '<div class="empty">no open RA tasks</div>'}</div>${more ? `<div class="muted" style="font-size:12px;margin-top:6px"><button class="link" data-act="go" data-view="tasks">${more} more</button></div>` : ''}</div>`;
 }
@@ -620,7 +643,7 @@ function todoHtml(limit) {
   const head = '<div class="ct">to-do<span class="r muted">google tasks</span></div>';
   if (td === undefined) return `<div class="card">${head}<div class="muted">update the backend to see your Google Tasks</div></div>`;
   if (td === null) return `<div class="card">${head}<div class="muted">turn on Google Tasks in the backend: in Apps Script, Services (+) → Google Tasks API → Add, then deploy a new version.</div></div>`;
-  let list = todoOrder();
+  let list = todoOrder().filter(x => !x.d);
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
   return `<div class="card">${head}<div class="xlist">${list.map(x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:var(--tint)" data-act="todo" data-id="${esc(x.id)}">${CHECK}</button><span class="t">${esc(x.n)}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : ''}</span></div>`).join('') || '<div class="empty">nothing to do</div>'}</div>
     ${more ? `<div class="muted" style="font-size:12px;margin-top:6px"><button class="link" data-act="go" data-view="tasks">${more} more</button></div>` : ''}
@@ -633,6 +656,9 @@ function classOptions(sel) {
   const cs = courseList().map(c => c.code).concat(EXTRA); if (sel && !cs.includes(sel)) cs.push(sel);
   return [...new Set(cs)].map(c => `<option value="${esc(c)}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`).join('');
 }
+function dateCell(ms, attrs) {
+  return `<div class="dcell"><button class="calbtn" data-act="pick" tabindex="-1" aria-label="pick a date">${CAL}</button><span class="dtxt" data-act="pick">${ms != null && !isNaN(ms) ? dayLabel(ms) : '–'}</span><input class="cell due dpick" type="date" ${attrs} value="${ms != null && !isNaN(ms) ? ymd(ms) : ''}"></div>`;
+}
 function renderSheet(v) {
   const A = data.assignments, T = today(), ws = weekStart(Date.now()), nws = addDays(ws, 7);
   const F = [['upcoming', 'upcoming'], ['week', 'this week'], ['grade', 'to grade'], ['done', 'done'], ['all', 'all']];
@@ -642,18 +668,18 @@ function renderSheet(v) {
   const key = { due: a => a.t, name: a => a.n.toLowerCase(), cls: a => a.c, type: a => a.y, grade: a => a.g === '' || a.g == null ? -Infinity : (typeof a.g === 'number' ? a.g : (Engine.parseGrade({ grade: a.g, possible: a.o }).pct || 0)), out: a => a.o == null ? -Infinity : a.o }[SF.sort] || (a => a.t);
   list.sort((x, y) => { const p = key(x), q = key(y); return (p < q ? -1 : p > q ? 1 : 0) * SF.dir || (x.t - y.t) || String(x.c).localeCompare(y.c); });
   const classes = [...new Set(A.map(a => a.c).filter(c => c && !isExtra(c)))].sort();
-  const L = live();
-  const chip = c => { const g = L && L.courses.find(x => x.code === c); return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + f2(g.raw) : 'no grades') : ''}</span></button>`; };
+  const L = live(), tst = testing(), nTest = tst ? A.filter(a => TEST[kOf(a)] != null).length : 0;
+  const chip = c => { const g = L && L.courses.find(x => x.code === c); return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g${nTest && A.some(a => a.c === c && TEST[kOf(a)] != null) ? ' test' : ''}">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + f2(g.raw) : 'no grades') : ''}</span></button>`; };
   const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : []);
   const colg = '<colgroup>' + cols.map(c => `<col${c[2] ? ` style="width:${c[2]}px"` : ''}>`).join('') + '</colgroup>';
   const th = cols.map(c => `<th class="${c[1] ? 's' : ''}${SF.sort === c[0] && c[1] ? ' on' : ''}${c[0] === 'done' ? ' w36' : ''}" ${c[1] ? `data-act="sort" data-s="${c[0]}"` : ''}>${c[1]}${SF.sort === c[0] && c[1] ? (SF.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('');
   const ncol = cols.length;
   const draftRow = d => `<tr class="draft" data-draft-row="${d.id}">
     <td class="w36"><button class="iconbtn sm" data-act="draft-x" data-draft="${d.id}" aria-label="cancel">×</button></td>
-    <td><input class="cell due" type="date" data-draft="${d.id}" data-df="t" data-k="d${d.id}t" value="${esc(d.f.t)}"></td>
+    <td>${dateCell(d.f.t ? fromYmd(d.f.t) : null, `data-draft="${d.id}" data-df="t" data-k="d${d.id}t"`)}</td>
     <td><input class="cell nm" data-draft="${d.id}" data-df="n" data-k="d${d.id}n" value="${esc(d.f.n)}" placeholder="new assignment — enter to save, esc to cancel" autocomplete="off"></td>
     <td><select class="cell cl" data-draft="${d.id}" data-df="c" data-k="d${d.id}c" style="--c:${colorFor(d.f.c)}">${classOptions(d.f.c)}</select></td>
-    <td><input class="cell ty" data-draft="${d.id}" data-df="y" data-k="d${d.id}y" value="${esc(d.f.y)}" list="types" autocomplete="off"></td>
+    <td><input class="cell ty" data-draft="${d.id}" data-df="y" data-k="d${d.id}y" value="${esc(d.f.y)}" autocomplete="off" spellcheck="false"></td>
     <td><input class="cell num" data-draft="${d.id}" data-df="g" data-k="d${d.id}g" value="${esc(d.f.g)}" autocomplete="off"></td>
     ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}</tr>`;
   let rows = DRAFTS.filter(d => d.after == null || !list.includes(byIdx(d.after))).map(draftRow).join('');
@@ -663,21 +689,21 @@ function renderSheet(v) {
     const i = data.assignments.indexOf(a), col = colorFor(a.c), late = !a.d && a.t < T, k = 'r' + i + '|';
     rows += `<tr class="row${a.d ? ' done' : ''}${late ? ' late' : ''}${bigType(a.y) ? ' xp' : ''}" style="--c:${col}" data-i="${i}">
       <td class="w36"><button class="ins" data-act="insert" data-i="${i}" title="add a row below" aria-label="add a row below">+</button><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td>
-      <td><input class="cell due" type="date" data-f="t" data-k="${k}t" value="${ymd(a.t)}"></td>
+      <td>${dateCell(a.t, `data-f="t" data-k="${k}t"`)}</td>
       <td><input class="cell nm" data-f="n" data-k="${k}n" value="${esc(a.n)}" title="${esc(a.n)}" autocomplete="off"></td>
       <td><select class="cell cl" data-f="c" data-k="${k}c">${classOptions(a.c)}</select></td>
-      <td><input class="cell ty" data-f="y" data-k="${k}y" value="${esc(a.y)}" list="types" autocomplete="off"></td>
-      <td><input class="cell num" data-f="g" data-k="${k}g" value="${esc(fmtG(a.g))}" placeholder="–" autocomplete="off"></td>
+      <td><input class="cell ty" data-f="y" data-k="${k}y" value="${esc(a.y)}" autocomplete="off" spellcheck="false"></td>
+      <td>${(() => { const tg = tst ? TEST[kOf(a)] : null; return `<input class="cell num${tg != null ? ' test' : ''}" data-f="g" data-k="${k}g" value="${esc(fmtG(tg != null ? tg : a.g))}" placeholder="${tst ? 'test' : '–'}" autocomplete="off">`; })()}</td>
       ${SF.out ? `<td><input class="cell num" data-f="o" data-k="${k}o" value="${a.o == null ? '' : esc(a.o)}" autocomplete="off"></td>` : ''}</tr>`;
     DRAFTS.filter(d => d.after === i).forEach(d => { rows += draftRow(d); });
   });
-  const types = [...new Set(A.map(a => a.y).filter(Boolean))].sort();
   v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">google sheet ↗</a><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="toolbar"><div class="seg">${F.map(f => `<button class="${SF.f === f[0] ? 'on' : ''}" data-act="sf" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
       <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" placeholder="search" value="${esc(SF.q)}" autocomplete="off"></div>
+    ${tst ? `<div class="testbar">${nTest ? `<span><b>${nTest}</b> test grade${nTest === 1 ? '' : 's'} — class grades above include them</span><button class="btn sm" data-act="test-clear">clear</button><button class="btn sm tint" data-act="test-save">save to sheet</button>` : '<span>grades you type here are only a test — the class grades above update right away, nothing is saved or marked done</span>'}</div>` : ''}
     <table class="grid h">${colg}<thead><tr>${th}</tr></thead></table></div>
     <table class="grid b">${colg}<tbody>${rows}${list.length || DRAFTS.length ? '' : `<tr><td colspan="${ncol}" class="empty">${({ upcoming: 'all caught up', grade: 'everything is graded', done: 'nothing done yet', week: 'nothing due this week' }[SF.f] || 'nothing here')}</td></tr>`}</tbody></table>
-    <datalist id="types">${types.map(t => `<option value="${esc(t)}">`).join('')}</datalist>`;
+    `;
   if (justAdded) { const i = data.assignments.indexOf(justAdded); justAdded = null; const r = v.querySelector(`tr[data-i="${i}"]`); if (r) { r.querySelectorAll('td').forEach(td => { td.style.transition = 'background 1.2s'; td.style.background = 'var(--fill)'; }); setTimeout(() => r.querySelectorAll('td').forEach(td => td.style.background = ''), 900); } }
 }
 // ---------- grades ----------
@@ -708,7 +734,7 @@ function renderGrades(v) {
       ${showGpa ? `<div class="big">${L.gpa != null ? Number(L.gpa).toFixed(3) : '–'}</div>
         <div class="sec"><div class="ct">how it was calculated</div><ol class="trace">${lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('')}
           ${pf.length ? `<li>${esc(pf.map(c => spaceCode(c.code)).join(', '))}: pass/fail, not in GPA</li>` : ''}<li>${f2(pts)} grade points ÷ ${cr} credits = ${cr ? (pts / cr).toFixed(3) : '–'}</li></ol></div>`
-      : `<div class="eyebig">${EYE_SHUT.replace('width="22" height="12"', 'width="54" height="29"')}</div>`}</div>`;
+      : `<div class="eyebig">${EYE_SHUT.replace('width="22" height="14"', 'width="54" height="34"')}</div>`}</div>`;
 }
 // ---------- grade inspector + what-if ----------
 let WI = null;
@@ -812,16 +838,33 @@ document.addEventListener('click', e => {
       post({ action: 'absence_add', className: code, date: d }).catch(() => { x.dates.splice(x.dates.indexOf(ms), 1); changed(); toast('couldn’t save — try again'); }); return; }
     case 'abs-rm': { const code = t.dataset.code, d = t.dataset.d, x = data.attendance.find(y => y.code === code), i = x.dates.findIndex(z => D0(z) === fromYmd(d)); if (i < 0) return; const ms = x.dates.splice(i, 1)[0]; changed();
       post({ action: 'absence_remove', className: code, date: d }).catch(() => { x.dates.push(ms); changed(); toast('couldn’t save — try again'); }); return; }
-    case 'ra': { const x = (data.ra || []).find(y => String(y.r) === t.dataset.r && y.n === t.dataset.n); if (!x) return; x.d = !x.d; renderAll();
-      post({ action: 'ra_done', row: x.r, n: x.n, done: x.d }).catch(() => { x.d = !x.d; renderAll(); toast('couldn’t save — try again'); }); return; }
+    case 'ra': { const x = (data.ra || []).find(y => String(y.r) === t.dataset.r && y.n === t.dataset.n); if (!x) return;
+      return checkOff(x, () => post({ action: 'ra_done', row: x.r, n: x.n, done: x.d }), x.d ? 'done: ' + x.n : 'reopened ' + x.n); }
     case 'radone': showRaDone = !showRaDone; return renderAll();
-    case 'todo': { const x = (data.todo || []).find(y => y.id === t.dataset.id); if (!x) return; x.d = !x.d; renderAll();
-      post({ action: 'task_done', id: x.id, done: x.d }).catch(() => { x.d = !x.d; renderAll(); toast('couldn’t save — try again'); }); return; }
+    case 'todo': { const x = (data.todo || []).find(y => y.id === t.dataset.id); if (!x) return;
+      return checkOff(x, () => post({ action: 'task_done', id: x.id, done: x.d }), 'done: ' + x.n); }
     case 'theme': THEME = t.dataset.t; try { localStorage.setItem('wheel-theme', THEME); } catch (x) {} if (THEME === 'default') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', THEME); return renderAll();
     case 'savekey': { KEY = $('key-in').value.trim(); store.set('wheel-token', KEY); data = null; LIVE = null; return load(); }
     case 'sync': return load();
+    case 'test-save': return saveTests();
+    case 'test-clear': TEST = {}; return changed();
+    case 'pick': { const inp = t.parentNode.querySelector('input[type=date]'); if (inp) { try { inp.showPicker(); } catch (x) { inp.focus(); inp.click(); } } return; }
   }
 });
+// tick it → it leaves the list right away; undo within a few seconds puts it back before anything is saved
+function checkOff(x, save, msg) {
+  x.d = !x.d; renderAll();
+  let undone = false;
+  const tm = setTimeout(() => { if (undone) return; save().catch(() => { x.d = !x.d; renderAll(); toast('couldn’t save — try again'); }); }, 3500);
+  toast(msg, () => { undone = true; clearTimeout(tm); x.d = !x.d; renderAll(); });
+}
+function saveTests() {
+  const list = data.assignments.filter(a => TEST[kOf(a)] != null); if (!list.length) return;
+  list.forEach(a => { const val = TEST[kOf(a)], prev = Object.assign({}, a), match = { n: a.n, c: a.c };
+    a.g = val; setOv(prev, { g: val });
+    post({ action: 'edit', row: a.r, match, fields: { grade: val } }).catch(() => { a.g = prev.g; setOv(prev, { g: prev.g }); changed(); toast('couldn’t save ' + a.n); }); });
+  TEST = {}; changed(); toast('saved ' + list.length + ' grade' + (list.length === 1 ? '' : 's') + ' to the sheet');
+}
 function addTodo() {
   const inp = $('td-new'), title = inp && inp.value.trim(); if (!title) return;
   const due = $('td-due').value, x = { id: 'tmp' + Date.now(), n: title, d: false, t: due ? fromYmd(due) : null };
@@ -840,7 +883,7 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
+  if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.textContent = t.value ? dayLabel(fromYmd(t.value)) : '–'; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
   if (t.dataset.cd) { CD[t.dataset.cd] = t.value; saveCD(); renderAll(); return; }
   if (t.dataset.gr) { GR[t.dataset.gr] = t.type === 'checkbox' ? t.checked : t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
   if (t.dataset.f && t.closest('tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i); if (a) saveCell(a, t.dataset.f, t.value, t); }
