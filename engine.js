@@ -18,7 +18,7 @@
  *     split: true,                    // weighted: every item is its own unit (own bin, own letter)
  *     drop: 1,                        // keep the best (count − drop); drops only once more than that are graded
  *     replace: { from: 'FI' },        // lowest item replaced by another category's % if higher
- *     bin: { cutoffs, values },       // % → letter → value
+ *     bin: { cutoffs, values, curves },  // % → letter → value; curves: { 'exam 1': {A+:95,…} } per-item letter cutoffs
  *     assume: 100,                    // ungraded items count as this
  *     cap,                            // extra/flat: most it adds · bonus: most per target item
  *     to: ['EX','FI'],                // bonus: added to the target item due on/after the bonus (by due date)
@@ -152,8 +152,9 @@ var Engine = (function () {
   }
   function bin(cat, label, pct, trace) {
     var b = cat.rule.bin; if (!b || !isNum(pct)) return pct;
-    var L = letterFor(pct, b.cutoffs || STD_CUTOFFS), vals = b.values || DEFAULT_SCALE, v = L ? vals[L] : null;
-    trace.push(label + ': ' + fmt(pct) + '% → ' + (L || '?') + ' → ' + fmt(v));
+    var curve = b.curves && b.curves[norm(label)];                      // this item has its own curve (e.g. one per exam)
+    var L = letterFor(pct, curve || b.cutoffs || STD_CUTOFFS), vals = b.values || DEFAULT_SCALE, v = L ? vals[L] : null;
+    trace.push(label + ': ' + fmt(pct) + '%' + (curve ? ' (curved)' : '') + ' → ' + (L || '?') + ' → ' + fmt(v));
     return isNum(v) ? v : pct;
   }
 

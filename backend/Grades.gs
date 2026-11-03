@@ -19,7 +19,7 @@
  *     split: true,                    // weighted: every item is its own unit (own bin, own letter)
  *     drop: 1,                        // keep the best (count − drop); drops only once more than that are graded
  *     replace: { from: 'FI' },        // lowest item replaced by another category's % if higher
- *     bin: { cutoffs, values },       // % → letter → value
+ *     bin: { cutoffs, values, curves },  // % → letter → value; curves: { 'exam 1': {A+:95,…} } per-item letter cutoffs
  *     assume: 100,                    // ungraded items count as this
  *     cap,                            // extra/flat: most it adds · bonus: most per target item
  *     to: ['EX','FI'],                // bonus: added to the target item due on/after the bonus (by due date)
@@ -153,8 +153,9 @@ var Engine = (function () {
   }
   function bin(cat, label, pct, trace) {
     var b = cat.rule.bin; if (!b || !isNum(pct)) return pct;
-    var L = letterFor(pct, b.cutoffs || STD_CUTOFFS), vals = b.values || DEFAULT_SCALE, v = L ? vals[L] : null;
-    trace.push(label + ': ' + fmt(pct) + '% → ' + (L || '?') + ' → ' + fmt(v));
+    var curve = b.curves && b.curves[norm(label)];                      // this item has its own curve (e.g. one per exam)
+    var L = letterFor(pct, curve || b.cutoffs || STD_CUTOFFS), vals = b.values || DEFAULT_SCALE, v = L ? vals[L] : null;
+    trace.push(label + ': ' + fmt(pct) + '%' + (curve ? ' (curved)' : '') + ' → ' + (L || '?') + ' → ' + fmt(v));
     return isNum(v) ? v : pct;
   }
 
@@ -323,9 +324,10 @@ function rulesFromSheet_(courses, categories) {
     for (var k in how) c[k] = how[k];
     if (num_(row[4]) != null) c.expect = num_(row[4]);
     if (num_(row[5]) != null) c.drop = num_(row[5]);
-    var bins = parseBins_(row[7]);
+    var curves = parseCurves_(row[7]), bins = curves ? null : parseBins_(row[7]);
     if (bins) c.bin = bins;
     else if (r.binCutoffs && !c.kind) c.bin = { cutoffs: r.binCutoffs };
+    if (curves) { if (!c.bin) c.bin = { cutoffs: r.binCutoffs || JSON.parse(JSON.stringify(Engine.STD_CUTOFFS)) }; c.bin.curves = curves; }
     var to = clean_(row[8]); if (to) c.to = to.split(/[,\s]+/).filter(String);
     if (num_(row[9]) != null) c.cap = num_(row[9]);
     if (num_(row[10]) != null) c.assume = num_(row[10]);
@@ -336,6 +338,20 @@ function rulesFromSheet_(courses, categories) {
     r.categories.push(c);
   });
   return list.filter(function (r) { return r.categories.length; });
+}
+
+// Per-item curves: "Exam 1: 95, 90, 85, …; Exam 2: 96, 92, 88, …" — the A+ … D- cutoffs for that item (by name).
+// Items not listed use the course's cutoffs. Fewer than 12 numbers is fine (the rest are left out).
+function parseCurves_(text) {
+  var s = clean_(text); if (!/[A-Za-z][^:;]*:\s*\d/.test(s)) return null;
+  var out = {}, n = 0;
+  s.split(';').forEach(function (part) {
+    var m = part.match(/^\s*([^:]*[A-Za-z][^:]*):\s*([\d.,\s]+)$/); if (!m) return;
+    var nums = m[2].split(/[,\s]+/).filter(String).map(Number), cut = {};
+    LETTERS.forEach(function (L, i) { if (isFinite(nums[i])) cut[L] = nums[i]; });
+    cut.F = -Infinity; out[clean_(m[1]).toLowerCase()] = cut; n++;
+  });
+  return n ? out : null;
 }
 
 // "90→100, 80→66.7, 70→33.3, 0→0" (→, =, : or > all work): score at or above the left number counts as the right number
