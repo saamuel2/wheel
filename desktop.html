@@ -292,7 +292,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.6';
+const BUILD = 'd1.07 (11/03 10:16am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -407,7 +407,7 @@ function smoothReload() {
 function checkUpdate() {
   if (DEMO) return;
   fetch(location.origin + location.pathname + '?v=' + Date.now(), { cache: 'reload' }).then(r => r.text()).then(t => {
-    const m = /const BUILD = '([^']+)'/.exec(t); if (m && m[1] !== BUILD && !editing()) smoothReload();
+    const m = /const BUILD = '([a-z]?\d[^']*)'/.exec(t); if (m && m[1] !== BUILD && !editing()) smoothReload();
   }).catch(() => {});
 }
 
