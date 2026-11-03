@@ -108,6 +108,12 @@
   .eyebtn { border: 0; background: none; color: var(--sub); padding: 2px 0; display: flex; } .eyebtn:hover { color: var(--text); }
   .iconbtn.sm { width: 24px; height: 24px; font-size: 13px; padding: 0; color: var(--sub); }
   .btn.sm { padding: 4px 10px; font-size: 12px; }
+  .cchips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+  .cchip { display: inline-flex; align-items: center; gap: 7px; border: 0; border-radius: 16px; padding: 6px 12px; font-size: 13px; font-weight: 600; background: var(--fill); color: var(--text); cursor: pointer; }
+  .cchip i { width: 9px; height: 9px; border-radius: 5px; background: var(--c); } .cchip.off { opacity: .45; } .cchip.off i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--c); }
+  .upl .dh { font-size: 12px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .04em; margin: 16px 0 6px; }
+  .upl .ev { display: flex; gap: 10px; align-items: flex-start; border-top: 0; padding: 7px 0; } .upl .ev .cdot { margin-top: 5px; flex: none; }
+  .card.up { cursor: pointer; } .card.up .more { color: var(--sub); font-size: 12px; margin-top: 8px; }
   .cdot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; }
   .one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .cdbody { height: 86px; display: flex; flex-direction: column; } .cdsub { font-size: 13px; line-height: 1.35; } .cdsub .one { max-width: 100%; }
@@ -286,7 +292,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.5';
+const BUILD = 'd1.6';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -312,6 +318,14 @@ const weekNo = ms => Math.round((weekStart(ms) - SEM_START) / 6048e5) + 1;
 const weekTitle = ws => { const n = weekNo(ws); return (n < 1 ? 'before the semester' : 'week ' + n) + ' (' + md(ws) + ' – ' + md(addDays(ws, 6)) + ')'; };
 const f2 = n => n == null || n === '' || isNaN(n) ? '–' : (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, '');
 const fmtG = g => g == null || g === '' ? '' : (typeof g === 'number' ? f2(g) : String(g));
+let CALS = store.get('wheel-cals', {});
+function calList() {
+  if (DEMO) return [{ name: 'sjstrimp@ncsu.edu', col: '#4F8EF7', sel: true }, { name: 'RA', col: '#34A853', sel: true }, { name: 'Classes', col: '#9B6BD3', sel: true }, { name: 'US holidays', col: '#E67C73', sel: false }];
+  const a = data && data.calendars; if (a && a.length) return a;
+  const m = {}, out = []; ((data && data.events) || []).forEach(e => { if (e.cal && !m[e.cal]) { m[e.cal] = 1; out.push({ name: e.cal, col: e.col, sel: true }); } }); return out;
+}
+const calOn = name => { if (name == null || name === '') return true; if (name in CALS) return !!CALS[name]; const c = calList().find(x => x.name === name); return !c || c.sel !== false; };
+function shownEv() { const seen = {}; return ((data && data.events) || []).filter(e => { if (!calOn(e.cal)) return false; const k = e.n + '|' + e.t; if (seen[k]) return false; seen[k] = 1; return true; }); }
 const fmtT = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
 const same = (x, y) => String(x == null ? '' : x) === String(y == null ? '' : y);
 const CHECK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--chkc)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -583,10 +597,31 @@ function wheelSvg(wk) {
   return h;
 }
 function nextUpHtml() {
-  const ev = data.events, now = Date.now();
-  const up = ev ? ev.filter(e => !e.a && (e.t > now || e.e > now)).slice(0, 4) : [];
+  const ev = data.events, now = Date.now(), all = ev ? shownEv().filter(e => (e.e || e.t) > now) : [];
+  const up = all.filter(e => !e.a).slice(0, 4);
   const dot = e => e.col ? `<i class="cdot" style="background:${esc(e.col)}" title="${esc(e.cal || '')}"></i>` : '';
-  return `<div class="card"><div class="ct">next up</div>` + (!ev ? '<div class="muted">calendar not connected</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${dot(e)}${esc(e.n)}</div><div class="w">${e.t <= now ? 'now · until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ' · ' + fmtT(e.t)}${e.cal && ev.some(x => x.cal && x.cal !== e.cal) ? ' · ' + esc(e.cal) : ''}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') + '</div>';
+  const multi = calList().length > 1;
+  return `<div class="card up" data-act="upcoming"><div class="ct">next up</div>` + (!ev ? '<div class="muted">calendar not connected</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${dot(e)}${esc(e.n)}</div><div class="w">${e.t <= now ? 'now · until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ' · ' + fmtT(e.t)}${e.cal && multi ? ' · ' + esc(e.cal) : ''}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') +
+    (ev && all.length > up.length ? `<div class="more">+${all.length - up.length} more ›</div>` : '') + '</div>';
+}
+function upcomingBody() {
+  const now = Date.now(), T = today(), list = shownEv().filter(e => (e.e || e.t) > now), cl = calList();
+  let html = cl.length > 1 ? '<div class="cchips">' + cl.map(c => `<button class="cchip${calOn(c.name) ? '' : ' off'}" style="--c:${esc(c.col || '#8E8E93')}" data-act="calchip" data-cal="${esc(c.name)}"><i></i>${esc(c.name)}</button>`).join('') + '</div>' : '';
+  let last = null;
+  list.forEach(e => { const dk = Math.max(D0(e.t), T);
+    if (dk !== last) { html += `<div class="dh">${dk === T ? 'today' : dk === T + 864e5 ? 'tomorrow' : dayLabel(dk)}</div>`; last = dk; }
+    const when = e.a ? 'all day' : e.t <= now ? 'now · until ' + fmtT(e.e) : fmtT(e.t) + ' – ' + fmtT(e.e);
+    html += `<div class="ev"><i class="cdot" style="background:${esc(e.col || '#8E8E93')}"></i><div><div class="n" style="white-space:normal">${esc(e.n)}</div><div class="w">${when}${e.cal && cl.length > 1 ? ' · ' + esc(e.cal) : ''}</div></div></div>`; });
+  return html + (last === null ? '<div class="muted">nothing on the calendar</div>' : '');
+}
+function openUpcoming() {
+  $('drawer').innerHTML = `<div class="dhd"><h2>upcoming</h2><span class="muted">${calList().length > 1 ? 'tap a calendar to show or hide it' : ''}</span><button class="iconbtn x" data-act="close" aria-label="close">×</button></div><div class="upl" id="upl">${upcomingBody()}</div>`;
+  $('scrim').classList.add('on'); $('drawer').classList.add('on');
+}
+function toggleCal(name) {
+  CALS[name] = !calOn(name); store.set('wheel-cals', CALS);
+  const u = $('upl'); if (u && $('drawer').classList.contains('on')) { const st = $('drawer').scrollTop; u.innerHTML = upcomingBody(); $('drawer').scrollTop = st; }
+  renderAll();
 }
 function budgetHtml() {
   const W = data.weeks || [], T = today(), next = W.find(w => w.t >= T && w.budget != null);
@@ -794,6 +829,7 @@ function renderSettings(v) {
       return `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
         (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
         (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : ''); })()}</div>
+    ${calList().length > 1 ? `<div class="card"><div class="ct">calendars in next up</div>${calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')}</div>` : ''}
     <div class="card"><div class="ct">greeting</div>
       <div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
       <div class="row"><span>name</span><input class="txt" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div></div>
@@ -827,6 +863,8 @@ document.addEventListener('click', e => {
     case 'gpa': if (e.target.closest('a,button:not(.gpa)') && e.target.closest('[data-act]') !== t) return; showGpa = !showGpa; return renderAll();
     case 'course': if (VIEW === 'dash' && !showGrades) return; return openCourse(t.dataset.code);
     case 'close': return closeDrawer();
+    case 'upcoming': return openUpcoming();
+    case 'calchip': return toggleCal(t.dataset.cal);
     case 'add': return startAdd();
     case 'sf': if (t.dataset.f !== 'grade') { STAY.clear(); TEST = {}; } SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
     case 'scls': { const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
@@ -881,6 +919,7 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => {
   const t = e.target;
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.textContent = t.value ? dayLabel(fromYmd(t.value)) : '–'; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
+  if (t.dataset.cal && t.type === 'checkbox') { toggleCal(t.dataset.cal); return; }
   if (t.dataset.cd) { CD[t.dataset.cd] = t.value; saveCD(); renderAll(); return; }
   if (t.dataset.gr) { GR[t.dataset.gr] = t.type === 'checkbox' ? t.checked : t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
   if (t.dataset.f && t.closest('tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i); if (a) saveCell(a, t.dataset.f, t.value, t); }
@@ -939,8 +978,9 @@ function demoData() {
     weeks: Array.from({ length: 17 }, (_, w) => ({ t: addDays(sem0, w * 7 + 7), label: 'end of week ' + (w + 1), budget: Math.round(1000 - w * 1000 / 16) })),
     ra: [{ r: 2, n: 'Roommate agreements', t: addDays(sem0, 20), d: true, note: '' }, { r: 3, n: 'Closing information post', t: addDays(T, 9), d: false, note: '' }, { r: 4, n: 'Winter break duty sign-up', t: addDays(T, 2), d: false, note: 'staff meeting' }, { r: 5, n: 'Intent to return form', t: null, due: 'TBD', d: false, note: '' }],
     todo: [{ id: 'a', n: 'Email advisor about spring schedule', d: false, t: addDays(T, 1) }, { id: 'b', n: 'Return library books', d: false, t: addDays(T, 4) }, { id: 'c', n: 'Renew parking permit', d: true, t: addDays(T, -1) }, { id: 'd', n: 'Call home', d: false, t: null }],
-    events: [{ n: 'Staff meeting', t: addDays(T, 1) + 19 * 36e5, e: addDays(T, 1) + 21 * 36e5 }, { n: 'Office hours (CH 201)', t: addDays(T, 2) + 14 * 36e5, e: addDays(T, 2) + 15 * 36e5 }, { n: 'Study group', t: addDays(T, 3) + 18 * 36e5, e: addDays(T, 3) + 20 * 36e5 }, { n: 'Lab meeting', t: addDays(T, 4) + 10 * 36e5, e: addDays(T, 4) + 11 * 36e5 }] };
-}
+    events: (() => { const mk = (d, h, len, n, cal, col, a) => ({ n, t: addDays(T, d) + h * 36e5, e: addDays(T, d) + (h + len) * 36e5, a: !!a, cal, col });
+      return [mk(1, 19, 2, 'Staff meeting', 'RA', '#34A853'), mk(1, 0, 24, 'Election Day', 'US holidays', '#E67C73', true), mk(2, 14, 1, 'Office hours (CH 201)', 'sjstrimp@ncsu.edu', '#4F8EF7'), mk(3, 18, 2, 'Study group', 'sjstrimp@ncsu.edu', '#4F8EF7'), mk(4, 10, 1, 'Lab meeting', 'Classes', '#9B6BD3'),
+        mk(5, 9, 1.25, 'GN 427 journal club', 'Classes', '#9B6BD3'), mk(6, 19, 2, 'RA floor program', 'RA', '#34A853'), mk(8, 11, 1, 'honors council meeting', 'sjstrimp@ncsu.edu', '#4F8EF7'), mk(10, 15, 1, 'GN 521 DIY check-in', 'Classes', '#9B6BD3'), mk(13, 9, 1.5, 'Exam 3 (BIO 240)', 'Classes', '#9B6BD3')]; })() };}
 
 // ===================== start =====================
 (function () {

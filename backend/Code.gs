@@ -13,7 +13,7 @@ var CAL_ID     = 'sjstrimp@ncsu.edu';      // your main calendar (always include
 // "next up" shows every calendar that's checked in Google Calendar's sidebar. To limit it, add a script property
 // CALENDARS with the calendar names to include, separated by commas.
 var TZ         = 'America/New_York';
-var EVENT_DAYS = 14;                       // how far ahead "next up" looks
+var EVENT_DAYS = 30;                       // how far ahead the calendar list looks
 // ======================
 
 function token_() { return PropertiesService.getScriptProperties().getProperty('TOKEN') || ''; }
@@ -29,7 +29,7 @@ function doGet(e) {
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
   try { res.todo = readTodo_(); } catch (err) { errors.todo = String(err); }
-  try { res.events = readEvents_(); } catch (err) { errors.events = String(err); }
+  try { res.events = readEvents_(); res.calendars = CAL_LIST_; } catch (err) { errors.events = String(err); }
   res.errors = errors;
   return out_(res);
 }
@@ -360,27 +360,32 @@ function pctOf_(points, r) {
 function round2_(n) { return Math.round(n * 100) / 100; }
 
 // ---------- calendar ("next up") ----------
+var CAL_LIST_ = [];
+// every calendar you can see (not the hidden ones). "sel" = checked in Google Calendar's sidebar (or named in the CALENDARS property);
+// the apps use it as the default and let you switch each calendar on or off for "next up" on each device.
 function readEvents_() {
   var only = String(PropertiesService.getScriptProperties().getProperty('CALENDARS') || '').split(',').map(function (x) { return x.trim().toLowerCase(); }).filter(String);
-  var cals = CalendarApp.getAllCalendars().filter(function (c) {
-    if (c.getId() === CAL_ID) return true;
-    if (only.length) return only.indexOf(String(c.getName()).toLowerCase()) > -1;
-    try { return c.isSelected() && !c.isHidden(); } catch (x) { return false; }
+  var cals = [];
+  CalendarApp.getAllCalendars().forEach(function (c) {
+    var main = c.getId() === CAL_ID, hidden = false; try { hidden = c.isHidden(); } catch (x) {}
+    if (hidden && !main) return;
+    var sel; if (main) sel = true; else if (only.length) sel = only.indexOf(String(c.getName()).toLowerCase()) > -1; else { try { sel = c.isSelected(); } catch (x) { sel = false; } }
+    cals.push({ cal: c, name: c.getName(), col: c.getColor(), sel: !!sel });
   });
-  if (!cals.length) { var main = CalendarApp.getCalendarById(CAL_ID); if (main) cals = [main]; }
+  if (!cals.length) { var m = CalendarApp.getCalendarById(CAL_ID); if (m) cals = [{ cal: m, name: m.getName(), col: m.getColor(), sel: true }]; }
   if (!cals.length) throw new Error('no calendars found for the account running this script');
+  CAL_LIST_ = cals.map(function (c) { return { name: c.name, col: c.col, sel: c.sel }; });
   var now = new Date(), from = new Date(now.getTime() - 3600000), to = new Date(now.getTime() + EVENT_DAYS * 864e5), out = [], seen = {};
-  cals.forEach(function (cal) {
-    var name = cal.getName(), color = cal.getColor();
-    cal.getEvents(from, to).forEach(function (ev) {
+  cals.forEach(function (c) {
+    c.cal.getEvents(from, to).forEach(function (ev) {
       try { if (ev.getMyStatus() === CalendarApp.GuestStatus.NO) return; } catch (x) {}
-      var t = ev.getStartTime().getTime(), e = ev.getEndTime().getTime(), k = ev.getTitle() + '|' + t;
-      if (seen[k]) return; seen[k] = 1;                                     // same event on two calendars → once
-      out.push({ n: ev.getTitle(), t: t, e: e, a: ev.isAllDayEvent() || (e - t) >= 20 * 3600000, cal: name, col: color });
+      var t = ev.getStartTime().getTime(), e = ev.getEndTime().getTime(), k = ev.getTitle() + '|' + t + '|' + c.name;
+      if (seen[k]) return; seen[k] = 1;
+      out.push({ n: ev.getTitle(), t: t, e: e, a: ev.isAllDayEvent() || (e - t) >= 20 * 3600000, cal: c.name, col: c.col });
     });
   });
   out.sort(function (a, b) { return a.t - b.t; });
-  return out.slice(0, 80);
+  return out.slice(0, 300);
 }
 
 // ---------- run once from the editor (play button) to grant permissions and check everything ----------
