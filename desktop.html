@@ -165,6 +165,7 @@
   .toolbar .seg { height: 41px; align-items: stretch; } .toolbar .seg button { padding: 0 12px; }
   .grid tr.draft td { background: var(--fill); }
   .grid td.w36 { position: relative; }
+  .delbtn { border: 0; background: none; color: var(--ph); font-size: 18px; line-height: 1; width: 28px; height: 28px; border-radius: 8px; padding: 0; } .delbtn:hover, .delbtn:active { color: #FF453A; background: var(--fill); }
   .ins { position: absolute; left: 2px; bottom: -9px; z-index: 2; width: 18px; height: 18px; border-radius: 9px; border: 0; background: var(--tint); color: #fff; font-size: 14px; line-height: 18px; padding: 0; opacity: 0; transition: opacity .12s; }
   html[data-theme=elegant] .ins, html[data-theme=moody] .ins { color: var(--bg); }
   .grid tr.row:hover .ins, .ins:focus { opacity: 1; }
@@ -292,7 +293,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.08 (11/03 10:35am)';
+const BUILD = 'd1.09 (11/03 10:50am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -362,8 +363,10 @@ let data = null, lastSync = 0, syncState = 'busy', fetching = false, pendingData
 const OV = {};                                // local edits stay on screen until the sheet shows them (or 90 s pass)
 const kOf = a => a.c + '|' + a.n + '|' + a.t;
 function setOv(base, fields, add) { const k = kOf(base), o = OV[k] || (OV[k] = { base: Object.assign({}, base), f: {}, add: !!add }); Object.assign(o.f, fields); o.exp = Date.now() + 90000; }
+const DEL = {};   // deleted here; hidden until the sheet agrees (90 s)
 function applyOv(d) {
-  const L = d.assignments || [], now = Date.now();
+  const now = Date.now(); if (d.assignments) d.assignments = d.assignments.filter(x => !(DEL[kOf(x)] > now));
+  const L = d.assignments || [];
   Object.keys(OV).forEach(k => {
     const o = OV[k]; if (now > o.exp) { delete OV[k]; return; }
     const cur = L.find(x => kOf(x) === kOf(Object.assign({}, o.base, o.f))) || L.find(x => kOf(x) === k);
@@ -458,6 +461,14 @@ $('toast-btn').onclick = () => { if (undoFn) undoFn(); $('toast').classList.remo
 const byIdx = i => data && data.assignments[+i];
 function changed() { LIVE = null; renderAll(); }
 
+function deleteAssignment(a) {
+  if (!confirm('Delete “' + a.n + '” (' + a.c + ') from your sheet? This removes the row.')) return;
+  const k = kOf(a), i = data.assignments.indexOf(a); if (i < 0) return;
+  DEL[k] = Date.now() + 90000; delete OV[k]; data.assignments.splice(i, 1); STAY.delete(k); changed();
+  if (DEMO) { toast('deleted ' + a.n); return; }
+  post({ action: 'delete', row: a.r, match: { n: a.n, c: a.c } }).then(() => { toast('deleted ' + a.n); setTimeout(() => load(true), 1500); })
+    .catch(() => { delete DEL[k]; data.assignments.splice(Math.min(i, data.assignments.length), 0, a); changed(); toast('couldn’t delete — try again'); });
+}
 function toggleDone(a) {
   const to = !a.d; a.d = to; if (VIEW === 'sheet') STAY.add(kOf(a)); setOv(a, { d: to }); changed();
   let undone = false;
@@ -522,8 +533,28 @@ function renderAll() {
   const v = $('v-' + VIEW);
   if (!data && VIEW !== 'settings') { v.innerHTML = '<div class="empty" style="padding-top:20vh">loading…</div>'; return; }
   const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.k ? { k: ae.dataset.k, s: ae.selectionStart, e: ae.selectionEnd } : null;
-  fn(v);
+  if (keep && ae.isConnected && v.contains(ae)) {   // typing: update everything around the focused box without replacing it, so the iPad keyboard doesn't reset
+    const tmp = document.createElement('div'); fn(tmp);
+    if (morphKeep(v, tmp, ae)) return;
+    v.replaceChildren(...tmp.childNodes);
+  } else fn(v);
   if (keep) { const el = v.querySelector('[data-k="' + CSS.escape(keep.k) + '"]'); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (x) {} } }
+}
+function morphKeep(o, n, ae) {
+  if (o.childNodes.length !== n.childNodes.length) return false;
+  const on = Array.from(o.childNodes), nn = Array.from(n.childNodes);
+  for (let i = 0; i < on.length; i++) {
+    const a = on[i], b = nn[i];
+    if (a === ae) { if (a.nodeName !== b.nodeName) return false; continue; }
+    if (a.nodeType !== b.nodeType || a.nodeName !== b.nodeName) return false;
+    if (a.nodeType === 3) { if (a.data !== b.data) a.data = b.data; continue; }
+    if (a.nodeType !== 1) continue;
+    if (a.contains(ae)) {
+      Array.from(b.attributes).forEach(at => { if (a.getAttribute(at.name) !== at.value) a.setAttribute(at.name, at.value); });
+      if (!morphKeep(a, b, ae)) return false;
+    } else if (a.outerHTML !== b.outerHTML) a.replaceWith(b);
+  }
+  return true;
 }
 function connectHtml() {
   return `<div class="connect card"><div class="ct">connect to your sheet</div><p>Paste your connection key (the <b>TOKEN</b> script property in your Apps Script backend). It stays in this browser only.</p>
@@ -713,11 +744,12 @@ function renderSheet(v) {
   if (SF.cls.length) list = list.filter(a => SF.cls.includes(a.c));
   if (SF.q) { const q = SF.q.toLowerCase(); list = list.filter(a => (a.n + ' ' + a.c + ' ' + a.y).toLowerCase().includes(q)); }
   const key = { due: a => a.t, name: a => a.n.toLowerCase(), cls: a => a.c, type: a => a.y, grade: a => a.g === '' || a.g == null ? -Infinity : (typeof a.g === 'number' ? a.g : (Engine.parseGrade({ grade: a.g, possible: a.o }).pct || 0)), out: a => a.o == null ? -Infinity : a.o }[SF.sort] || (a => a.t);
-  list.sort((x, y) => { const p = key(x), q = key(y); return (p < q ? -1 : p > q ? 1 : 0) * SF.dir || (x.t - y.t) || String(x.c).localeCompare(y.c); });
+  const byCls = SF.f === 'grade' && SF.sort === 'due' && SF.dir > 0;   // to grade: grouped by class like the phone
+  list.sort((x, y) => { if (byCls) return String(x.c).localeCompare(String(y.c)) || (x.t - y.t); const p = key(x), q = key(y); return (p < q ? -1 : p > q ? 1 : 0) * SF.dir || (x.t - y.t) || String(x.c).localeCompare(y.c); });
   const classes = [...new Set(A.map(a => a.c).filter(c => c && !isExtra(c)))].sort();
   const L = live(), tst = testing(), nTest = tst ? A.filter(a => TEST[kOf(a)] != null).length : 0;
   const chip = c => { const g = L && L.courses.find(x => x.code === c); return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g${nTest && A.some(a => a.c === c && TEST[kOf(a)] != null) ? ' test' : ''}">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + f2(g.raw) : 'no grades') : ''}</span></button>`; };
-  const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : []);
+  const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : [], [['del', '', 40]]);
   const colg = '<colgroup>' + cols.map(c => `<col${c[2] ? ` style="width:${c[2]}px"` : ''}>`).join('') + '</colgroup>';
   const th = cols.map(c => `<th class="${c[1] ? 's' : ''}${SF.sort === c[0] && c[1] ? ' on' : ''}${c[0] === 'done' ? ' w36' : ''}" ${c[1] ? `data-act="sort" data-s="${c[0]}"` : ''}>${c[1]}${SF.sort === c[0] && c[1] ? (SF.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('');
   const ncol = cols.length;
@@ -728,11 +760,12 @@ function renderSheet(v) {
     <td><select class="cell cl" data-draft="${d.id}" data-df="c" data-k="d${d.id}c" style="--c:${colorFor(d.f.c)}">${classOptions(d.f.c)}</select></td>
     <td><input class="cell ty" data-draft="${d.id}" data-df="y" data-k="d${d.id}y" value="${esc(d.f.y)}" autocomplete="off" spellcheck="false"></td>
     <td><input class="cell num" data-draft="${d.id}" data-df="g" data-k="d${d.id}g" value="${esc(d.f.g)}" autocomplete="off"></td>
-    ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}</tr>`;
+    ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}<td></td></tr>`;
   let rows = DRAFTS.filter(d => d.after == null || !list.includes(byIdx(d.after))).map(draftRow).join('');
   let lastW = null;
   list.forEach(a => {
-    if (SF.sort === 'due') { const w = weekStart(a.t); if (w !== lastW) { lastW = w; const n = weekNo(w); rows += `<tr class="wkh"><td colspan="${ncol}">${n < 1 ? 'before the semester' : 'week ' + n}${w === ws ? ' · this week' : ''}</td></tr>`; } }
+    if (byCls) { if (a.c !== lastW) { lastW = a.c; rows += `<tr class="wkh"><td colspan="${ncol}" style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}${courseName(a.c) ? ' · ' + esc(courseName(a.c)) : ''}</td></tr>`; } }
+    else if (SF.sort === 'due') { const w = weekStart(a.t); if (w !== lastW) { lastW = w; const n = weekNo(w); rows += `<tr class="wkh"><td colspan="${ncol}">${n < 1 ? 'before the semester' : 'week ' + n}${w === ws ? ' · this week' : ''}</td></tr>`; } }
     const i = data.assignments.indexOf(a), col = colorFor(a.c), late = !a.d && a.t < T, k = 'r' + i + '|';
     rows += `<tr class="row${a.d ? ' done' : ''}${late ? ' late' : ''}${bigType(a.y) ? ' xp' : ''}" style="--c:${col}" data-i="${i}">
       <td class="w36"><button class="ins" data-act="insert" data-i="${i}" title="add a row below" aria-label="add a row below">+</button><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td>
@@ -741,7 +774,7 @@ function renderSheet(v) {
       <td><select class="cell cl" data-f="c" data-k="${k}c">${classOptions(a.c)}</select></td>
       <td><input class="cell ty" data-f="y" data-k="${k}y" value="${esc(a.y)}" autocomplete="off" spellcheck="false"></td>
       <td>${(() => { const tg = tst ? TEST[kOf(a)] : null; return `<input class="cell num" data-f="g" data-k="${k}g" value="${esc(fmtG(tg != null ? tg : a.g))}" placeholder="–" autocomplete="off">`; })()}</td>
-      ${SF.out ? `<td><input class="cell num" data-f="o" data-k="${k}o" value="${a.o == null ? '' : esc(a.o)}" autocomplete="off"></td>` : ''}</tr>`;
+      ${SF.out ? `<td><input class="cell num" data-f="o" data-k="${k}o" value="${a.o == null ? '' : esc(a.o)}" autocomplete="off"></td>` : ''}<td class="delc"><button class="delbtn" data-act="del" aria-label="delete assignment" title="delete">×</button></td></tr>`;
     DRAFTS.filter(d => d.after === i).forEach(d => { rows += draftRow(d); });
   });
   v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">google sheet ↗</a><button class="btn tint" data-act="add">add assignment</button></div></div>
@@ -775,7 +808,7 @@ function renderGrades(v) {
     <div class="ccards">${L.courses.map(c => { const col = colorFor(c.code); return `<button class="cc" style="--c:${col}" data-act="course" data-code="${esc(c.code)}">
       <div class="top"><span class="code">${esc(spaceCode(c.code))}</span><span class="nmx">${esc(c.name)}</span>${c.passFail ? '<span class="pf">S/U</span>' : `<span class="pf">${c.credits} cr</span>`}</div>
       <div class="donut">${donutSvg(c, col)}<div class="c"><div class="dl" style="color:${col}">${esc(c.letter || '–')}</div><div class="cp">${c.raw != null ? f2(c.raw) + (c._rule && c._rule.binCutoffs ? ' pts' : '%') : ''}</div></div></div>
-      ${how(c)}<div class="more">how it was calculated ›</div></button>`; }).join('')}</div>
+      ${how(c)}</button>`; }).join('')}</div>
     <div class="card gpa" data-act="gpa"><div class="ct">term gpa</div>
       ${showGpa ? `<div class="big">${L.gpa != null ? Number(L.gpa).toFixed(3) : '–'}</div>
         <div class="sec"><div class="ct">how it was calculated</div><ol class="trace">${lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('')}
@@ -864,6 +897,7 @@ document.addEventListener('click', e => {
   const holder = t.closest('[data-i]');
   switch (act) {
     case 'go': return go(t.dataset.view);
+    case 'del': { const a = byIdx(holder && holder.dataset.i); if (a) deleteAssignment(a); return; }
     case 'done': { const a = byIdx(t.dataset.i != null ? t.dataset.i : holder && holder.dataset.i); if (a) toggleDone(a); return; }
     case 'wk-': weekOff--; return renderAll();
     case 'wk+': weekOff++; return renderAll();

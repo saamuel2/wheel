@@ -54,6 +54,7 @@ function doPost(e) {
       case 'undone': return out_(setDone_(ss, b, false));
       case 'edit':   return out_(editRow_(ss, b));
       case 'add':    return out_(addRow_(ss, b));
+      case 'delete': return out_(deleteRow_(ss, b));
       case 'add_many': return out_(addMany_(ss, b));
       case 'absence_add':    return out_(absenceAdd_(ss, b));
       case 'absence_remove': return out_(absenceRemove_(ss, b));
@@ -169,6 +170,13 @@ function editRow_(ss, b) {
   var sh = ss.getSheetByName('Assignments'), r = locate_(sh, Number(b.row), b.match);
   if (r < 0) return { ok: false, error: 'assignment not found' };
   writeFields_(sh, r, b.fields || {}, ss);
+  return { ok: true, row: r };
+}
+
+function deleteRow_(ss, b) {
+  var sh = ss.getSheetByName('Assignments'), r = locate_(sh, Number(b.row), b.match);
+  if (r < 0) return { ok: false, error: 'assignment not found' };
+  sh.deleteRow(r);
   return { ok: true, row: r };
 }
 

@@ -108,6 +108,7 @@
   .grp { font-size: 13px; color: var(--sub); margin: 22px 16px 7px; }
   .grp.late { color: #FF453A; }
   .group { background: var(--card); border-radius: 16px; overflow: hidden; }
+  #view-assignments .task:not(.gr-row) { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
   .task { position: relative; display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 7px 16px 7px 6px; max-height: 80px;
     transition: opacity .3s, max-height .4s var(--spring), min-height .4s var(--spring), padding .4s var(--spring), background .15s; }
   .task:active { background: #2C2C2E; }
@@ -684,7 +685,7 @@
     function saveCache(d) { try { localStorage.setItem('wheel-cache', JSON.stringify({ ts: Date.now(), data: d || appData })); } catch (e) {} }
 
     // Local changes stay on screen until the sheet shows the same thing (or 90 s pass), so a slow save never makes things pop back.
-    const OV = {}, gradeHold = new Set();
+    const OV = {}, gradeHold = new Set(), DEL = {};   // DEL: deleted here, hidden until the sheet agrees (90 s)
     const kOf = a => a.c + '|' + a.n + '|' + a.t;
     const snapOf = a => ({ r: a.r, n: a.n, c: a.c, y: a.y, t: a.t, d: a.d, g: a.g });
     function setOv(key, base, fields, add) {
@@ -693,7 +694,8 @@
     }
     const same = (x, y) => String(x == null ? '' : x) === String(y == null ? '' : y);
     function applyOv(data) {
-      const L = data.assignments || [], now = Date.now();
+      const now = Date.now(); if (data.assignments) data.assignments = data.assignments.filter(x => !(DEL[kOf(x)] > now));
+      const L = data.assignments || [];
       Object.keys(OV).forEach(k => {
         const o = OV[k]; if (now > o.exp) { delete OV[k]; return; }
         const nk = kOf(Object.assign({}, o.base, o.f));
@@ -708,7 +710,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.41 (11/03 10:35am)';
+    const BUILD = 'm2.42 (11/03 10:50am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -832,6 +834,32 @@
       const p = { a: a, to: to, timer: setTimeout(() => commit(p), 3000) };
       pending = p; showUndo(to ? 'marked done' : 'marked not done', true);
     }
+    // hold a row in the sheet tab to delete it
+    function deleteAssignment(a) {
+      if (!confirm('Delete “' + a.n + '” (' + a.c + ') from your sheet? This removes the row.')) return;
+      const k = kOf(a), i = appData.assignments.indexOf(a); if (i < 0) return;
+      if (pending) commit(pending);
+      DEL[k] = Date.now() + 90000; delete OV[k]; gradeHold.delete(k); appData.assignments.splice(i, 1); localGrades(appData); saveCache(); drawWheel(false); renderTasks(); renderGrades(); try { renderDash(); } catch (e) {}
+      if (DEMO) return;
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'delete', row: a.r, match: { n: a.n, c: a.c } }) })
+        .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('x'); setTimeout(() => fetchData(true), 1500); })
+        .catch(() => { delete DEL[k]; appData.assignments.splice(Math.min(i, appData.assignments.length), 0, a); localGrades(appData); saveCache(); drawWheel(false); renderTasks(); renderGrades(); showUndo('couldn’t delete — try again', false); setTimeout(hideUndo, 3000); });
+    }
+    (function () {
+      let timer = null, sx = 0, sy = 0, fired = false;
+      const root = document.getElementById('view-assignments'); if (!root) return;
+      const stop = () => { clearTimeout(timer); timer = null; };
+      root.addEventListener('touchstart', e => {
+        const row = e.target.closest('.task[data-r]'); if (!row || e.target.closest('input')) return;
+        fired = false; sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+        timer = setTimeout(() => { fired = true; if (navigator.vibrate) navigator.vibrate(10);
+          const a = appData.assignments.find(x => String(x.r) === row.dataset.r && x.n === row.dataset.n && x.c === row.dataset.c); if (a) deleteAssignment(a); }, 650);
+      }, { passive: true });
+      root.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) stop(); }, { passive: true });
+      root.addEventListener('touchend', e => { stop(); if (fired) { e.preventDefault(); fired = false; } });
+      root.addEventListener('touchcancel', stop);
+      root.addEventListener('contextmenu', e => { if (e.target.closest('.task[data-r]')) e.preventDefault(); });
+    })();
     function undo() {
       if (!pending) return;
       clearTimeout(pending.timer); pending.a.d = !pending.to; setOv(kOf(pending.a), snapOf(pending.a), { d: !pending.to }); saveCache(); pending = null;
