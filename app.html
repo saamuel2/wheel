@@ -193,6 +193,7 @@
     border-radius: 32px 32px 0 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 -10px 40px rgba(0,0,0,.5); transform: translateY(105%); transition: transform .45s var(--spring); }
   .sheet.show { transform: none; }
   .grab { width: 36px; height: 5px; border-radius: 3px; background: rgba(235,235,245,.3); margin: 8px auto 0; flex: none; }
+  #sh-title { margin-left: auto; text-align: right; }
   .sh-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 4px; flex: none; }
   #sh-title, #a-title { font-size: 17px; font-weight: 600; text-transform: lowercase; }
   .sh-bar button { border: 0; background: none; color: var(--tint); font-family: inherit; font-size: 17px; padding: 10px 12px; min-width: 76px; }
@@ -710,7 +711,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.43 (11/03 11:12am)';
+    const BUILD = 'm2.44 (11/03 11:24am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -836,7 +837,7 @@
     }
     // hold a row in the sheet tab to delete it
     function deleteAssignment(a) {
-      if (!confirm('Delete “' + a.n + '” (' + a.c + ') from your sheet? This removes the row.')) return;
+      if (!confirm('Delete “' + a.n + '” (' + a.c + ')? This clears its row in the sheet.')) return;
       const k = kOf(a), i = appData.assignments.indexOf(a); if (i < 0) return;
       if (pending) commit(pending);
       DEL[k] = Date.now() + 90000; delete OV[k]; gradeHold.delete(k); appData.assignments.splice(i, 1); localGrades(appData); saveCache(); drawWheel(false); renderTasks(); renderGrades(); try { renderDash(); } catch (e) {}

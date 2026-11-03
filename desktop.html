@@ -300,7 +300,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.14 (11/03 11:15am)';
+const BUILD = 'd1.15 (11/03 11:24am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -495,7 +495,7 @@ const byIdx = i => data && data.assignments[+i];
 function changed() { LIVE = null; renderAll(); }
 
 function deleteAssignment(a) {
-  if (!confirm('Delete “' + a.n + '” (' + a.c + ') from your sheet? This removes the row.')) return;
+  if (!confirm('Delete “' + a.n + '” (' + a.c + ')? This clears its row in the sheet.')) return;
   const k = kOf(a), i = data.assignments.indexOf(a); if (i < 0) return;
   DEL[k] = Date.now() + 90000; delete OV[k]; data.assignments.splice(i, 1); STAY.delete(k); changed();
   if (DEMO) { toast('deleted ' + a.n); return; }

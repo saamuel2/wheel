@@ -198,7 +198,7 @@ function editRow_(ss, b) {
 function deleteRow_(ss, b) {
   var sh = ss.getSheetByName('Assignments'), r = locate_(sh, Number(b.row), b.match);
   if (r < 0) return { ok: false, error: 'assignment not found' };
-  sh.deleteRow(r);
+  sh.getRange(r, 1, 1, 7).clearContent();   // only A–G: never remove the row itself (other columns hold other things)
   return { ok: true, row: r };
 }
 
