@@ -649,7 +649,7 @@
       if (DEMO || !/github\.io$/.test(location.hostname)) return Promise.resolve(false);
       return fetch(location.origin + location.pathname + '?v=' + Date.now(), { cache: 'reload' }).then(r => r.text()).then(t => {
         const m = /const BUILD = '([a-z]?\d[^']*)'/.exec(t);
-        if (m && m[1] !== BUILD) { smoothReload(); return true; }
+        if (m && m[1] !== BUILD && !busy()) { smoothReload(); return true; }
         return false;
       }).catch(() => false);
     }
@@ -710,7 +710,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.42 (11/03 10:50am)';
+    const BUILD = 'm2.43 (11/03 11:12am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;

@@ -300,7 +300,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.12 (11/03 11:07am)';
+const BUILD = 'd1.13 (11/03 11:12am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -411,10 +411,12 @@ function setSync(s, msg) {
   syncState = s; const el = $('sync'); el.className = 'sync' + (s === 'off' ? ' off' : s === 'busy' ? ' busy' : '');
   el.querySelector('span').textContent = msg || (s === 'busy' ? 'syncing…' : s === 'ok' ? (DEMO ? 'demo data' : 'synced ' + fmtT(lastSync)) : 'offline');
 }
+let inflight = 0;   // saves on their way to the sheet — an app update never reloads the page under them
 function post(body) {
   if (DEMO) return Promise.resolve({ ok: true, id: 'demo' + Date.now() });
+  inflight++;
   return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(Object.assign({ token: KEY }, body)) })
-    .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error((j && j.error) || 'save failed'); return j; });
+    .then(r => r.json()).then(j => { inflight--; if (!j || !j.ok) throw new Error((j && j.error) || 'save failed'); return j; }, e => { inflight--; throw e; });
 }
 const cached = store.get('desk-cache', null);
 if (!DEMO && cached && KEY) data = cached;
@@ -427,7 +429,7 @@ function smoothReload() {
 function checkUpdate() {
   if (DEMO) return Promise.resolve();
   return fetch(location.origin + location.pathname + '?v=' + Date.now(), { cache: 'reload' }).then(r => r.text()).then(t => {
-    const m = /const BUILD = '([a-z]?\d[^']*)'/.exec(t); if (m && m[1] !== BUILD && !editing()) smoothReload();
+    const m = /const BUILD = '([a-z]?\d[^']*)'/.exec(t); if (m && m[1] !== BUILD && !editing() && !inflight && !DRAFTS.length) smoothReload();
   }).catch(() => {});
 }
 // pull down at the top of any page (touch only — a mouse is unaffected) to check for a new version and refresh the data
