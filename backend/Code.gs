@@ -18,6 +18,23 @@ var EVENT_DAYS = 30;                       // how far ahead the calendar list lo
 
 function token_() { return PropertiesService.getScriptProperties().getProperty('TOKEN') || ''; }
 
+// Once a week is over (Monday 00:00 onward) its "end of week" divider row gets a tick in A and a 1 in the grade column.
+// Runs whenever the apps sync (at most once an hour) — nothing to install.
+function closeWeeks_(ss) {
+  var cache = CacheService.getScriptCache(), today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), ck = 'wk_closed_' + today + '_' + new Date().getHours();
+  if (cache.get(ck)) return 0;
+  var sh = ss.getSheetByName('Assignments'), last = sh.getLastRow(), n = 0; if (last < 3) return 0;
+  var v = sh.getRange(3, 1, last - 2, 6).getValues();
+  for (var i = 0; i < v.length; i++) {
+    var name = str_(v[i][2]); if (name.indexOf('────') < 0 || name.indexOf('semester') > -1) continue;
+    var dy = cellYmd_(v[i][1], ss); if (!dy || dy >= today) continue;
+    if (v[i][0] !== true) { sh.getRange(i + 3, 1).insertCheckboxes(); sh.getRange(i + 3, 1).setValue(true); n++; }
+    if (str_(v[i][5]) === '') { sh.getRange(i + 3, 6).setValue(1); n++; }
+  }
+  cache.put(ck, '1', 3000);
+  return n;
+}
+
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (!token_() || p.token !== token_()) return out_({ error: 'bad token' });
@@ -31,6 +48,7 @@ function doGet(e) {
     return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
   }
   var ss = SpreadsheetApp.openById(SHEET_ID), res = { v: 3 }, errors = {};
+  try { closeWeeks_(ss); } catch (err) { errors.weeks_close = String(err); }
   try { res.assignments = readAssignments_(ss); } catch (err) { return out_({ error: 'assignments: ' + err }); }
   try { res.courses = readCourseList_(ss); } catch (err) { res.courses = []; errors.courses = String(err); }
   try { res.grades = readGrades_(ss); } catch (err) { errors.grades = String(err); }
@@ -183,6 +201,8 @@ function deleteRow_(ss, b) {
 function addRow_(ss, b) {
   var sh = ss.getSheetByName('Assignments'), r = lastContentRow_(sh) + 1, f = b.fields || {};
   if (!f.name || !f.className || !f.due) return { ok: false, error: 'missing fields' };
+  if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r - sh.getMaxRows() + 20);   // the sheet was full, so adds used to fail
+  sh.getRange(r, 1).insertCheckboxes();
   sh.getRange(r, 2).setNumberFormat('ddd" "m"/"d');
   writeFields_(sh, r, { done: !!f.done, due: f.due, name: f.name, className: f.className, type: f.type || '', grade: f.grade, outOf: f.outOf }, ss);
   return { ok: true, row: r };
@@ -193,6 +213,8 @@ function addMany_(ss, b) {
   var rows = (b.rows || []).filter(function (f) { return f && f.name && f.className && f.due; });
   if (!rows.length) return { ok: false, error: 'nothing to add' };
   var sh = ss.getSheetByName('Assignments'), r0 = lastContentRow_(sh) + 1;
+  if (r0 + rows.length - 1 > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r0 + rows.length - sh.getMaxRows() + 20);
+  sh.getRange(r0, 1, rows.length, 1).insertCheckboxes();
   var vals = rows.map(function (f) {
     return [false, ymdToCell_(f.due, ss), f.name, f.className, f.type || '', cellVal_(f.grade)];
   });
