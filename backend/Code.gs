@@ -28,7 +28,7 @@ function closeWeeks_(ss) {
   for (var i = 0; i < v.length; i++) {
     var name = str_(v[i][2]); if (name.indexOf('────') < 0 || name.indexOf('semester') > -1) continue;
     var dy = cellYmd_(v[i][1], ss); if (!dy || dy >= today) continue;
-    if (v[i][0] !== true) { sh.getRange(i + 3, 1).insertCheckboxes(); sh.getRange(i + 3, 1).setValue(true); n++; }
+    if (v[i][0] !== true) { sh.getRange(i + 3, 1).setValue(true); n++; }
     if (str_(v[i][5]) === '') { sh.getRange(i + 3, 6).setValue(1); n++; }
   }
   cache.put(ck, '1', 3000);
@@ -144,7 +144,7 @@ function readCourseList_(ss) {
 function lastContentRow_(sh) {
   var last = sh.getLastRow(); if (last < 3) return 2;
   var v = sh.getRange(3, 1, last - 2, 6).getValues();
-  for (var i = v.length - 1; i >= 0; i--) for (var c = 0; c < 6; c++) if (v[i][c] !== '' && v[i][c] != null) return i + 3;
+  for (var i = v.length - 1; i >= 0; i--) for (var c = 1; c < 6; c++) if (v[i][c] !== '' && v[i][c] != null) return i + 3;   // ignore the empty checkbox column: the table pre-fills it with FALSE
   return 2;
 }
 
@@ -201,8 +201,7 @@ function deleteRow_(ss, b) {
 function addRow_(ss, b) {
   var sh = ss.getSheetByName('Assignments'), r = lastContentRow_(sh) + 1, f = b.fields || {};
   if (!f.name || !f.className || !f.due) return { ok: false, error: 'missing fields' };
-  if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r - sh.getMaxRows() + 20);   // the sheet was full, so adds used to fail
-  sh.getRange(r, 1).insertCheckboxes();
+  if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r - sh.getMaxRows() + 20);
   sh.getRange(r, 2).setNumberFormat('ddd" "m"/"d');
   writeFields_(sh, r, { done: !!f.done, due: f.due, name: f.name, className: f.className, type: f.type || '', grade: f.grade, outOf: f.outOf }, ss);
   return { ok: true, row: r };
@@ -214,7 +213,6 @@ function addMany_(ss, b) {
   if (!rows.length) return { ok: false, error: 'nothing to add' };
   var sh = ss.getSheetByName('Assignments'), r0 = lastContentRow_(sh) + 1;
   if (r0 + rows.length - 1 > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r0 + rows.length - sh.getMaxRows() + 20);
-  sh.getRange(r0, 1, rows.length, 1).insertCheckboxes();
   var vals = rows.map(function (f) {
     return [false, ymdToCell_(f.due, ss), f.name, f.className, f.type || '', cellVal_(f.grade)];
   });
