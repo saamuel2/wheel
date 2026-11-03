@@ -206,9 +206,16 @@ function addRow_(ss, b) {
   var sh = ss.getSheetByName('Assignments'), r = lastContentRow_(sh) + 1, f = b.fields || {};
   if (!f.name || !f.className || !f.due) return { ok: false, error: 'missing fields' };
   if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r - sh.getMaxRows() + 20);
-  sh.getRange(r, 2).setNumberFormat('ddd" "m"/"d');
-  writeFields_(sh, r, { done: !!f.done, due: f.due, name: f.name, className: f.className, type: f.type || '', grade: f.grade, outOf: f.outOf }, ss);
-  return { ok: true, row: r };
+  // one write for the whole row (the Assignments tab is a table, which is picky about cell-by-cell edits)
+  var row = [!!f.done, ymdToCell_(f.due, ss), f.name, f.className, f.type || '', cellVal_(f.grade), cellVal_(f.outOf)], why = [];
+  try { sh.getRange(r, 1, 1, 7).setValues([row]); return { ok: true, row: r }; } catch (err) { why.push('row: ' + err); }
+  // fall back to cell by cell so one stubborn column doesn't lose the whole assignment
+  var ok = 0;
+  for (var k = 0; k < row.length; k++) {
+    try { if (row[k] !== '') { sh.getRange(r, k + 1).setValue(row[k]); ok++; } } catch (err2) { why.push('col ' + (k + 1) + ': ' + err2); }
+  }
+  if (ok >= 3) return { ok: true, row: r, warn: why.join(' | ') };
+  return { ok: false, error: 'could not write row ' + r + ' — ' + why.join(' | ') };
 }
 
 // several assignments at once (pasted from Moodle); each { name, className, type, due, outOf }
