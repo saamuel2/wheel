@@ -193,7 +193,6 @@
     border-radius: 32px 32px 0 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 -10px 40px rgba(0,0,0,.5); transform: translateY(105%); transition: transform .45s var(--spring); }
   .sheet.show { transform: none; }
   .grab { width: 36px; height: 5px; border-radius: 3px; background: rgba(235,235,245,.3); margin: 8px auto 0; flex: none; }
-  #sh-title { margin-left: auto; text-align: right; }
   .sh-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 4px; flex: none; }
   #sh-title, #a-title { font-size: 17px; font-weight: 600; text-transform: lowercase; }
   .sh-bar button { border: 0; background: none; color: var(--tint); font-family: inherit; font-size: 17px; padding: 10px 12px; min-width: 76px; }
@@ -204,7 +203,7 @@
   .frow + .frow::before { content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: .5px; background: var(--sep); }
   .frow > label { font-size: 17px; flex: none; }
   .frow input, .frow select { flex: 1; min-width: 0; height: 52px; padding: 0; background: none; border: 0; outline: 0; color: var(--text); font-family: inherit; font-size: 17px; text-align: right; text-align-last: right; -webkit-appearance: none; appearance: none; }
-  .frow input::placeholder { color: #636366; } #f-name { text-align: left; text-align-last: left; } #f-type { text-transform: uppercase; }
+  .frow input::placeholder { color: #636366; } #f-name { text-align: right; text-align-last: right; } #f-type { text-transform: uppercase; }
   .frow input[type=date] { flex: none; height: 36px; margin-left: auto; color-scheme: dark; -webkit-appearance: auto; appearance: auto; }
   .sw { position: relative; margin-left: auto; width: 51px; height: 31px; flex: none; }
   .sw input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; z-index: 1; }
@@ -711,7 +710,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.44 (11/03 11:24am)';
+    const BUILD = 'm2.45 (11/03 11:26am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
