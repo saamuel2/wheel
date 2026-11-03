@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1C1C1E"/><stop offset="1" stop-color="#000000"/></linearGradient>
+    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A8DDB4"/><stop offset="1" stop-color="#5FAE7C"/></linearGradient>
+    <linearGradient id="b" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9BD3E2"/><stop offset="1" stop-color="#4F99B0"/></linearGradient>
+    <linearGradient id="c" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#9DB27F"/><stop offset="1" stop-color="#D6E8B3"/></linearGradient>
+    <filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="rgba(0,0,0,.5)"/></filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(512 512) scale(1) translate(-512 -512)" filter="url(#s)">
+    <circle cx="512" cy="512" r="318" fill="none" stroke="url(#a)" stroke-width="118" stroke-linecap="round" stroke-dasharray="1387.536755335492 1998.0529276831085" transform="rotate(-90 512 512)"/>
+    <circle cx="512" cy="512" r="318" fill="none" stroke="url(#c)" stroke-width="118" stroke-linecap="round" stroke-dasharray="210.90558681099478 1998.0529276831085" transform="rotate(202 512 512)"/>
+    <circle cx="512" cy="512" r="170" fill="none" stroke="url(#b)" stroke-width="118" stroke-linecap="round" stroke-dasharray="830.776723949301 1068.1415022205297" transform="rotate(30 512 512)"/>
+    <circle cx="512" cy="512" r="58" fill="#E6DCC8"/>
+  </g></svg>
