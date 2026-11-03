@@ -292,7 +292,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.07 (11/03 10:16am)';
+const BUILD = 'd1.08 (11/03 10:35am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -380,10 +380,20 @@ function load(silent) {
   return fetch(API + '?token=' + encodeURIComponent(KEY)).then(r => r.json()).then(d => {
     fetching = false;
     if (d.error) { setSync('off', d.error === 'bad token' ? 'wrong connection key' : d.error); if (d.error === 'bad token') { data = null; renderAll(); } return; }
-    applyOv(d); lastSync = Date.now(); setSync('ok');
+    if (EVT) { d.events = EVT.events; d.calendars = EVT.calendars; }
+    applyOv(d); lastSync = Date.now(); setSync('ok'); loadEvents();
     if (editing() || $('drawer').classList.contains('on')) { pendingData = d; return; }
     setData(d);
   }).catch(() => { fetching = false; setSync('off', 'offline — showing last copy'); });
+}
+let EVT = store.get('desk-ev', null), evFetching = false;
+function loadEvents(fresh) {
+  if (DEMO || !KEY || evFetching) return; evFetching = true;
+  fetch(API + '?token=' + encodeURIComponent(KEY) + '&part=events' + (fresh ? '&fresh=1' : '')).then(r => r.json()).then(r => {
+    evFetching = false; if (!r || r.error || !r.events) return;
+    EVT = { events: r.events, calendars: r.calendars }; store.set('desk-ev', EVT);
+    if (data) { data.events = r.events; data.calendars = r.calendars; if (!editing()) { try { renderAll(); } catch (e) {} } }
+  }).catch(() => { evFetching = false; });
 }
 function setData(d) { data = d; LIVE = null; store.set('desk-cache', d); renderAll(); }
 setInterval(() => { if (pendingData && !editing() && !$('drawer').classList.contains('on')) { const d = pendingData; pendingData = null; applyOv(d); setData(d); } }, 1500);
@@ -449,7 +459,7 @@ const byIdx = i => data && data.assignments[+i];
 function changed() { LIVE = null; renderAll(); }
 
 function toggleDone(a) {
-  const to = !a.d; a.d = to; setOv(a, { d: to }); changed();
+  const to = !a.d; a.d = to; if (VIEW === 'sheet') STAY.add(kOf(a)); setOv(a, { d: to }); changed();
   let undone = false;
   const t = setTimeout(() => { if (undone) return;
     post({ action: to ? 'done' : 'undone', row: a.r, n: a.n, c: a.c }).catch(() => { a.d = !to; setOv(a, { d: !to }); changed(); toast('couldn’t save — try again'); }); }, 2500);
@@ -499,7 +509,7 @@ function saveDraft(id) {
 // ===================== render =====================
 let VIEW = store.get('desk-view', 'dash'), weekOff = 0, showGrades = false, showGpa = false, showRaDone = false;
 function go(v, fade) {
-  if (v !== 'sheet') { STAY.clear(); TEST = {}; }
+  if (v !== 'sheet') TEST = {};
   if (v === 'extra') v = 'tasks';
   VIEW = v; store.set('desk-view', v);
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
@@ -699,7 +709,7 @@ function dateCell(ms, attrs) {
 function renderSheet(v) {
   const A = data.assignments, T = today(), ws = weekStart(Date.now()), nws = addDays(ws, 7);
   const F = [['upcoming', 'upcoming'], ['week', 'this week'], ['grade', 'to grade'], ['done', 'done'], ['all', 'all']];
-  let list = A.filter(a => !blankCls(a.c) || a.c === '').filter(a => SF.f === 'upcoming' ? !a.d : SF.f === 'done' ? a.d : SF.f === 'grade' ? (a.d && ((a.g == null || a.g === '') || STAY.has(kOf(a))) && !isExtra(a.c)) : SF.f === 'week' ? (a.t >= ws && a.t < nws) : true);
+  let list = A.filter(a => !blankCls(a.c) || a.c === '').filter(a => STAY.has(kOf(a)) || (SF.f === 'upcoming' ? !a.d : SF.f === 'done' ? a.d : SF.f === 'grade' ? (a.d && (a.g == null || a.g === '') && !isExtra(a.c)) : SF.f === 'week' ? (a.t >= ws && a.t < nws) : true));
   if (SF.cls.length) list = list.filter(a => SF.cls.includes(a.c));
   if (SF.q) { const q = SF.q.toLowerCase(); list = list.filter(a => (a.n + ' ' + a.c + ' ' + a.y).toLowerCase().includes(q)); }
   const key = { due: a => a.t, name: a => a.n.toLowerCase(), cls: a => a.c, type: a => a.y, grade: a => a.g === '' || a.g == null ? -Infinity : (typeof a.g === 'number' ? a.g : (Engine.parseGrade({ grade: a.g, possible: a.o }).pct || 0)), out: a => a.o == null ? -Infinity : a.o }[SF.sort] || (a => a.t);
@@ -866,11 +876,11 @@ document.addEventListener('click', e => {
     case 'upcoming': return openUpcoming();
     case 'calchip': return toggleCal(t.dataset.cal);
     case 'add': return startAdd();
-    case 'sf': if (t.dataset.f !== 'grade') { STAY.clear(); TEST = {}; } SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
-    case 'scls': { const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
+    case 'sf': STAY.clear(); TEST = {}; SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
+    case 'scls': { STAY.clear(); const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
     case 'insert': return startAdd(+t.dataset.i);
     case 'draft-x': DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); return renderAll();
-    case 'sort': { const s = t.dataset.s; if (SF.sort === s) SF.dir = -SF.dir; else { SF.sort = s; SF.dir = 1; } saveSF(); return renderAll(); }
+    case 'sort': { STAY.clear(); const s = t.dataset.s; if (SF.sort === s) SF.dir = -SF.dir; else { SF.sort = s; SF.dir = 1; } saveSF(); return renderAll(); }
     case 'outof': SF.out = !SF.out; saveSF(); return renderAll();
     case 'wi-reset': return openCourse(WI.code);
     case 'abs-add': { const code = t.dataset.code, d = $('abs-' + code).value; if (!d) return; const x = data.attendance.find(y => y.code === code), ms = fromYmd(d); if (x.dates.some(z => D0(z) === ms)) return; x.dates.push(ms); changed();

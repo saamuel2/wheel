@@ -481,7 +481,8 @@
     <a href="#" class="nav-item" data-target="view-settings" data-index="4"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>settings</a>
   </div>
 
-  <script>
+  <script src="engine.js"></script>
+<script>
     // --- TAB SWITCHING ---
     const navBar = document.getElementById('nav-bar');
     const navItems = document.querySelectorAll('.nav-item');
@@ -609,9 +610,11 @@
         .then(data => {
           fetching = false;
           if (data.error) throw new Error(data.error);
+          if (EVT) { data.events = EVT.events; data.calendars = EVT.calendars; }
           applyOv(data); stash = data; saveCache(data);
           document.getElementById('error-msg').style.display = 'none';
           flushStash();
+          loadEvents();
         })
         .catch(err => {
           fetching = false; console.error(err);
@@ -623,6 +626,17 @@
         });
     }
     let fetching = false, stash = null;
+    let EVT = null; try { EVT = JSON.parse(localStorage.getItem('wheel-ev') || 'null'); } catch (e) {}
+    let evFetching = false;
+    // calendar comes from its own (cached) request so a slow calendar never holds up the sheet
+    function loadEvents(fresh) {
+      if (DEMO || evFetching) return; evFetching = true;
+      fetch(`${API}?token=${encodeURIComponent(TOKEN)}&part=events${fresh ? '&fresh=1' : ''}`).then(r => r.json()).then(r => {
+        evFetching = false; if (!r || r.error || !r.events) return;
+        EVT = { events: r.events, calendars: r.calendars }; try { localStorage.setItem('wheel-ev', JSON.stringify(EVT)); } catch (e) {}
+        if (appData) { appData.events = r.events; appData.calendars = r.calendars; saveCache(); try { renderDash(); renderSide(); } catch (e) {} }
+      }).catch(() => { evFetching = false; });
+    }
     let RESUME = null;
     function smoothReload() {
       try { localStorage.setItem('wheel-resume', JSON.stringify({ v: scrollView, s: $('scroll-container').scrollTop, f: filter, p: scrollPos, t: Date.now() })); } catch (e) {}
@@ -694,7 +708,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.40 (11/03 10:16am)';
+    const BUILD = 'm2.41 (11/03 10:35am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -768,11 +782,11 @@
       const show = v => { input.value = v === '' || v == null ? '' : fmtG(v); input.nextElementSibling.classList.toggle('on', v !== '' && v != null && Number(v) === 100); };
       if (t !== '' && isNaN(g)) { show(prev); return; }
       if (same(prev, g)) { show(prev); return; }
-      const k = kOf(a); a.g = g; gradeHold.add(k); setOv(k, snapOf(a), { g: g }); saveCache(); show(g);
+      const k = kOf(a); a.g = g; gradeHold.add(k); setOv(k, snapOf(a), { g: g }); localGrades(appData); saveCache(); show(g); renderGrades(); try { renderDash(); } catch (e) {}
       if (DEMO) return;
       fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g } }) })
         .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); })
-        .catch(() => { a.g = prev; setOv(k, snapOf(a), { g: prev }); saveCache(); if (input.isConnected) show(prev); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3000); });
+        .catch(() => { a.g = prev; setOv(k, snapOf(a), { g: prev }); localGrades(appData); saveCache(); renderGrades(); if (input.isConnected) show(prev); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3000); });
     }
     function renderTasks() {
       const hasG = !!(appData && appData.assignments && appData.assignments.some(a => a.g !== undefined));
@@ -785,8 +799,8 @@
       if (!appData || !appData.assignments) { box.innerHTML = '<div class="empty">loading…</div>'; return; }
       const today = new Date(); today.setHours(0,0,0,0);
       const ws = new Date(today); ws.setDate(ws.getDate() - ws.getDay()); const we = new Date(ws); we.setDate(ws.getDate() + 7);
-      let list = appData.assignments.filter(a =>
-        filter === 'upcoming' ? !a.d : filter === 'done' ? a.d : filter === 'grade' ? (a.d && ((a.g == null || a.g === '') || gradeHold.has(kOf(a)))) : (a.t >= ws.getTime() && a.t < we.getTime()));
+      let list = appData.assignments.filter(a => (
+        filter === 'upcoming' ? !a.d : filter === 'done' ? a.d : filter === 'grade' ? (a.d && (a.g == null || a.g === '')) : (a.t >= ws.getTime() && a.t < we.getTime())) || gradeHold.has(kOf(a)));
       list.sort((x, y) => (x.t - y.t) || (x.r - y.r));
       if (filter === 'done') list.reverse();
       const groupBy = (arr, keyFn, headFn, rowFn) => { let h = '', last = null; arr.forEach(a => { const k = keyFn(a); if (k !== last) { if (last !== null) h += '</div>'; h += headFn(a) + '<div class="group">'; last = k; } h += rowFn(a); }); return h + '</div>'; };
@@ -809,7 +823,8 @@
       if (pending) commit(pending);
       const a = appData.assignments.find(x => String(x.r) === el.dataset.r && x.n === el.dataset.n && x.c === el.dataset.c);
       if (!a) return;
-      const to = !a.d, leaves = el.closest('#dash-list') ? to : (filter === 'upcoming' ? to : (filter === 'done' || filter === 'grade') ? !to : false);
+      const to = !a.d, leaves = el.closest('#dash-list') ? to : false;
+      if (!el.closest('#dash-list')) gradeHold.add(kOf(a));   // sheet tab: rows stay put until you press another sort button
       hold = true; setOv(kOf(a), snapOf(a), { d: to }); a.d = to; drawWheel(false); saveCache();
       el.classList.toggle('done', to);
       if (leaves) setTimeout(() => el.classList.add('out'), 280);
@@ -986,7 +1001,6 @@
     $('scroll-container').addEventListener('scroll', () => { scrollPos[scrollView] = $('scroll-container').scrollTop; }, { passive: true });
     navItems.forEach(item => item.addEventListener('click', () => {
       if (gpaShown) { gpaShown = false; renderGrades(); }
-      if (gradeHold.size) { gradeHold.clear(); renderTasks(); }
       const sc = $('scroll-container'), same = scrollView === item.dataset.target;
       scrollView = item.dataset.target;
       if (same) sc.scrollTo({ top: 0, behavior: 'smooth' }); else sc.scrollTop = scrollPos[scrollView] || 0;
@@ -1020,7 +1034,25 @@
       return '<div class="grp">how it was calculated</div><div class="group"><ol class="trace">' + lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('') +
         (pf.length ? `<li>${esc(pf.map(c => spaceCode(c.code)).join(', '))}: pass/fail, not in gpa</li>` : '') + `<li>${f2(pts)} grade points ÷ ${cr} credits = ${cr ? (pts / cr).toFixed(3) : '–'}</li></ol></div>`;
     }
+    // class grades + GPA are recalculated here with the sheet's own engine so a grade typed in the app shows up at once
+    function localGrades(d) {
+      try {
+        const g = d && d.grades; if (!g || typeof Engine === 'undefined' || !g.courses.some(c => c.rule)) return;
+        const pad = n => String(n).padStart(2, '0'), ymd = ms => { const x = new Date(ms); return x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()); };
+        const items = (d.assignments || []).map(a => ({ name: a.n, cls: a.c, type: a.y, due: ymd(a.t), grade: a.g === '' ? null : a.g, possible: a.o }));
+        const ab = {}; (d.attendance || []).forEach(x => ab[String(x.code).toLowerCase()] = x.dates.length);
+        const rv = o => JSON.parse(JSON.stringify(o), (k, v) => v === '-inf' ? -Infinity : v === 'inf' ? Infinity : v);
+        g.courses = g.courses.map(c => {
+          if (!c.rule) return c;
+          const rule = c._rule || (c._rule = rv(c.rule)), r = Engine.grade(rule, items, { absences: ab }), cnt = r.cats.filter(k => k.kind === 'normal'), tot = cnt.reduce((s, k) => s + (k.weight || 0), 0);
+          return Object.assign({}, c, { raw: r.value, letter: r.letter || '', gp: r.gp, trace: r.trace,
+            cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes })) });
+        });
+        g.gpa = Engine.gpa(g.courses);
+      } catch (e) { console.error('localGrades', e); }
+    }
     function renderGrades() {
+      localGrades(appData);
       const box = $('grades-box'), g = appData && appData.grades;
       if (!g) { box.innerHTML = '<div class="empty">' + (appData ? 'grades aren’t connected yet' : 'loading…') + '</div>'; return; }
       box.innerHTML = `<div class="group gpa" id="gpa-card"><div><div class="tl">gpa</div><div class="gv${gpaShown ? '' : ' eyebox'}">${gpaShown ? f2(g.gpa) : '<svg class="eye" viewBox="2 9 20 11" width="46" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.2 3.6 5.4 5.4 9 5.4s6.8-1.8 9-5.4"/><path d="M5.2 14.6 3.5 16.6M9.2 16.4l-.9 2.4M14.8 16.4l.9 2.4M18.8 14.6l1.7 2"/></svg>'}</div><div class="ts">${gpaShown ? 'tap to hide' : 'tap to show'}</div></div><div class="r"><div class="tl">credit hours</div><div class="gv sm">${g.credits}</div></div></div>` +

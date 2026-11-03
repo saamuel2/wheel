@@ -21,6 +21,15 @@ function token_() { return PropertiesService.getScriptProperties().getProperty('
 function doGet(e) {
   var p = (e && e.parameter) || {};
   if (!token_() || p.token !== token_()) return out_({ error: 'bad token' });
+  if (p.part === 'events') {   // calendar loads separately so a slow calendar never holds up the sheet
+    var cache = CacheService.getScriptCache(), hit = p.fresh ? null : cache.get('events_v1');
+    if (hit) return ContentService.createTextOutput(hit).setMimeType(ContentService.MimeType.JSON);
+    var r = { v: 3 };
+    try { r.events = readEvents_(); r.calendars = CAL_LIST_; } catch (err) { r.error = String(err); }
+    var txt = JSON.stringify(r);
+    if (!r.error && txt.length < 90000) { try { cache.put('events_v1', txt, 300); } catch (x) {} }
+    return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
+  }
   var ss = SpreadsheetApp.openById(SHEET_ID), res = { v: 3 }, errors = {};
   try { res.assignments = readAssignments_(ss); } catch (err) { return out_({ error: 'assignments: ' + err }); }
   try { res.courses = readCourseList_(ss); } catch (err) { res.courses = []; errors.courses = String(err); }
@@ -29,7 +38,6 @@ function doGet(e) {
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
   try { res.todo = readTodo_(); } catch (err) { errors.todo = String(err); }
-  try { res.events = readEvents_(); res.calendars = CAL_LIST_; } catch (err) { errors.events = String(err); }
   res.errors = errors;
   return out_(res);
 }
