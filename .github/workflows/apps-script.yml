@@ -1,0 +1,47 @@
+# Pushes backend/Code.gs + backend/Grades.gs into the Apps Script projects whenever they change on main,
+# then points the existing web app deployment at the new version (same /exec URL).
+# Every other file in each project (manifest, Sorting.gs, Emails.gs, …) is pulled first and left as it is.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   CLASPRC_JSON         contents of ~/.clasprc.json after `npx @google/clasp@2.4.2 login`
+#   BACKEND_SCRIPT_ID    backend project → Project Settings → Script ID
+#   BACKEND_DEPLOY_ID    backend project → Deploy → Manage deployments → Deployment ID
+#   SHEET_SCRIPT_ID      (optional) the sheet's own Apps Script project → Script ID — gets Grades.gs
+name: apps script
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**']
+  workflow_dispatch:
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      BACKEND_SCRIPT_ID: ${{ secrets.BACKEND_SCRIPT_ID }}
+      BACKEND_DEPLOY_ID: ${{ secrets.BACKEND_DEPLOY_ID }}
+      SHEET_SCRIPT_ID: ${{ secrets.SHEET_SCRIPT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: skip until the secrets are set
+        id: ready
+        run: if [ -n "$CLASPRC_JSON" ] && [ -n "$BACKEND_SCRIPT_ID" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "secrets not set yet — nothing to do"; fi
+      - if: steps.ready.outputs.ok
+        run: |
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          npm i -g @google/clasp@2.4.2
+          sync () {   # $1 script id, $2.. files to copy in
+            id=$1; shift; dir=$(mktemp -d); cd "$dir"
+            echo "{\"scriptId\":\"$id\"}" > .clasp.json
+            clasp pull
+            for f in "$@"; do cp "$GITHUB_WORKSPACE/backend/$f" .; done
+            clasp push --force
+            cd "$GITHUB_WORKSPACE"
+          }
+          sync "$BACKEND_SCRIPT_ID" Code.gs Grades.gs
+          if [ -n "$BACKEND_DEPLOY_ID" ]; then
+            cd "$(mktemp -d)" && echo "{\"scriptId\":\"$BACKEND_SCRIPT_ID\"}" > .clasp.json
+            clasp deploy -i "$BACKEND_DEPLOY_ID" -d "github ${GITHUB_SHA::7}"
+            cd "$GITHUB_WORKSPACE"
+          fi
+          if [ -n "$SHEET_SCRIPT_ID" ]; then sync "$SHEET_SCRIPT_ID" Grades.gs; fi
