@@ -120,9 +120,10 @@
   .cdf { display: grid; gap: 8px; align-content: start; } .cdf .txt { width: 100%; height: 36px; padding-top: 0; padding-bottom: 0; } .cdf .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .dcell { position: relative; display: flex; align-items: center; gap: 6px; height: 30px; padding-left: 6px; }
   .calbtn { border: 0; background: none; padding: 0; color: var(--sub); opacity: .55; display: flex; flex: none; } .calbtn:hover { opacity: 1; color: var(--text); }
-  .dtxt { font-size: 13px; font-variant-numeric: tabular-nums; cursor: pointer; white-space: nowrap; }
+  .dtxt { font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  input.dtin { border: 0; background: none; color: inherit; font-family: inherit; padding: 0; margin: 0; width: 92px; height: 26px; outline: none; border-radius: 6px; } input.dtin:focus { background: var(--fill); padding-left: 4px; } input.dtin.bad { color: var(--red); }
   .grid tr.row.late .dtxt { color: var(--red); font-weight: 700; }
-  .dpick { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; padding: 0; border: 0; }
+  .dcell input.dpick { position: absolute; left: 6px; top: 3px; width: 22px; height: 24px; opacity: 0; padding: 0; border: 0; z-index: 1; }
   .fchip .g.test { color: var(--tint); font-weight: 700; }
   .gl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 8px; }
   .gl button { display: flex; align-items: baseline; gap: 6px; border: 0; background: var(--card2); border-radius: 9px; padding: 7px 9px; text-align: left; min-width: 0; }
@@ -165,6 +166,7 @@
   .toolbar .seg { height: 41px; align-items: stretch; } .toolbar .seg button { padding: 0 12px; }
   .grid tr.draft td { background: var(--fill); }
   .grid td.w36 { position: relative; }
+  .addok { border: 0; background: var(--tint); color: #fff; font-size: 18px; line-height: 1; width: 28px; height: 28px; border-radius: 14px; padding: 0; } html[data-theme=elegant] .addok, html[data-theme=moody] .addok { color: var(--bg); }
   .delbtn { border: 0; background: none; color: var(--ph); font-size: 18px; line-height: 1; width: 28px; height: 28px; border-radius: 8px; padding: 0; } .delbtn:hover, .delbtn:active { color: #FF453A; background: var(--fill); }
   .ins { position: absolute; left: 2px; bottom: -9px; z-index: 2; width: 18px; height: 18px; border-radius: 9px; border: 0; background: var(--tint); color: #fff; font-size: 14px; line-height: 18px; padding: 0; opacity: 0; transition: opacity .12s; }
   html[data-theme=elegant] .ins, html[data-theme=moody] .ins { color: var(--bg); }
@@ -293,7 +295,7 @@
 <script src="engine.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.09 (11/03 10:50am)';
+const BUILD = 'd1.10 (11/03 11:00am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -514,7 +516,7 @@ function saveDraft(id) {
   const a = { r: 0, n: fields.name, c: fields.className, y: fields.type, t: fromYmd(fields.due), d: false, g: fields.grade === '' ? '' : (isNaN(Number(fields.grade)) ? fields.grade : Number(fields.grade)), o: fields.outOf === '' ? null : Number(fields.outOf) };
   data.assignments.push(a); setOv(a, {}, true); justAdded = a;
   DRAFTS.splice(DRAFTS.indexOf(d), 1);
-  post({ action: 'add', fields }).then(() => { if (!DEMO) setTimeout(() => load(true), 1500); }).catch(() => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; changed(); toast('couldn’t add — try again'); });
+  post({ action: 'add', fields }).then(() => { if (!DEMO) setTimeout(() => load(true), 1500); }).catch(err => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; DRAFTS.push(d); changed(); toast('couldn’t add — ' + ((err && err.message) || 'try again')); });
   changed(); toast('added ' + fields.name);
 }
 // ===================== render =====================
@@ -735,7 +737,20 @@ function classOptions(sel) {
   return [...new Set(cs)].map(c => `<option value="${esc(c)}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`).join('');
 }
 function dateCell(ms, attrs) {
-  return `<div class="dcell"><button class="calbtn" data-act="pick" tabindex="-1" aria-label="pick a date">${CAL}</button><span class="dtxt" data-act="pick">${ms != null && !isNaN(ms) ? dayLabel(ms) : '–'}</span><input class="cell due dpick" type="date" ${attrs} value="${ms != null && !isNaN(ms) ? ymd(ms) : ''}"></div>`;
+  const ok = ms != null && !isNaN(ms), k = (/data-k="([^"]*)"/.exec(attrs) || [])[1];
+  return `<div class="dcell"><button class="calbtn" data-act="pick" tabindex="-1" aria-label="pick a date">${CAL}</button>` +
+    `<input class="dtxt dtin" data-dtin${k ? ` data-k="${k}x"` : ''} value="${ok ? esc(dayLabel(ms)) : ''}" placeholder="m/d" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="due date">` +
+    `<input class="cell due dpick" data-act="pick" type="date" ${attrs} value="${ok ? ymd(ms) : ''}"></div>`;
+}
+// type a date by hand: 11/4 · 11/4/26 · nov 4 · wed 11/4
+function parseDateText(s) {
+  s = String(s).toLowerCase().replace(/\b(sun|mon|tue|wed|thu|fri|sat)[a-z]*\.?,?/g, '').trim(); if (!s) return null;
+  const MN = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']; let m, mo, dd, y = new Date().getFullYear();
+  if ((m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})(?:[\/\-.](\d{2,4}))?$/))) { mo = +m[1]; dd = +m[2]; if (m[3]) { y = +m[3]; if (y < 100) y += 2000; } }
+  else if ((m = s.match(/^([a-z]{3})[a-z]*\.?\s+(\d{1,2})(?:,?\s*(\d{2,4}))?$/)) && MN.includes(m[1])) { mo = MN.indexOf(m[1]) + 1; dd = +m[2]; if (m[3]) { y = +m[3]; if (y < 100) y += 2000; } }
+  else return null;
+  const dt = new Date(y, mo - 1, dd); if (dt.getMonth() !== mo - 1 || dt.getDate() !== dd) return null;
+  return ymd(dt.getTime());
 }
 function renderSheet(v) {
   const A = data.assignments, T = today(), ws = weekStart(Date.now()), nws = addDays(ws, 7);
@@ -760,7 +775,7 @@ function renderSheet(v) {
     <td><select class="cell cl" data-draft="${d.id}" data-df="c" data-k="d${d.id}c" style="--c:${colorFor(d.f.c)}">${classOptions(d.f.c)}</select></td>
     <td><input class="cell ty" data-draft="${d.id}" data-df="y" data-k="d${d.id}y" value="${esc(d.f.y)}" autocomplete="off" spellcheck="false"></td>
     <td><input class="cell num" data-draft="${d.id}" data-df="g" data-k="d${d.id}g" value="${esc(d.f.g)}" autocomplete="off"></td>
-    ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}<td></td></tr>`;
+    ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}<td class="delc"><button class="addok" data-act="draft-ok" data-draft="${d.id}" aria-label="add assignment" title="add">+</button></td></tr>`;
   let rows = DRAFTS.filter(d => d.after == null || !list.includes(byIdx(d.after))).map(draftRow).join('');
   let lastW = null;
   list.forEach(a => {
@@ -913,6 +928,7 @@ document.addEventListener('click', e => {
     case 'sf': STAY.clear(); TEST = {}; SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
     case 'scls': { STAY.clear(); const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
     case 'insert': return startAdd(+t.dataset.i);
+    case 'draft-ok': return saveDraft(+t.dataset.draft);
     case 'draft-x': DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); return renderAll();
     case 'sort': { STAY.clear(); const s = t.dataset.s; if (SF.sort === s) SF.dir = -SF.dir; else { SF.sort = s; SF.dir = 1; } saveSF(); return renderAll(); }
     case 'outof': SF.out = !SF.out; saveSF(); return renderAll();
@@ -962,7 +978,14 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
-  if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.textContent = t.value ? dayLabel(fromYmd(t.value)) : '–'; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
+  if (t.dataset && t.dataset.dtin !== undefined) {
+    const dp = t.parentNode.querySelector('input[type=date]'), y = parseDateText(t.value);
+    if (!t.value.trim()) { t.classList.remove('bad'); return; }
+    if (!y) { t.classList.add('bad'); return; }
+    t.classList.remove('bad'); if (dp.value !== y) { dp.value = y; dp.dispatchEvent(new Event('change', { bubbles: true })); }
+    t.value = dayLabel(fromYmd(y)); return;
+  }
+  if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.value = t.value ? dayLabel(fromYmd(t.value)) : ''; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
   if (t.dataset.cal && t.type === 'checkbox') { toggleCal(t.dataset.cal); return; }
   if (t.dataset.cd) { CD[t.dataset.cd] = t.value; saveCD(); renderAll(); return; }
   if (t.dataset.gr) { GR[t.dataset.gr] = t.type === 'checkbox' ? t.checked : t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
@@ -972,6 +995,7 @@ document.addEventListener('keydown', e => {
   const t = e.target, typing = /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName) && !(t.closest('.drawer') && !t.closest('.on'));
   if (e.key === 'Escape' && t.dataset && t.dataset.draft) { DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); t.blur(); renderAll(); return; }
   if (e.key === 'Escape') { if ($('drawer').classList.contains('on')) closeDrawer(); else if (typing) t.blur(); return; }
+  if (e.key === 'Enter' && t.dataset && t.dataset.dtin !== undefined) { e.preventDefault(); const dr = t.closest('tr.draft'); t.blur(); if (dr) setTimeout(() => saveDraft(+dr.dataset.draftRow), 0); return; }
   if (e.key === 'Enter' && t.dataset && t.dataset.draft) { e.preventDefault(); saveDraft(+t.dataset.draft); return; }
   if (e.key === 'Enter' && (t.id === 'td-new' || t.id === 'td-due')) { e.preventDefault(); addTodo(); return; }
   if (e.key === 'Enter' && t.classList && t.classList.contains('cell') && t.closest('tr.row')) { e.preventDefault(); t.blur(); return; }
