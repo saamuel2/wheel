@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="#21463F"/><stop offset="1" stop-color="#11211F"/></linearGradient>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C7D6A6"/><stop offset="1" stop-color="#8FAE73"/></linearGradient>
+    <linearGradient id="g2" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8CB9BE"/><stop offset="1" stop-color="#4F7F86"/></linearGradient>
+    <linearGradient id="g3" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#5E9A5A"/><stop offset="1" stop-color="#A9CFA0"/></linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.6"><stop offset="0" stop-color="#ffffff" stop-opacity=".07"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/><rect width="1024" height="1024" fill="url(#glow)"/>
+  <g transform="translate(512 512) scale(1) translate(-512 -512)">
+    <circle cx="512" cy="512" r="330" fill="none" stroke="rgba(230,220,200,.10)" stroke-width="64"/><circle cx="512" cy="512" r="240" fill="none" stroke="rgba(230,220,200,.10)" stroke-width="64"/><circle cx="512" cy="512" r="150" fill="none" stroke="rgba(230,220,200,.10)" stroke-width="64"/>
+    <circle cx="512" cy="512" r="330" fill="none" stroke="url(#g1)" stroke-width="64" stroke-linecap="round" stroke-dasharray="1658.7609210954106 2073.4511513692632" transform="rotate(-90 512 512)"/>
+    <circle cx="512" cy="512" r="240" fill="none" stroke="url(#g2)" stroke-width="64" stroke-linecap="round" stroke-dasharray="995.2565526572464 1507.9644737231006" transform="rotate(10 512 512)"/>
+    <circle cx="512" cy="512" r="150" fill="none" stroke="url(#g3)" stroke-width="64" stroke-linecap="round" stroke-dasharray="546.637121724624 942.4777960769379" transform="rotate(150 512 512)"/>
+    <circle cx="512" cy="512" r="64" fill="#E6DCC8" opacity=".92"/>
+  </g></svg>
