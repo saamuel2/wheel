@@ -15,14 +15,14 @@ on:
   workflow_dispatch:
 jobs:
   push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
       BACKEND_SCRIPT_ID: ${{ secrets.BACKEND_SCRIPT_ID }}
       BACKEND_DEPLOY_ID: ${{ secrets.BACKEND_DEPLOY_ID }}
       SHEET_SCRIPT_ID: ${{ secrets.SHEET_SCRIPT_ID }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: skip until the secrets are set
         id: ready
         run: if [ -n "$CLASPRC_JSON" ] && [ -n "$BACKEND_SCRIPT_ID" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "secrets not set yet — nothing to do"; fi
@@ -34,14 +34,18 @@ jobs:
             id=$1; shift; dir=$(mktemp -d); cd "$dir"
             echo "{\"scriptId\":\"$id\"}" > .clasp.json
             clasp pull
-            for f in "$@"; do cp "$GITHUB_WORKSPACE/backend/$f" .; done
-            clasp push --force
+            # clasp names files .js locally; copy ours over under that name so Apps Script sees the same file
+            for f in "$@"; do cp "$GITHUB_WORKSPACE/backend/$f" "${f%.gs}.js"; done
+            clasp push --force 2>&1 | tee push.log
+            if grep -q "Push failed" push.log; then echo "::error::push to $id failed"; exit 1; fi
             cd "$GITHUB_WORKSPACE"
           }
+          set -o pipefail
           sync "$BACKEND_SCRIPT_ID" Code.gs Grades.gs
           if [ -n "$BACKEND_DEPLOY_ID" ]; then
             cd "$(mktemp -d)" && echo "{\"scriptId\":\"$BACKEND_SCRIPT_ID\"}" > .clasp.json
-            clasp deploy -i "$BACKEND_DEPLOY_ID" -d "github ${GITHUB_SHA::7}"
+            clasp deploy -i "$BACKEND_DEPLOY_ID" -d "github ${GITHUB_SHA::7}" 2>&1 | tee deploy.log
+            if ! grep -q "$BACKEND_DEPLOY_ID" deploy.log; then echo "::error::deploy failed"; exit 1; fi
             cd "$GITHUB_WORKSPACE"
           fi
           if [ -n "$SHEET_SCRIPT_ID" ]; then sync "$SHEET_SCRIPT_ID" Grades.gs; fi
