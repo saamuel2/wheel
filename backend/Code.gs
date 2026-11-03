@@ -47,6 +47,7 @@ function doGet(e) {
     if (!r.error && txt.length < 90000) { try { cache.put('events_v1', txt, 300); } catch (x) {} }
     return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
   }
+  if (p.w) return write_(function () { return JSON.parse(p.w); });
   var ss = SpreadsheetApp.openById(SHEET_ID), res = { v: 3 }, errors = {};
   try { closeWeeks_(ss); } catch (err) { errors.weeks_close = String(err); }
   try { res.assignments = readAssignments_(ss); } catch (err) { return out_({ error: 'assignments: ' + err }); }
@@ -60,11 +61,14 @@ function doGet(e) {
   return out_(res);
 }
 
-function doPost(e) {
+function doPost(e) { return write_(function () { return JSON.parse(e.postData.contents); }); }
+
+// the same writes over GET (?w=<json>), used by the apps as a fallback when a browser refuses the POST
+function write_(parse) {
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(20000);
-    var b = JSON.parse(e.postData.contents);
+    var b = parse();
     if (!token_() || b.token !== token_()) return out_({ ok: false, error: 'bad token' });
     var ss = SpreadsheetApp.openById(SHEET_ID);
     switch (b.action) {
