@@ -737,7 +737,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.49 (11/04 12:05pm)';
+    const BUILD = 'm2.50 (11/04 1:05pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -1041,8 +1041,8 @@
         (cl.length > 1 ? prow('calendars', on + ' of ' + cl.length, 'cal') : '') +
         prow('countdown', CD.mode === 'exam' ? 'next exam' : CD.mode === 'custom' ? (CD.title || 'custom day') : 'last day · ' + pd2(CD.ldoc), 'cd') +
         prow('variable', (VOPTS.find(o => o[0] === SLOT2) || VOPTS[0])[1], 'slot') + '</div>';
-      const iss = '<div class="grp">issues for next session</div><div class="group">' + ISS.map((i, n) => `<div class="task srow iss-row"><span class="iss">${esc(i.x)}</span><button class="rm" data-rmi="${n}">remove</button></div>`).join('') +
-        '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in" placeholder="note an issue…" autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
+      const iss = '<div class="grp">feedback</div><div class="group">' + ISS.map((i, n) => `<div class="task srow iss-row"><span class="iss">${esc(i.x)}</span><button class="rm" data-rmi="${n}">remove</button></div>`).join('') +
+        '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in" placeholder="add feedback…" autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
       const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ›</span></button>`).join('') + '</div>' : '';
       $('settings-card').innerHTML = th + cs + wg + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ↗</a>') +
