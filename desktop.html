@@ -202,7 +202,15 @@
   .donut svg { width: 100%; height: 100%; }
   .donut .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .donut .dl { font-size: 34px; font-weight: 800; line-height: 1; } .donut .cp { color: var(--sub); font-weight: 600; margin-top: 3px; font-variant-numeric: tabular-nums; }
-  .gpa { max-width: 640px; }
+  .ccards .gpa { grid-column: span 2; } .ccards .gpa .ct { margin-bottom: 4px; }
+  .prow { width: 100%; background: none; border: 0; border-top: .5px solid var(--sep); color: inherit; font: inherit; text-align: left; cursor: pointer; } .prow .chev { color: var(--sub); font-size: 18px; line-height: 1; }
+  .prow:hover { background: var(--fill); } .set .card > .prow:first-of-type, .set .card > .ct + .prow { border-top: 0; }
+  .popw { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; } .popw.on { display: flex; }
+  .pop { width: min(440px, 92vw); max-height: 80vh; overflow: auto; background: var(--card); border-radius: 18px; padding: 16px 18px 10px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .pophd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 17px; } .popset { max-width: none; gap: 0; }
+  .cbars { display: flex; gap: 6px; align-items: flex-end; height: 74px; margin-top: 4px; } .cb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; height: 100%; }
+  .cbt { flex: 1; width: 100%; max-width: 26px; background: var(--track); border-radius: 5px; display: flex; align-items: flex-end; overflow: hidden; } .cbt i { display: block; width: 100%; border-radius: 5px; }
+  .cb span { font-size: 10px; color: var(--sub); font-variant-numeric: tabular-nums; } .cbsum { font-size: 12px; margin-top: 6px; }
   .gpa .big { font-size: 44px; }
   .gpa { cursor: pointer; } .eyebig { color: var(--sub); height: 52px; display: flex; align-items: center; }
   .how { display: grid; gap: 1px; font-size: 12px; margin-top: 4px; }
@@ -310,7 +318,7 @@
 <script src="sheetrules.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.17 (11/04 10:40am)';
+const BUILD = 'd1.18 (11/04 11:20am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -561,7 +569,8 @@ function saveDraft(id) {
   changed(); toast('added ' + fields.name);
 }
 // ===================== render =====================
-let VIEW = store.get('desk-view', 'dash'), weekOff = 0, showGrades = false, showGpa = false, showRaDone = false;
+let VIEW = store.get('desk-view', 'dash'), weekOff = 0, showGrades = false, showGpa = false, showGpa2 = false, showRaDone = false;
+let SLOT = store.get('desk-slot', 'budget'), slotEdit = false;
 function go(v, fade) {
   if (v !== 'sheet') TEST = {};
   if (v === 'extra') v = 'tasks';
@@ -654,7 +663,7 @@ function renderDash(v) {
         <div class="wheel"><svg viewBox="0 0 200 200">${wheelSvg(wk)}</svg><div class="c"><div class="wpct">${wk.length ? Math.round(done / wk.length * 100) : 0}%</div><div class="wfrac">${done}/${wk.length} done</div></div></div>
         <div class="legend">${wheelCourses(wk).map(c => `<span><b style="background:${colorFor(c)}"></b>${esc(spaceCode(c))}</span>`).join('')}</div></div>
       ${nextUpHtml()}
-      <div class="col">${budgetHtml()}${countdownHtml()}</div>
+      <div class="col">${slotHtml()}${countdownHtml()}</div>
       ${dashGradesHtml()}
     </div>
     ${late.length ? `<div class="overdue"><div class="weekbar"><span class="t late">overdue · ${late.length}</span></div><div class="row">${late.map(a => chipHtml(a, true)).join('')}</div></div>` : ''}
@@ -707,11 +716,25 @@ function toggleCal(name) {
   const u = $('upl'); if (u && $('drawer').classList.contains('on')) { const st = $('drawer').scrollTop; u.innerHTML = upcomingBody(); $('drawer').scrollTop = st; }
   renderAll();
 }
-function budgetHtml() {
+function slotHtml() {
+  const pen = `<span class="r"><button class="iconbtn sm" data-act="slotedit" aria-label="${slotEdit ? 'done' : 'change widget'}">${slotEdit ? TICK : PENCIL}</button></span>`;
+  if (slotEdit) return `<div class="card"><div class="ct">widget${pen}</div><div class="cdbody cdf"><select class="txt" data-slot="1">${[['budget', 'food budget'], ['completion', 'course completion']].map(([k, l]) => `<option value="${k}"${SLOT === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>`;
+  return SLOT === 'completion' ? completionHtml(pen) : budgetHtml(pen);
+}
+// course completion: assignments done ÷ all assignments this semester, one bar per class (like the sheet's chart)
+function completionHtml(pen) {
+  const A = data.assignments || [], codes = courseList().map(c => c.code).filter(c => !isExtra(c));
+  const rows = codes.map(c => { const m = A.filter(a => a.c === c); return { c, n: m.length, d: m.filter(a => a.d).length }; }).filter(r => r.n);
+  const tot = rows.reduce((s, r) => s + r.n, 0), dn = rows.reduce((s, r) => s + r.d, 0);
+  return `<div class="card"><div class="ct">course completion${pen}</div><div class="cbars">${rows.map(r => { const p = Math.round(100 * r.d / r.n);
+    return `<div class="cb" title="${esc(spaceCode(r.c))}: ${r.d} of ${r.n} done (${p}%)"><div class="cbt"><i style="height:${p}%;background:${colorFor(r.c)}"></i></div><span>${esc(String(r.c).replace(/^[a-z]+/i, ''))}</span></div>`; }).join('')}</div>
+    <div class="muted cbsum">${tot ? Math.round(100 * dn / tot) + '% of ' + tot + ' assignments done' : 'no assignments yet'}</div></div>`;
+}
+function budgetHtml(pen) {
   const W = data.weeks || [], T = today(), next = W.find(w => w.t >= T && w.budget != null);
-  if (!next) return '<div class="card"><div class="ct">food budget</div><div class="muted">no budget targets on the sheet</div></div>';
+  if (!next) return `<div class="card"><div class="ct">food budget${pen || ''}</div><div class="muted">no budget targets on the sheet</div></div>`;
   const days = Math.round((next.t - T) / 864e5);
-  return `<div class="card"><div class="ct">food budget</div><div class="big">$${f2(next.budget)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
+  return `<div class="card"><div class="ct">food budget${pen || ''}</div><div class="big">$${f2(next.budget)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
 }
 let cdEdit = false;
 function cdForm() {
@@ -854,6 +877,22 @@ function donutSvg(c, col) {
   });
   return `<svg viewBox="0 0 200 200">${h}</svg>`;
 }
+function gpaCard(act, title, shown, val, how) {
+  return `<div class="card gpa" data-act="${act}"><div class="ct">${title}</div>${shown ? `<div class="big">${val != null ? Number(val).toFixed(3) : '–'}</div><div class="sec"><div class="ct">how it was calculated</div>${how}</div>`
+    : `<div class="eyebig">${EYE_SHUT.replace('width="22" height="14"', 'width="54" height="34"')}</div>`}</div>`;
+}
+// overall NCSU GPA: finished terms from the GPA Tracker + this term's live letters
+function overallGpa(L) {
+  const H = data && data.history; if (!H || !H.length) return null;
+  const norm = c => String(c || '').replace(/\s+/g, '').toLowerCase(), mine = new Set(L.courses.map(c => norm(c.code)));
+  const hits = {}; H.forEach(h => { if (mine.has(norm(h.code))) hits[h.term] = (hits[h.term] || 0) + 1; });   // this term = the one listing the most of this sheet's courses
+  const top = Object.keys(hits).sort((x, y) => hits[y] - hits[x])[0], cur = new Set(top ? [top] : []), by = {}, order = [];
+  H.forEach(h => { if (cur.has(h.term) || !(h.hours > 0) || h.gp == null) return; if (!by[h.term]) { by[h.term] = { term: h.term, pts: 0, hrs: 0 }; order.push(h.term); } by[h.term].pts += h.gp * h.hours; by[h.term].hrs += h.hours; });
+  const terms = order.map(t => by[t]), lg = L.courses.filter(c => c.gp != null && c.credits > 0);
+  if (lg.length) terms.push({ term: [...cur][0] || 'this term', live: true, pts: lg.reduce((s, c) => s + c.gp * c.credits, 0), hrs: lg.reduce((s, c) => s + c.credits, 0) });
+  const pts = terms.reduce((s, t) => s + t.pts, 0), hrs = terms.reduce((s, t) => s + t.hrs, 0);
+  return hrs ? { terms, pts, hrs, gpa: pts / hrs } : null;
+}
 function renderGrades(v) {
   const L = live();
   if (!L) { v.innerHTML = '<div class="head"><h1>grades</h1></div><div class="empty">grades aren’t connected yet</div>'; return; }
@@ -864,12 +903,11 @@ function renderGrades(v) {
     <div class="ccards">${L.courses.map(c => { const col = colorFor(c.code); return `<button class="cc" style="--c:${col}" data-act="course" data-code="${esc(c.code)}">
       <div class="top"><span class="code">${esc(spaceCode(c.code))}</span><span class="nmx">${esc(c.name)}</span>${c.passFail ? '<span class="pf">S/U</span>' : `<span class="pf">${c.credits} cr</span>`}</div>
       <div class="donut">${donutSvg(c, col)}<div class="c"><div class="dl" style="color:${col}">${esc(c.letter || '–')}</div><div class="cp">${c.raw != null ? f2(c.raw) + (c._rule && c._rule.binCutoffs ? ' pts' : '%') : ''}</div></div></div>
-      ${how(c)}</button>`; }).join('')}</div>
-    <div class="card gpa" data-act="gpa"><div class="ct">term gpa</div>
-      ${showGpa ? `<div class="big">${L.gpa != null ? Number(L.gpa).toFixed(3) : '–'}</div>
-        <div class="sec"><div class="ct">how it was calculated</div><ol class="trace">${lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('')}
-          ${pf.length ? `<li>${esc(pf.map(c => spaceCode(c.code)).join(', '))}: pass/fail, not in GPA</li>` : ''}<li>${f2(pts)} grade points ÷ ${cr} credits = ${cr ? (pts / cr).toFixed(3) : '–'}</li></ol></div>`
-      : `<div class="eyebig">${EYE_SHUT.replace('width="22" height="14"', 'width="54" height="34"')}</div>`}</div>`;
+      ${how(c)}</button>`; }).join('')}
+    ${gpaCard('gpa', 'term gpa', showGpa, L.gpa, `<ol class="trace">${lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('')}
+          ${pf.length ? `<li>${esc(pf.map(c => spaceCode(c.code)).join(', '))}: pass/fail, not in GPA</li>` : ''}<li>${f2(pts)} grade points ÷ ${cr} credits = ${cr ? (pts / cr).toFixed(3) : '–'}</li></ol>`)}
+    ${(() => { const O = overallGpa(L); return O ? gpaCard('gpa2', 'overall gpa', showGpa2, O.gpa, `<ol class="trace">${O.terms.map(t => `<li>${esc(t.term)}${t.live ? ' (this term, live)' : ''}: ${f2(t.pts)} grade points ÷ ${t.hrs} credits = ${(t.pts / t.hrs).toFixed(3)}</li>`).join('')}
+          <li>${O.terms.map(t => f2(t.pts)).join(' + ')} = ${f2(O.pts)} grade points ÷ ${O.hrs} credits = ${O.gpa.toFixed(3)}</li></ol><div class="muted" style="font-size:12px;margin-top:6px">finished terms from your GPA Tracker; pass/fail and 0-credit courses left out</div>`) : ''; })()}</div>`;
 }
 // ---------- grade inspector + what-if ----------
 let WI = null;
@@ -984,23 +1022,38 @@ function renderTasks(v) {
 function renderSettings(v) {
   const th = [['default', 'dark'], ['light', 'light'], ['elegant', 'elegant'], ['moody', 'moody']];
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && /INPUT|SELECT/.test(ae.tagName) && ae.type !== 'checkbox' && v.innerHTML) return;
+  const cl = calList(), on = cl.filter(c => calOn(c.name)).length;
+  const cdSum = CD.mode === 'exam' ? 'next exam' : CD.mode === 'custom' ? (CD.title || 'custom day') + (CD.date ? ' · ' + dayLabel(fromYmd(CD.date)) : '') : 'last day of classes' + (CD.ldoc ? ' · ' + dayLabel(fromYmd(CD.ldoc)) : '');
+  const prow = (label, sum, key) => `<button class="row prow" data-act="pop" data-p="${key}"><span>${label}</span><span class="muted">${esc(sum)}</span><span class="chev">›</span></button>`;
   v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="set">
     <div class="card"><div class="ct">theme</div><div class="themes">${th.map(([k, l]) => `<button class="btn${THEME === k ? ' tint' : ''}" data-act="theme" data-t="${k}">${l}</button>`).join('')}</div></div>
-    <div class="card"><div class="ct">countdown</div>${(() => { const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
-      return `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
-        (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
-        (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : ''); })()}</div>
-    ${calList().length > 1 ? `<div class="card"><div class="ct">calendars in next up</div>${calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')}</div>` : ''}
-    ${data && data.setup ? `<div class="card"><div class="ct">courses</div>${data.setup.map(x => `<div class="row"><span><b style="color:${colorFor(x.code)}">${esc(spaceCode(x.code))}</b>&nbsp; ${esc(x.cfg ? x.cfg.name : '')}</span><span class="muted">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''}</span><button class="btn sm" data-act="rules" data-code="${esc(x.code)}">edit</button></div>`).join('')}</div>` : ''}
-    <div class="card"><div class="ct">greeting</div>
-      <div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
-      <div class="row"><span>name</span><input class="txt" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div></div>
-    <div class="card"><div class="ct">connection</div>
-      <div class="row"><span>connection key<div class="muted" style="font-size:12px">kept in this browser only</div></span><input class="txt" id="key-in" type="password" placeholder="paste key" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div></div>
+    ${data && data.setup ? `<div class="card"><div class="ct">courses</div>${data.setup.map(x => `<button class="row prow" data-act="rules" data-code="${esc(x.code)}"><span><b style="color:${colorFor(x.code)}">${esc(spaceCode(x.code))}</b>&nbsp; ${esc(x.cfg ? x.cfg.name : '')}</span><span class="muted">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''}</span><span class="chev">›</span></button>`).join('')}</div>` : ''}
+    <div class="card"><div class="ct">widgets</div>
+      ${prow('greeting', (GR.rand ? 'random' : 'plain') + (GR.name ? ' · ' + GR.name : ''), 'greet')}
+      ${cl.length > 1 ? prow('calendars', on + ' of ' + cl.length + ' shown', 'cal') : ''}
+      ${prow('countdown', cdSum, 'cd')}
+      <div class="row"><span>food budget</span><select class="txt" data-slot="1">${[['budget', 'food budget'], ['completion', 'course completion']].map(([k, l]) => `<option value="${k}"${SLOT === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>
     <div class="card"><div class="ct">app info</div>
       <div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ↗</a>`}</div>
-      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '—'}</span><button class="btn sm" data-act="sync">refresh</button></div></div></div>`;
+      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '—'}</span><button class="btn sm" data-act="sync">refresh</button></div>
+      <div class="row"><span>connection key<div class="muted" style="font-size:12px">kept in this browser only</div></span><input class="txt" id="key-in" type="password" placeholder="paste key" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div></div></div>`;
+}
+// small popups for the widget settings (greeting, calendars, countdown)
+let POP = null;
+function openPop(k) { POP = k; let w = $('popw'); if (!w) { w = document.createElement('div'); w.id = 'popw'; w.className = 'popw'; w.innerHTML = '<div class="pop" id="pop"></div>'; document.body.appendChild(w); w.addEventListener('mousedown', e => { if (e.target === w) closePop(); }); }
+  renderPop(); w.classList.add('on'); }
+function closePop() { POP = null; const w = $('popw'); if (w) w.classList.remove('on'); renderAll(); }
+function renderPop() {
+  const box = $('pop'); if (!box || !POP) return;
+  const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
+  const body = POP === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
+      <div class="row"><span>name</span><input class="txt" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div>`
+    : POP === 'cal' ? calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')
+    : `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
+      (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
+      (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
+  box.innerHTML = `<div class="pophd"><b>${({ greet: 'greeting', cal: 'calendars', cd: 'countdown' })[POP]}</b><button class="btn sm tint" data-act="popdone">done</button></div><div class="set popset">${body}</div>`;
 }
 // ===================== events =====================
 function startAdd(after) {
@@ -1023,9 +1076,13 @@ document.addEventListener('click', e => {
     case 'wk0': weekOff = 0; return renderAll();
     case 'eye': showGrades = !showGrades; return renderAll();
     case 'cdedit': cdEdit = !cdEdit; return renderAll();
-    case 'gpa': if (e.target.closest('a,button:not(.gpa)') && e.target.closest('[data-act]') !== t) return; showGpa = !showGpa; return renderAll();
+    case 'gpa': showGpa = !showGpa; return renderAll();
     case 'course': if (VIEW === 'dash' && !showGrades) return; return openCourse(t.dataset.code);
     case 'close': return closeDrawer();
+    case 'pop': return openPop(t.dataset.p);
+    case 'popdone': return closePop();
+    case 'slotedit': slotEdit = !slotEdit; return renderAll();
+    case 'gpa2': showGpa2 = !showGpa2; return renderAll();
     case 'rules': return openRules(t.dataset.code);
     case 're-more': RE.more[t.dataset.k] = !RE.more[t.dataset.k]; return renderRules();
     case 're-save': return saveRules();
@@ -1095,14 +1152,15 @@ document.addEventListener('change', e => {
   }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.value = t.value ? dayLabel(fromYmd(t.value)) : ''; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
   if (t.dataset.cal && t.type === 'checkbox') { toggleCal(t.dataset.cal); return; }
-  if (t.dataset.cd) { CD[t.dataset.cd] = t.value; saveCD(); renderAll(); return; }
+  if (t.dataset.cd) { CD[t.dataset.cd] = t.value; saveCD(); renderAll(); if (POP === 'cd') renderPop(); return; }
+  if (t.dataset.slot) { SLOT = t.value; store.set('desk-slot', SLOT); slotEdit = false; renderAll(); return; }
   if (t.dataset.gr) { GR[t.dataset.gr] = t.type === 'checkbox' ? t.checked : t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
   if (t.dataset.f && t.closest('tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i); if (a) saveCell(a, t.dataset.f, t.value, t); }
 });
 document.addEventListener('keydown', e => {
   const t = e.target, typing = /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName) && !(t.closest('.drawer') && !t.closest('.on'));
   if (e.key === 'Escape' && t.dataset && t.dataset.draft) { DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); t.blur(); renderAll(); return; }
-  if (e.key === 'Escape') { if ($('drawer').classList.contains('on')) closeDrawer(); else if (typing) t.blur(); return; }
+  if (e.key === 'Escape') { if (POP) closePop(); else if ($('drawer').classList.contains('on')) closeDrawer(); else if (typing) t.blur(); return; }
   if (e.key === 'Enter' && t.dataset && t.dataset.dtin !== undefined) { e.preventDefault(); const dr = t.closest('tr.draft'); t.blur(); if (dr) setTimeout(() => saveDraft(+dr.dataset.draftRow), 0); return; }
   if (e.key === 'Enter' && t.dataset && t.dataset.draft) { e.preventDefault(); saveDraft(+t.dataset.draft); return; }
   if (e.key === 'Enter' && (t.id === 'td-new' || t.id === 'td-due')) { e.preventDefault(); addTodo(); return; }
@@ -1150,6 +1208,7 @@ function demoData() {
   const safe = o => JSON.parse(JSON.stringify(o, (k, v) => v === -Infinity ? '-inf' : v));
   return { v: 3, courses: C.map(c => c[0] + ' ' + c[1]), assignments: A,
     grades: { engine: true, courses: C.map(c => ({ code: c[0], name: c[1], credits: c[2], passFail: !!R[c[0]].cutoffs.S, rule: safe(R[c[0]]) })) },
+    history: [['CH 101', 'F25', 4, 4], ['MA 141', 'F25', 4, 3.667], ['ENG 101', 'F25', 4, 4.333], ['HON 110', 'F25', '', 4.333], ['CH 102', 'S26', 4, 4], ['MA 242', 'S26', 4, 3.333], ['BIO 181', 'S26', 4, 4], ['CH 201', 'F26', 4, null]].map(r => ({ code: r[0], term: r[1], hours: r[2] === '' ? null : r[2], gp: r[3] })),
     setup: (() => { let row = 17; return C.map((c, i) => { const r = R[c[0]], pf = !!r.cutoffs.S;
       return { code: c[0], cfg: { row: i + 2, name: c[1], credits: c[2] }, rule: { row: i + 4, vals: [c[0], r.method, r.method === 'points' ? 'points' : 'percent', 'percent', r.round != null ? r.round : '', pf ? r.cutoffs.S : '', '', ''].concat(['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'].map(L => pf ? '' : (r.cutoffs[L] != null ? r.cutoffs[L] : ''))) },
         cats: r.categories.map(k => ({ row: row++, vals: [c[0], k.name, k.abbr, k.weight, k.expect != null ? k.expect : '', k.drop != null ? k.drop : '', k.within === 'points' ? 'points total' : 'category average', '', '', '', '', '', '', ''] })) }; }); })(),

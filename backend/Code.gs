@@ -54,6 +54,7 @@ function doGet(e) {
   try { res.courses = readCourseList_(ss); } catch (err) { res.courses = []; errors.courses = String(err); }
   try { res.grades = readGrades_(ss); } catch (err) { errors.grades = String(err); }
   try { res.setup = readCourseSetup_(ss); } catch (err) { errors.setup = String(err); }
+  try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
@@ -292,6 +293,18 @@ function noteAdd_(ss, b) {
   if (!sh) { sh = ss.insertSheet('Notes'); sh.appendRow(['when', 'note', 'from', 'resolved']); sh.setFrozenRows(1); }
   sh.appendRow([new Date(Number(b.ts) || Date.now()), text, String(b.from || 'phone'), false]);
   return { ok: true };
+}
+
+// ---------- GPA Tracker (finished terms, for "overall gpa"): GPA tab A Code · B Course · C Term · D Hours · E Grade · F Letter · G GPA ----------
+var GPA_TRACKER_ID = '17P2OQ84GTFRNtUm-UXUHRPWTA69SyYUkgVlFPdyA6Kc';
+function readGpaHistory_() {
+  var sh = SpreadsheetApp.openById(GPA_TRACKER_ID).getSheetByName('GPA'), last = sh.getLastRow(), out = [];
+  if (last < 2) return out;
+  sh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {
+    var code = str_(r[0]); if (!code || str_(r[2]) === '') return;
+    out.push({ code: code, name: str_(r[1]), term: str_(r[2]), hours: numv_(r[3]), letter: str_(r[5]), gp: numv_(r[6]) });
+  });
+  return out;
 }
 
 // ---------- course settings (settings → courses) ----------
