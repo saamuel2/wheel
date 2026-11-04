@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/png" href="favicon-desktop.png?v=3">
 <meta name="apple-mobile-web-app-title" content="assignments">
 <title>assignments</title>
 <style>
@@ -196,6 +196,13 @@
   .sh-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 4px; flex: none; }
   #sh-title, #a-title { font-size: 17px; font-weight: 600; text-transform: lowercase; }
   .sh-bar button { border: 0; background: none; color: var(--tint); font-family: inherit; font-size: 17px; padding: 10px 12px; min-width: 76px; }
+  #r-title { font-size: 17px; font-weight: 600; } #r-save:disabled { opacity: .35; }
+  #rsheet .grp { margin-top: 20px; } #rsheet .frow input.lft { text-align: left; text-align-last: left; font-weight: 600; }
+  .rcut { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 10px; padding: 10px 14px 12px; }
+  .rcut label { display: flex; flex-direction: column; align-items: center; font-size: 13px; color: var(--sub); gap: 2px; }
+  .rcut input { width: 100%; height: 38px; border: 0; outline: 0; border-radius: 10px; background: rgba(118,118,128,.18); color: var(--text); font-family: inherit; font-size: 17px; text-align: center; -webkit-appearance: none; appearance: none; }
+  .rprev { display: flex; padding: 12px 16px; gap: 16px; } .rprev > div { flex: 1; } .rprev .k { font-size: 13px; color: var(--sub); } .rprev .v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rerr { color: #FF453A; font-size: 15px; padding: 10px 16px 0; }
   #sh-save { font-weight: 600; text-align: right; } #sh-cancel { text-align: left; } #sh-save:disabled { opacity: .35; }
   .sh-body { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 12px calc(env(safe-area-inset-bottom) + 16px); }
   .sheet .group { background: rgba(118,118,128,.22); }
@@ -461,6 +468,12 @@
     <div class="sh-body" id="c-body"></div>
   </div>
 
+  <div class="sheet" id="rsheet">
+    <div class="grab"></div>
+    <div class="sh-bar"><button id="r-cancel" style="text-align:left">cancel</button><span id="r-title"></span><button id="r-save" style="font-weight:600;text-align:right" disabled>save</button></div>
+    <div class="sh-body" id="r-body"></div>
+  </div>
+
   <div class="topbar" id="topbar"><span id="tb-title">dashboard</span></div>
   <button class="fab" id="fab" aria-label="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 
@@ -483,6 +496,7 @@
   </div>
 
   <script src="engine.js"></script>
+  <script src="sheetrules.js"></script>
 <script>
     // --- TAB SWITCHING ---
     const navBar = document.getElementById('nav-bar');
@@ -710,7 +724,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.46 (11/03 4:10pm)';
+    const BUILD = 'm2.47 (11/04 10:40am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -1002,7 +1016,8 @@
       const iss = '<div class="grp">issues for next session</div><div class="group">' + ISS.map((i, n) => `<div class="task srow iss-row"><span class="iss">${esc(i.x)}</span><button class="rm" data-rmi="${n}">remove</button></div>`).join('') +
         '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in" placeholder="note an issue…" autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
-      $('settings-card').innerHTML = th + dl + cg + gr + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ↗</a>') +
+      const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ›</span></button>`).join('') + '</div>' : '';
+      $('settings-card').innerHTML = th + dl + cs + cg + gr + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ↗</a>') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
         '</div>';
     }
@@ -1018,7 +1033,81 @@
       if (e.target.closest('#iss-copy')) { const txt = ISS.map(i => '• ' + i.x).join('\n'); try { navigator.clipboard.writeText(txt); } catch (x) {} const b = $('iss-copy'); b.textContent = 'copied'; setTimeout(() => { if (b.isConnected) b.textContent = 'copy list'; }, 1200); }
     });
     $('settings-card').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'iss-in') { e.preventDefault(); addIss(); } });
-    $('settings-card').addEventListener('click', e => { const b = e.target.closest('[data-theme-set]'); if (b) applyTheme(b.dataset.themeSet); });
+    $('settings-card').addEventListener('click', e => { const b = e.target.closest('[data-theme-set]'); if (b) applyTheme(b.dataset.themeSet); const r = e.target.closest('[data-rules]'); if (r) openRules(r.dataset.rules); });
+
+    // ---------- course settings: name + credits (Config) and the grading rule (Rules tab); save writes it all at once ----------
+    let RE = null, rsT = null;
+    const RLET = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'];
+    const COUNTED = ['category average', 'points total', 'each item separately', 'extra credit', 'bonus on another item', 'added to final', 'from attendance'];
+    function openRules(code) {
+      const x = appData && (appData.setup || []).find(y => y.code === code); if (!x) return;
+      const rule = x.rule.vals.slice(); while (rule.length < 20) rule.push('');
+      RE = { code, cfg: { name: x.cfg ? x.cfg.name : '', credits: x.cfg ? x.cfg.credits : '' }, rule, cats: x.cats.map(c => ({ row: c.row, vals: c.vals.slice().concat(Array(Math.max(0, 14 - c.vals.length)).fill('')) })), more: {}, saving: false, err: '' };
+      RE.orig = JSON.stringify([RE.cfg, RE.rule, RE.cats]);
+      $('r-title').textContent = code; renderRules(); $('r-body').scrollTop = 0; clearTimeout(rsT);
+      $('scrim').style.display = 'block'; $('rsheet').style.display = 'flex'; void $('rsheet').offsetHeight;
+      $('scrim').classList.add('show'); $('rsheet').classList.add('show');
+    }
+    function closeRules() {
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      $('rsheet').classList.remove('show'); $('scrim').classList.remove('show'); RE = null;
+      rsT = setTimeout(() => { $('rsheet').style.display = 'none'; $('scrim').style.display = 'none'; }, 460);
+    }
+    function rulesItems() {
+      const pad = n => String(n).padStart(2, '0'), ymd = ms => { const x = new Date(ms); return x.getFullYear() + '-' + pad(x.getMonth() + 1) + '-' + pad(x.getDate()); };
+      const ab = {}; (appData.attendance || []).forEach(x => ab[String(x.code).toLowerCase()] = x.dates.length);
+      return { items: (appData.assignments || []).map(a => ({ name: a.n, cls: a.c, type: a.y, due: ymd(a.t), grade: a.g === '' ? null : a.g, possible: a.o })), ctx: { absences: ab } };
+    }
+    function rulesPreview() {
+      const box = $('r-prev'); if (!box || !RE) return;
+      try {
+        const r = SheetRules.fromSheet([RE.rule], RE.cats.map(c => c.vals))[0], I = rulesItems(), g = r ? Engine.grade(r, I.items, I.ctx) : null;
+        const now = appData.grades && appData.grades.courses.find(c => c.code === RE.code);
+        box.innerHTML = `<div><div class="k">with these rules</div><div class="v">${g && g.value != null ? esc(g.letter || '–') + ' · ' + f2(g.value) : '–'}</div></div><div><div class="k">right now</div><div class="v" style="color:var(--sub)">${now && now.raw != null ? esc(now.letter || '–') + ' · ' + f2(now.raw) : '–'}</div></div>`;
+      } catch (x) { box.innerHTML = `<div><div class="k">with these rules</div><div class="v" style="font-size:15px;color:#FF453A">doesn’t compute: ${esc(x.message || x)}</div></div>`; }
+      const dirty = JSON.stringify([RE.cfg, RE.rule, RE.cats]) !== RE.orig;
+      $('r-save').disabled = !dirty || RE.saving; $('r-save').textContent = RE.saving ? 'saving…' : 'save';
+      $('r-err').textContent = RE.err || ''; $('r-err').style.display = RE.err ? '' : 'none';
+    }
+    function renderRules() {
+      const R = RE;
+      const inp = (path, cur, ph, mode, cls) => `<input data-re="${path}" value="${esc(cur == null ? '' : cur)}" placeholder="${ph || ''}" autocomplete="off" autocorrect="off" spellcheck="false"${mode ? ` inputmode="${mode}"` : ''}${cls ? ` class="${cls}"` : ''}>`;
+      const sel = (path, cur, opts) => `<select data-re="${path}">${opts.map(o => `<option${String(cur).toLowerCase() === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}${opts.includes(String(cur).toLowerCase()) || cur === '' ? '' : `<option selected>${esc(cur)}</option>`}</select>`;
+      const fr = (label, ctl) => `<div class="frow"><label>${label}</label>${ctl}</div>`;
+      const cats = R.cats.map((c, k) => { const q = i => `cat.${k}.${i}`, v = c.vals;
+        return `<div class="grp">${esc(String(v[1] || 'category').toLowerCase())}</div><div class="group">` +
+          fr('name', inp(q(1), v[1])) + fr('type', inp(q(2), v[2], '', '', '')) + fr('weight', inp(q(3), v[3], '', 'decimal')) + fr('# items', inp(q(4), v[4], 'any', 'numeric')) +
+          fr('drop lowest', inp(q(5), v[5], '', 'numeric')) + fr('counted as', sel(q(6), v[6] || 'category average', COUNTED)) +
+          (R.more[k] ? fr('tiers / curves', inp(q(7), v[7], 'Exam 1: 95, 90, …')) + fr('bonus goes to', inp(q(8), v[8], 'EX, FI')) + fr('cap', inp(q(9), v[9], '', 'decimal')) +
+            fr('assume until graded', inp(q(10), v[10], '', 'decimal')) + fr('free absences', inp(q(11), v[11], '', 'numeric')) + fr('lose per absence', inp(q(12), v[12], '', 'decimal')) + fr('replace lowest with', inp(q(13), v[13], 'type')) : '') +
+          `<button class="lrow" data-rmore="${k}">${R.more[k] ? 'fewer options' : 'more options'}</button></div>`; }).join('');
+      $('r-body').innerHTML = `<div class="group rprev" id="r-prev"></div><div class="rerr" id="r-err" style="display:none"></div>
+        <div class="grp">basics</div><div class="group">${fr('name', inp('cfg.name', R.cfg.name))}${fr('credit hours', inp('cfg.credits', R.cfg.credits, '', 'decimal'))}${fr('course code', `<span class="tg" style="margin-left:auto">${esc(R.code)}</span>`)}</div>
+        <div class="grp">grading</div><div class="group">${fr('method', sel('rule.1', R.rule[1], ['weighted', 'points']))}${fr('bare numbers are', sel('rule.2', R.rule[2], ['points', 'percent']))}${fr('final grade from', sel('rule.3', R.rule[3], ['percent', 'grade points']))}
+          ${fr('round to', inp('rule.4', R.rule[4], 'decimals', 'numeric'))}${fr('pass at', inp('rule.5', R.rule[5], 'S/U only', 'decimal'))}${fr('drop lowest across', inp('rule.6', R.rule[6], 'EX, AS'))}${fr('how many', inp('rule.7', R.rule[7], '', 'numeric'))}</div>
+        <div class="grp">cutoffs</div><div class="group rcut">${RLET.map((L, i) => `<label>${L}<input data-re="rule.${8 + i}" value="${esc(R.rule[8 + i] == null ? '' : R.rule[8 + i])}" inputmode="decimal" autocomplete="off"></label>`).join('')}</div>
+        ${cats}`;
+      rulesPreview();
+    }
+    $('r-body').addEventListener('input', e => {
+      const t = e.target, path = t.dataset && t.dataset.re; if (!path || !RE) return;
+      const p = path.split('.'); if (p[0] === 'cfg') RE.cfg[p[1]] = t.value; else if (p[0] === 'rule') RE.rule[+p[1]] = t.value; else RE.cats[+p[1]].vals[+p[2]] = t.value;
+      RE.err = ''; rulesPreview();
+    });
+    $('r-body').addEventListener('click', e => { const b = e.target.closest('[data-rmore]'); if (b && RE) { RE.more[b.dataset.rmore] = !RE.more[b.dataset.rmore]; renderRules(); } });
+    $('r-cancel').addEventListener('click', closeRules);
+    $('r-save').addEventListener('click', () => {
+      if (!RE || RE.saving) return; const R = RE; R.saving = true; R.err = ''; rulesPreview();
+      const body = { token: TOKEN, action: 'course_save', code: R.code, cfg: R.cfg, rule: R.rule, cats: R.cats };
+      const done = () => { const x = (appData.setup || []).find(y => y.code === R.code);
+        if (x) { x.rule.vals = R.rule.slice(); x.cats = R.cats.map(c => ({ row: c.row, vals: c.vals.slice() })); if (x.cfg) { x.cfg.name = R.cfg.name; x.cfg.credits = R.cfg.credits; } }
+        if (RE === R) closeRules(); renderSettings(); showUndo('saved ' + R.code, false); setTimeout(hideUndo, 2600); if (!DEMO) fetchData(true); };
+      if (DEMO) { done(); return; }
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(body) }).then(r => r.json())
+        .catch(err => { if (err && err.name === 'SyntaxError') throw err; return fetch(API + '?token=' + encodeURIComponent(TOKEN) + '&w=' + encodeURIComponent(JSON.stringify(body))).then(r => r.json()); })
+        .then(j => { if (!j || !j.ok) throw new Error((j && j.error) || 'save failed'); done(); })
+        .catch(err => { R.saving = false; R.err = String(err.message || err); if (RE === R) rulesPreview(); });
+    });
     $('settings-card').addEventListener('change', e => { if (e.target.dataset && e.target.dataset.cal) { toggleCal(e.target.dataset.cal); return; } const k = e.target.dataset && e.target.dataset.gr; if (!k) return; GR[k] = k === 'rand' ? e.target.checked : e.target.value; saveGR(); GP.key = ''; setGreeting(); });
     $('settings-card').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.cd; if (!k) return; CD[k] = e.target.value; saveCD(); if (e.target.blur) e.target.blur(); renderSide(); if (k === 'mode') renderSettings(); });
     $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); if (e.target.id === 'btn-loc') { locAsked = false; withLoc(loadWx2, true); } });
@@ -1254,7 +1343,7 @@
         });
     }
     $('fab').addEventListener('click', () => $('topbar').dataset.v === 'view-attendance' ? openAbs(null) : openSheet(null));
-    $('sh-cancel').addEventListener('click', closeSheet); $('scrim').addEventListener('click', () => $('asheet').classList.contains('show') ? closeAbs() : $('csheet').classList.contains('show') ? closeClass() : closeSheet()); $('sh-save').addEventListener('click', saveSheet);
+    $('sh-cancel').addEventListener('click', closeSheet); $('scrim').addEventListener('click', () => $('rsheet').classList.contains('show') ? closeRules() : $('asheet').classList.contains('show') ? closeAbs() : $('csheet').classList.contains('show') ? closeClass() : closeSheet()); $('sh-save').addEventListener('click', saveSheet);
     ['f-name', 'f-class', 'f-due'].forEach(id => { $(id).addEventListener('input', formOk); $(id).addEventListener('change', formOk); });
     $('f-due').addEventListener('input', updDue); $('f-due').addEventListener('change', updDue);
     $('task-list').addEventListener('change', e => { const i = e.target.closest('.gin'); if (!i) return; const a = rowOf(i); if (a) setGrade(a, i.value, i); });

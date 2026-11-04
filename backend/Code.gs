@@ -53,6 +53,7 @@ function doGet(e) {
   try { res.assignments = readAssignments_(ss); } catch (err) { return out_({ error: 'assignments: ' + err }); }
   try { res.courses = readCourseList_(ss); } catch (err) { res.courses = []; errors.courses = String(err); }
   try { res.grades = readGrades_(ss); } catch (err) { errors.grades = String(err); }
+  try { res.setup = readCourseSetup_(ss); } catch (err) { errors.setup = String(err); }
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
@@ -84,6 +85,7 @@ function write_(parse) {
       case 'note_add': return out_(noteAdd_(ss, b));
       case 'task_add':  return out_(taskAdd_(b));
       case 'task_done': return out_(taskDone_(b));
+      case 'course_save': return out_(courseSave_(ss, b));
       default: return out_({ ok: false, error: 'unknown action' });
     }
   } catch (err) {
@@ -289,6 +291,63 @@ function noteAdd_(ss, b) {
   var sh = ss.getSheetByName('Notes');
   if (!sh) { sh = ss.insertSheet('Notes'); sh.appendRow(['when', 'note', 'from', 'resolved']); sh.setFrozenRows(1); }
   sh.appendRow([new Date(Number(b.ts) || Date.now()), text, String(b.from || 'phone'), false]);
+  return { ok: true };
+}
+
+// ---------- course settings (settings → courses) ----------
+// Name + credits live on Config; the grading rule is this course's row in the Rules course table (A4:T13)
+// plus its rows in the category table (A17:N). Values go out exactly as the sheet holds them.
+var RULES_COURSE_ROW = 4, RULES_COURSE_N = 10, RULES_CAT_ROW = 17;
+function cellOut_(v) { return (typeof v === 'number' || typeof v === 'boolean') ? v : (v instanceof Date ? '' : str_(v)); }
+function cellIn_(v) { if (v === '' || v == null) return ''; if (typeof v === 'number') return v; var s = String(v).trim(); return s !== '' && !isNaN(Number(s)) ? Number(s) : s; }
+function readCourseSetup_(ss) {
+  var rs = ss.getSheetByName('Rules'); if (!rs) return null;
+  var cfg = ss.getSheetByName('Config').getRange(2, 1, 10, 4).getValues();
+  var cr = rs.getRange(RULES_COURSE_ROW, 1, RULES_COURSE_N, 20).getValues(), last = rs.getLastRow();
+  var cats = last >= RULES_CAT_ROW ? rs.getRange(RULES_CAT_ROW, 1, last - RULES_CAT_ROW + 1, 14).getValues() : [];
+  var out = [];
+  cr.forEach(function (r, i) {
+    var code = str_(r[0]).toLowerCase(); if (!code) return;
+    var c = null;
+    cfg.forEach(function (x, j) { if (str_(x[0]).toLowerCase() === code) c = { row: j + 2, name: str_(x[1]), credits: cellOut_(x[3]) }; });
+    out.push({ code: code, cfg: c, rule: { row: i + RULES_COURSE_ROW, vals: r.map(cellOut_) },
+      cats: cats.map(function (v, k) { return { row: k + RULES_CAT_ROW, vals: v.map(cellOut_) }; })
+        .filter(function (x) { return str_(x.vals[0]).toLowerCase() === code; }) });
+  });
+  return out;
+}
+function courseSave_(ss, b) {
+  var code = str_(b.code).toLowerCase(), cur = (readCourseSetup_(ss) || []).filter(function (x) { return x.code === code; })[0];
+  if (!cur) return { ok: false, error: 'course ' + code + ' not found on the Rules tab' };
+  var rule = (b.rule || []).map(cellIn_), cats = b.cats || [], bad = [];
+  var num = function (v) { return v === '' || typeof v === 'number'; }, low = function (v) { return str_(v).toLowerCase(); };
+  if (rule.length !== 20) return { ok: false, error: 'course row must have 20 cells' };
+  if (low(rule[0]) !== code) return { ok: false, error: 'the course code can’t change here' };
+  if (['weighted', 'points'].indexOf(low(rule[1])) < 0) bad.push('method');
+  if (['points', 'percent'].indexOf(low(rule[2])) < 0) bad.push('bare numbers are');
+  if (['percent', 'grade points'].indexOf(low(rule[3])) < 0) bad.push('final grade from');
+  [4, 5, 7].concat([8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]).forEach(function (i) { if (!num(rule[i])) bad.push('course column ' + (i + 1)); });
+  if (cats.length !== cur.cats.length) return { ok: false, error: 'categories can’t be added or removed here' };
+  var rows = cur.cats.map(function (x) { return x.row; });
+  cats = cats.map(function (c, k) {
+    var vals = (c.vals || []).map(cellIn_);
+    if (rows.indexOf(Number(c.row)) < 0 || vals.length !== 14 || low(vals[0]) !== code) bad.push('category row ' + c.row);
+    if (!str_(vals[2])) bad.push('category ' + (k + 1) + ' type');
+    [3, 4, 5, 9, 10, 11, 12].forEach(function (i) { if (!num(vals[i])) bad.push(str_(vals[1]) + ' column ' + (i + 1)); });
+    if (str_(vals[6]) && !(low(vals[6]) in COUNTED_AS)) bad.push(str_(vals[1]) + ' counted as');
+    return { row: Number(c.row), vals: vals };
+  });
+  if (bad.length) return { ok: false, error: 'check: ' + bad.join(', ') };
+  try { var r = rulesFromSheet_([rule], cats.map(function (c) { return c.vals; })); if (r[0]) Engine.grade(r[0], [], { absences: {} }); }
+  catch (err) { return { ok: false, error: 'these rules don’t compute: ' + err }; }
+  var rs = ss.getSheetByName('Rules');
+  rs.getRange(cur.rule.row, 1, 1, 20).setValues([rule]);
+  cats.forEach(function (c) { rs.getRange(c.row, 1, 1, 14).setValues([c.vals]); });
+  if (cur.cfg && b.cfg) {
+    var cfg = ss.getSheetByName('Config');
+    if (b.cfg.name != null && str_(b.cfg.name)) cfg.getRange(cur.cfg.row, 2).setValue(str_(b.cfg.name));
+    if (b.cfg.credits != null) { var cr = cellIn_(b.cfg.credits); if (!num(cr)) return { ok: false, error: 'credits must be a number' }; cfg.getRange(cur.cfg.row, 4).setValue(cr); }
+  }
   return { ok: true };
 }
 

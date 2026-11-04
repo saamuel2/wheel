@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#000000">
-<link rel="icon" type="image/png" href="favicon-desktop.png">
+<link rel="icon" type="image/png" href="favicon-desktop.png?v=3">
 <link rel="apple-touch-icon" href="icon-ipad.png">
 <link rel="manifest" href="desktop.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -229,6 +229,15 @@
   .drawer.on { transform: none; visibility: visible; }
   .drawer h2 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.3px; }
   .dhd { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; } .dhd .x { margin-left: auto; }
+  .ref { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--sub); font-weight: 600; min-width: 0; } .ref i { font-style: normal; display: none; }
+  .ref .txt { width: 100%; font-weight: 500; }
+  .regrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 12px; }
+  .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 10px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
+  .recat { margin-bottom: 10px; } .rehd { display: flex; gap: 8px; margin-bottom: 10px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
+  .recat .link { margin-top: 8px; font-size: 12px; } .recat .regrid + .link + .regrid { margin-top: 10px; }
+  .refoot { position: sticky; bottom: -24px; display: flex; gap: 8px; align-items: center; justify-content: flex-end; padding: 14px 0 6px; background: var(--bg); }
+  .reerr { flex: 1; color: var(--red); font-size: 13px; } #re-save:disabled { opacity: .45; cursor: default; }
+  .re-prev { grid-template-columns: 1fr 1fr; }
   .kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
   .kv .card { padding: 12px 14px; } .kv .k { font-size: 12px; color: var(--sub); font-weight: 600; } .kv .v { font-size: 24px; font-weight: 800; }
   .sec { margin-top: 18px; }
@@ -298,9 +307,10 @@
 <div class="toast" id="toast"><span id="toast-msg"></span><button class="link" id="toast-btn">undo</button></div>
 
 <script src="engine.js"></script>
+<script src="sheetrules.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.16 (11/03 4:10pm)';
+const BUILD = 'd1.17 (11/04 10:40am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -889,8 +899,70 @@ function whatIf() {
 }
 function closeDrawer() {
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('.drawer')) ae.blur();
-  $('drawer').classList.remove('on'); $('scrim').classList.remove('on'); WI = null;
+  $('drawer').classList.remove('on'); $('scrim').classList.remove('on'); WI = null; RE = null;
   if (pendingData) { const d = pendingData; pendingData = null; applyOv(d); setData(d); }
+}
+
+// ---------- course settings: name + credits (Config) and the grading rule (Rules tab) ----------
+// Edit freely; the preview recomputes this course from your real assignments; Save writes it all at once.
+let RE = null;
+const RL = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'];
+const COUNTED = ['category average', 'points total', 'each item separately', 'extra credit', 'bonus on another item', 'added to final', 'from attendance'];
+function openRules(code) {
+  const x = (data.setup || []).find(y => y.code === code); if (!x) return;
+  const rule = x.rule.vals.slice(); while (rule.length < 20) rule.push('');
+  RE = { code, cfg: { name: x.cfg ? x.cfg.name : '', credits: x.cfg ? x.cfg.credits : '' }, rule, cats: x.cats.map(c => ({ row: c.row, vals: c.vals.slice().concat(Array(Math.max(0, 14 - c.vals.length)).fill('')) })), more: {}, saving: false, err: '' };
+  RE.orig = JSON.stringify([RE.cfg, RE.rule, RE.cats]);
+  renderRules(); $('drawer').scrollTop = 0; $('drawer').classList.add('on'); $('scrim').classList.add('on');
+}
+function setRe(path, v) {
+  const p = path.split('.');
+  if (p[0] === 'cfg') RE.cfg[p[1]] = v; else if (p[0] === 'rule') RE.rule[+p[1]] = v; else RE.cats[+p[1]].vals[+p[2]] = v;
+  RE.err = ''; rulesPreview();
+}
+function rulesPreview() {
+  const box = $('re-prev'); if (!box || !RE) return;
+  let html;
+  try {
+    const r = SheetRules.fromSheet([RE.rule], RE.cats.map(c => c.vals))[0];
+    const g = r ? Engine.grade(r, engineItems(data.assignments), { absences: absences() }) : null, now = gradeOf(RE.code);
+    html = `<div class="card"><div class="k">with these rules</div><div class="v">${g && g.value != null ? esc(g.letter || '–') + ' · ' + f2(g.value) : '–'}</div></div>
+      <div class="card"><div class="k">right now</div><div class="v muted">${now && now.raw != null ? esc(now.letter || '–') + ' · ' + f2(now.raw) : '–'}</div></div>`;
+  } catch (x) { html = `<div class="card" style="grid-column:1/-1"><div class="k">with these rules</div><div class="v" style="font-size:15px;color:var(--red)">doesn’t compute: ${esc(x.message || x)}</div></div>`; }
+  box.innerHTML = html;
+  const dirty = JSON.stringify([RE.cfg, RE.rule, RE.cats]) !== RE.orig, b = $('re-save');
+  if (b) { b.disabled = !dirty || RE.saving; b.textContent = RE.saving ? 'saving…' : 'save'; }
+  const er = $('re-err'); if (er) er.textContent = RE.err || '';
+}
+function renderRules() {
+  const R = RE, col = colorFor(R.code), v = i => esc(R.rule[i] == null ? '' : R.rule[i]);
+  const sel = (path, cur, opts) => `<select class="txt" data-re="${path}">${opts.map(o => `<option value="${esc(o)}"${String(cur).toLowerCase() === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}${opts.includes(String(cur).toLowerCase()) || cur === '' ? '' : `<option selected>${esc(cur)}</option>`}</select>`;
+  const inp = (path, cur, ph, w) => `<input class="txt" data-re="${path}" value="${esc(cur == null ? '' : cur)}" placeholder="${ph || ''}" autocomplete="off" spellcheck="false"${w ? ` style="width:${w}"` : ''}>`;
+  const f = (label, ctl, wide) => `<label class="ref"${wide ? ' style="grid-column:1/-1"' : ''}><span>${label}</span>${ctl}</label>`;
+  const cats = R.cats.map((c, k) => { const q = i => `cat.${k}.${i}`, cv = c.vals;
+    return `<div class="card recat"><div class="rehd">${inp(q(1), cv[1], 'category name')}${inp(q(2), cv[2], 'type', '84px')}</div>
+      <div class="regrid">${f('weight', inp(q(3), cv[3]))}${f('# items', inp(q(4), cv[4], 'any'))}${f('drop lowest', inp(q(5), cv[5]))}${f('counted as', sel(q(6), cv[6] || 'category average', COUNTED))}</div>
+      <button class="link" data-act="re-more" data-k="${k}">${R.more[k] ? 'less' : 'more'}</button>
+      ${R.more[k] ? `<div class="regrid">${f('tiers / curves', inp(q(7), cv[7], 'e.g. Exam 1: 95, 90, 85, …; Exam 2: …'), true)}${f('bonus goes to', inp(q(8), cv[8], 'EX, FI'))}${f('cap', inp(q(9), cv[9]))}${f('assume until graded', inp(q(10), cv[10]))}${f('free absences', inp(q(11), cv[11]))}${f('lose per absence', inp(q(12), cv[12]))}${f('replace lowest with', inp(q(13), cv[13], 'type'))}</div>` : ''}</div>`; }).join('');
+  $('drawer').innerHTML = `<div class="dhd"><h2 style="color:${col}">${esc(spaceCode(R.code))}</h2><span class="muted">course settings</span><button class="iconbtn x" data-act="close" aria-label="close">×</button></div>
+    <div class="kv re-prev" id="re-prev"></div>
+    <div class="sec"><div class="ct">basics</div><div class="card regrid">${f('name', inp('cfg.name', R.cfg.name))}${f('credit hours', inp('cfg.credits', R.cfg.credits))}${f('course code', `<span class="muted" style="padding:8px 0">${esc(R.code)}</span>`)}</div></div>
+    <div class="sec"><div class="ct">grading</div><div class="card"><div class="regrid">
+      ${f('method', sel('rule.1', R.rule[1], ['weighted', 'points']))}${f('bare numbers are', sel('rule.2', R.rule[2], ['points', 'percent']))}${f('final grade from', sel('rule.3', R.rule[3], ['percent', 'grade points']))}
+      ${f('round to', inp('rule.4', R.rule[4], 'decimals'))}${f('pass at', inp('rule.5', R.rule[5], 'S/U only'))}${f('drop lowest across', inp('rule.6', R.rule[6], 'EX, AS'))}${f('how many', inp('rule.7', R.rule[7]))}</div>
+      <div class="ct" style="margin-top:14px">cutoffs</div><div class="recut">${RL.map((L, i) => f(L, inp('rule.' + (8 + i), R.rule[8 + i]))).join('')}</div></div></div>
+    <div class="sec"><div class="ct">categories</div>${cats}</div>
+    <div class="refoot"><span id="re-err" class="reerr"></span><button class="btn" data-act="close">cancel</button><button class="btn tint" id="re-save" data-act="re-save" disabled>save</button></div>`;
+  rulesPreview();
+}
+function saveRules() {
+  if (!RE || RE.saving) return;
+  const R = RE; R.saving = true; R.err = ''; rulesPreview();
+  post({ action: 'course_save', code: R.code, cfg: R.cfg, rule: R.rule, cats: R.cats })
+    .then(() => { if (RE !== R) return; const x = (data.setup || []).find(y => y.code === R.code);
+      if (x) { x.rule.vals = R.rule.slice(); x.cats = R.cats.map(c => ({ row: c.row, vals: c.vals.slice() })); if (x.cfg) { x.cfg.name = R.cfg.name; x.cfg.credits = R.cfg.credits; } }
+      closeDrawer(); toast('saved ' + spaceCode(R.code) + ' settings'); load(true); })
+    .catch(err => { R.saving = false; R.err = String(err.message || err); rulesPreview(); });
 }
 
 // ---------- attendance ----------
@@ -919,6 +991,7 @@ function renderSettings(v) {
         (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
         (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : ''); })()}</div>
     ${calList().length > 1 ? `<div class="card"><div class="ct">calendars in next up</div>${calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')}</div>` : ''}
+    ${data && data.setup ? `<div class="card"><div class="ct">courses</div>${data.setup.map(x => `<div class="row"><span><b style="color:${colorFor(x.code)}">${esc(spaceCode(x.code))}</b>&nbsp; ${esc(x.cfg ? x.cfg.name : '')}</span><span class="muted">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''}</span><button class="btn sm" data-act="rules" data-code="${esc(x.code)}">edit</button></div>`).join('')}</div>` : ''}
     <div class="card"><div class="ct">greeting</div>
       <div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
       <div class="row"><span>name</span><input class="txt" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div></div>
@@ -953,6 +1026,9 @@ document.addEventListener('click', e => {
     case 'gpa': if (e.target.closest('a,button:not(.gpa)') && e.target.closest('[data-act]') !== t) return; showGpa = !showGpa; return renderAll();
     case 'course': if (VIEW === 'dash' && !showGrades) return; return openCourse(t.dataset.code);
     case 'close': return closeDrawer();
+    case 'rules': return openRules(t.dataset.code);
+    case 're-more': RE.more[t.dataset.k] = !RE.more[t.dataset.k]; return renderRules();
+    case 're-save': return saveRules();
     case 'upcoming': return openUpcoming();
     case 'calchip': return toggleCal(t.dataset.cal);
     case 'add': return startAdd();
@@ -993,6 +1069,7 @@ function addTodo() {
   post({ action: 'task_add', title, due }).then(j => { const old = x.id; x.id = j.id || x.id; if (data._todoOrder) data._todoOrder[data._todoOrder.indexOf(old)] = x.id; }).catch(() => { data.todo.splice(data.todo.indexOf(x), 1); renderAll(); toast('couldn’t add — try again'); });
 }
 document.addEventListener('input', e => {
+  if (e.target.dataset && e.target.dataset.re && RE) { setRe(e.target.dataset.re, e.target.value); return; }
   const t = e.target;
   if (t.id === 'sq') { SF.q = t.value; saveSF(); renderAll(); return; }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; return; }
@@ -1073,6 +1150,9 @@ function demoData() {
   const safe = o => JSON.parse(JSON.stringify(o, (k, v) => v === -Infinity ? '-inf' : v));
   return { v: 3, courses: C.map(c => c[0] + ' ' + c[1]), assignments: A,
     grades: { engine: true, courses: C.map(c => ({ code: c[0], name: c[1], credits: c[2], passFail: !!R[c[0]].cutoffs.S, rule: safe(R[c[0]]) })) },
+    setup: (() => { let row = 17; return C.map((c, i) => { const r = R[c[0]], pf = !!r.cutoffs.S;
+      return { code: c[0], cfg: { row: i + 2, name: c[1], credits: c[2] }, rule: { row: i + 4, vals: [c[0], r.method, r.method === 'points' ? 'points' : 'percent', 'percent', r.round != null ? r.round : '', pf ? r.cutoffs.S : '', '', ''].concat(['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'].map(L => pf ? '' : (r.cutoffs[L] != null ? r.cutoffs[L] : ''))) },
+        cats: r.categories.map(k => ({ row: row++, vals: [c[0], k.name, k.abbr, k.weight, k.expect != null ? k.expect : '', k.drop != null ? k.drop : '', k.within === 'points' ? 'points total' : 'category average', '', '', '', '', '', '', ''] })) }; }); })(),
     attendance: [{ code: 'ch201', rule: 'none', dates: [addDays(sem0, 15)] }, { code: 'eng210', rule: '3 free, then −1 point each', dates: [addDays(sem0, 22), addDays(sem0, 50)] }],
     weeks: Array.from({ length: 17 }, (_, w) => ({ t: addDays(sem0, w * 7 + 7), label: 'end of week ' + (w + 1), budget: Math.round(1000 - w * 1000 / 16) })),
     ra: [{ r: 2, n: 'Roommate agreements', t: addDays(sem0, 20), d: true, note: '' }, { r: 3, n: 'Closing information post', t: addDays(T, 9), d: false, note: '' }, { r: 4, n: 'Winter break duty sign-up', t: addDays(T, 2), d: false, note: 'staff meeting' }, { r: 5, n: 'Intent to return form', t: null, due: 'TBD', d: false, note: '' }],
