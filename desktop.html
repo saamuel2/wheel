@@ -206,11 +206,18 @@
   .prow { width: 100%; background: none; border: 0; border-top: .5px solid var(--sep); color: inherit; font: inherit; text-align: left; cursor: pointer; } .prow .chev { color: var(--sub); font-size: 18px; line-height: 1; }
   .prow:hover { background: var(--fill); } .set .card > .prow:first-of-type, .set .card > .ct + .prow { border-top: 0; }
   .popw { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.4); display: none; align-items: center; justify-content: center; } .popw.on { display: flex; }
-  .pop { width: min(440px, 92vw); max-height: 80vh; overflow: auto; background: var(--card); border-radius: 18px; padding: 16px 18px 10px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
-  .pophd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 17px; } .popset { max-width: none; gap: 0; }
-  .cbars { display: flex; gap: 6px; align-items: flex-end; height: 74px; margin-top: 4px; } .cb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; height: 100%; }
-  .cbt { flex: 1; width: 100%; max-width: 26px; background: var(--track); border-radius: 5px; display: flex; align-items: flex-end; overflow: hidden; } .cbt i { display: block; width: 100%; border-radius: 5px; }
-  .cb span { font-size: 10px; color: var(--sub); font-variant-numeric: tabular-nums; } .cbsum { font-size: 12px; margin-top: 6px; }
+  .pop { width: min(340px, 92vw); max-height: 80vh; overflow: auto; background: var(--card); border-radius: 16px; padding: 12px 14px 6px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .pophd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; font-size: 15px; } .popset { max-width: none; gap: 0; display: block; }
+  .popset .row { padding: 0; height: 38px; min-height: 0; gap: 10px; font-size: 14px; border-top: 0; } .popset .row + .row { border-top: .5px solid var(--sep); } .popset .row .sw { margin: 0; } .popset .txt { height: 30px; padding-top: 0; padding-bottom: 0; font-size: 14px; max-width: 170px; }
+  .popset .sw { transform: scale(.85); transform-origin: right center; } .popset .prow { padding: 8px 0; }
+  .glance .col > .card { min-height: 0; overflow: hidden; } .vcard { display: flex; flex-direction: column; }
+  .cbars { flex: 1; min-height: 0; display: flex; gap: 6px; align-items: stretch; margin-top: 2px; } .cb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+  .cbt { flex: 1; width: 100%; max-width: 30px; background: var(--track); border-radius: 6px; display: flex; align-items: flex-end; }
+  .cbt i { position: relative; display: block; width: 100%; border-radius: 6px; min-height: 2px; } .cbt b { font-style: normal; position: absolute; left: 0; right: 0; top: 3px; text-align: center; font-size: 10px; font-weight: 800; color: rgba(0,0,0,.62); font-variant-numeric: tabular-nums; }
+  .cbt b.out { top: auto; bottom: 100%; margin-bottom: 1px; color: var(--sub); }
+  .cb span { font-size: 9.5px; line-height: 11px; color: var(--sub); text-align: center; text-transform: lowercase; font-variant-numeric: tabular-nums; }
+  .wxrow { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; } .wxart { width: 74px; height: 60px; flex: none; }
+  .set .ntx { white-space: normal; } .tick { color: var(--tint); display: flex; }
   .gpa .big { font-size: 44px; }
   .gpa { cursor: pointer; } .eyebig { color: var(--sub); height: 52px; display: flex; align-items: center; }
   .how { display: grid; gap: 1px; font-size: 12px; margin-top: 4px; }
@@ -318,7 +325,7 @@
 <script src="sheetrules.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.18 (11/04 11:20am)';
+const BUILD = 'd1.19 (11/04 12:05pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -716,25 +723,54 @@ function toggleCal(name) {
   const u = $('upl'); if (u && $('drawer').classList.contains('on')) { const st = $('drawer').scrollTop; u.innerHTML = upcomingBody(); $('drawer').scrollTop = st; }
   renderAll();
 }
+const VOPTS = [['weather', 'weather'], ['budget', 'food budget'], ['completion', 'completion']];
+const vName = k => (VOPTS.find(o => o[0] === k) || VOPTS[1])[1];
 function slotHtml() {
   const pen = `<span class="r"><button class="iconbtn sm" data-act="slotedit" aria-label="${slotEdit ? 'done' : 'change widget'}">${slotEdit ? TICK : PENCIL}</button></span>`;
-  if (slotEdit) return `<div class="card"><div class="ct">widget${pen}</div><div class="cdbody cdf"><select class="txt" data-slot="1">${[['budget', 'food budget'], ['completion', 'course completion']].map(([k, l]) => `<option value="${k}"${SLOT === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>`;
-  return SLOT === 'completion' ? completionHtml(pen) : budgetHtml(pen);
+  if (slotEdit) return `<div class="card vcard"><div class="ct">variable${pen}</div><div class="cdbody cdf"><select class="txt" data-slot="1">${VOPTS.map(([k, l]) => `<option value="${k}"${SLOT === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>`;
+  return SLOT === 'completion' ? completionHtml(pen) : SLOT === 'weather' ? weatherHtml(pen) : budgetHtml(pen);
 }
-// course completion: assignments done ÷ all assignments this semester, one bar per class (like the sheet's chart)
+// completion: assignments done ÷ all of a class's assignments this semester, one bar per class (like the sheet's chart)
 function completionHtml(pen) {
   const A = data.assignments || [], codes = courseList().map(c => c.code).filter(c => !isExtra(c));
   const rows = codes.map(c => { const m = A.filter(a => a.c === c); return { c, n: m.length, d: m.filter(a => a.d).length }; }).filter(r => r.n);
-  const tot = rows.reduce((s, r) => s + r.n, 0), dn = rows.reduce((s, r) => s + r.d, 0);
-  return `<div class="card"><div class="ct">course completion${pen}</div><div class="cbars">${rows.map(r => { const p = Math.round(100 * r.d / r.n);
-    return `<div class="cb" title="${esc(spaceCode(r.c))}: ${r.d} of ${r.n} done (${p}%)"><div class="cbt"><i style="height:${p}%;background:${colorFor(r.c)}"></i></div><span>${esc(String(r.c).replace(/^[a-z]+/i, ''))}</span></div>`; }).join('')}</div>
-    <div class="muted cbsum">${tot ? Math.round(100 * dn / tot) + '% of ' + tot + ' assignments done' : 'no assignments yet'}</div></div>`;
+  return `<div class="card vcard"><div class="ct">completion${pen}</div><div class="cbars">${rows.map(r => { const p = Math.round(100 * r.d / r.n), m = String(r.c).match(/^([a-z]+)\s*(\d.*)$/i) || [0, r.c, ''];
+    return `<div class="cb" title="${esc(spaceCode(r.c))}: ${r.d} of ${r.n} done"><div class="cbt"><i style="height:${p}%;background:${colorFor(r.c)}"><b class="${p < 22 ? 'out' : ''}">${p}</b></i></div><span>${esc(m[1])}<br>${esc(m[2])}</span></div>`; }).join('')}</div></div>`;
+}
+// weather (same source and drawings as the phone): open-meteo at your saved location, Raleigh until the browser shares one
+let WX = null, wxAt = 0;
+let LOC = { lat: 35.78, lon: -78.64 }; try { const c = JSON.parse(localStorage.getItem('wheel-loc') || 'null'); if (c && isFinite(c.lat) && isFinite(c.lon)) LOC = c; } catch (e) {}
+const WXL = { clear: 'clear', partly: 'partly cloudy', cloudy: 'cloudy', fog: 'foggy', rain: 'rain', snow: 'snow', storm: 'storms' };
+const wxKind = c => c === 0 ? 'clear' : c < 3 ? 'partly' : c === 3 ? 'cloudy' : c < 50 ? 'fog' : c < 70 ? 'rain' : c < 80 ? 'snow' : c < 85 ? 'rain' : c < 90 ? 'snow' : 'storm';
+function wxArt(k, day) {
+  const SUN = '#FFD60A', CL = '#E5E5EA', CD = '#8E8E93', RAIN = '#64D2FF', FOG = '#AEAEB2';
+  const cloud = (x, y, sc, c) => `<g transform="translate(${x} ${y}) scale(${sc})" fill="${c}"><circle cx="18" cy="26" r="11"/><circle cx="32" cy="18" r="15"/><circle cx="46" cy="27" r="10"/><rect x="18" y="26" width="28" height="11"/></g>`;
+  const sun = (x, y, r) => [0, 45, 90, 135, 180, 225, 270, 315].map(a => `<line x1="${x}" y1="${y - r - 5}" x2="${x}" y2="${y - r - 11}" stroke="${SUN}" stroke-width="3" stroke-linecap="round" transform="rotate(${a} ${x} ${y})"/>`).join('') + `<circle cx="${x}" cy="${y}" r="${r}" fill="${SUN}"/>`;
+  const moon = (x, y, r) => `<mask id="mn"><rect width="100" height="80" fill="#fff"/><circle cx="${x + r * .45}" cy="${y - r * .35}" r="${r * .82}" fill="#000"/></mask><circle cx="${x}" cy="${y}" r="${r}" fill="#F2F2F7" mask="url(#mn)"/>`;
+  const P = [[36, 60], [50, 67], [64, 60]], drop = p => `<line x1="${p[0]}" y1="${p[1]}" x2="${p[0] - 4}" y2="${p[1] + 8}" stroke="${RAIN}" stroke-width="3" stroke-linecap="round"/>`, flake = p => `<circle cx="${p[0] - 2}" cy="${p[1] + 4}" r="2.8" fill="#fff"/>`, big = c => cloud(10.6, 6, 1.25, c);
+  return k === 'clear' ? (day ? sun(50, 40, 17) : moon(50, 40, 22)) : k === 'partly' ? (day ? sun(66, 26, 11) : moon(70, 22, 13)) + cloud(10.6, 26, 1.25, CL) : k === 'cloudy' ? cloud(26, 12, 1, CD) + cloud(10.6, 28, 1.25, CL)
+    : k === 'rain' ? big(CL) + P.map(drop).join('') : k === 'snow' ? big(CL) + P.map(flake).join('') : k === 'storm' ? big(CD) + '<path d="M53 42L42 60H50L46 76L62 54H54Z" fill="' + SUN + '"/>' + drop([30, 58]) + drop([72, 58])
+    : cloud(10.6, 4, 1.25, CL) + [22, 17, 12].map((hw, i) => `<line x1="${50 - hw}" x2="${50 + hw}" y1="${58 + i * 7}" y2="${58 + i * 7}" stroke="${FOG}" stroke-width="4" stroke-linecap="round"/>`).join('');
+}
+function loadWx() {
+  if (Date.now() - wxAt < 15 * 60000) return; wxAt = Date.now();
+  if (DEMO) { WX = { t: 62, k: 'partly', day: true, hi: 68, lo: 51 }; return; }
+  const go2 = () => fetch('https://api.open-meteo.com/v1/forecast?latitude=' + LOC.lat + '&longitude=' + LOC.lon + '&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=auto&forecast_days=1')
+    .then(r => r.json()).then(j => { WX = { t: Math.round(j.current.temperature_2m), k: wxKind(j.current.weather_code), day: !!j.current.is_day, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]) }; if (VIEW === 'dash') renderAll(); }).catch(() => { wxAt = 0; });
+  let asked = false; try { asked = localStorage.getItem('desk-loc-asked') === '1'; } catch (e) {}
+  if (navigator.geolocation && !asked) { try { localStorage.setItem('desk-loc-asked', '1'); } catch (e) {}
+    navigator.geolocation.getCurrentPosition(p => { LOC = { lat: +p.coords.latitude.toFixed(3), lon: +p.coords.longitude.toFixed(3) }; try { localStorage.setItem('wheel-loc', JSON.stringify(LOC)); } catch (e) {} go2(); }, go2, { timeout: 8000, maximumAge: 30 * 60000 });
+  } else go2();
+}
+function weatherHtml(pen) {
+  loadWx();
+  return `<div class="card vcard"><div class="ct">weather${pen}</div>${WX ? `<div class="wxrow"><div><div class="big">${WX.t}°</div><div class="muted">${WXL[WX.k]} · ${WX.hi}/${WX.lo}</div></div><svg class="wxart" viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div>` : '<div class="muted">loading…</div>'}</div>`;
 }
 function budgetHtml(pen) {
   const W = data.weeks || [], T = today(), next = W.find(w => w.t >= T && w.budget != null);
-  if (!next) return `<div class="card"><div class="ct">food budget${pen || ''}</div><div class="muted">no budget targets on the sheet</div></div>`;
+  if (!next) return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="muted">no budget targets on the sheet</div></div>`;
   const days = Math.round((next.t - T) / 864e5);
-  return `<div class="card"><div class="ct">food budget${pen || ''}</div><div class="big">$${f2(next.budget)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
+  return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="big">$${f2(next.budget)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
 }
 let cdEdit = false;
 function cdForm() {
@@ -1032,12 +1068,29 @@ function renderSettings(v) {
       ${prow('greeting', (GR.rand ? 'random' : 'plain') + (GR.name ? ' · ' + GR.name : ''), 'greet')}
       ${cl.length > 1 ? prow('calendars', on + ' of ' + cl.length + ' shown', 'cal') : ''}
       ${prow('countdown', cdSum, 'cd')}
-      <div class="row"><span>food budget</span><select class="txt" data-slot="1">${[['budget', 'food budget'], ['completion', 'course completion']].map(([k, l]) => `<option value="${k}"${SLOT === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div></div>
+      ${prow('variable', vName(SLOT), 'var')}</div>
+    <div class="card"><div class="ct">issues for next session</div>${notesList().map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')}
+      <div class="row"><input class="txt" id="note-in" data-k="note-in" placeholder="note an issue…" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div></div>
     <div class="card"><div class="ct">app info</div>
       <div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ↗</a>`}</div>
       <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '—'}</span><button class="btn sm" data-act="sync">refresh</button></div>
       <div class="row"><span>connection key<div class="muted" style="font-size:12px">kept in this browser only</div></span><input class="txt" id="key-in" type="password" placeholder="paste key" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div></div></div>`;
+}
+// issues for next session: one list with the phone, kept on the sheet's Notes tab
+let NOTE_NEW = [], NOTE_RM = new Set();
+const noteKey = n => Math.round(n.t / 1000) + '|' + n.x;
+function notesList() { const srv = ((data && data.notes) || []).filter(n => !NOTE_RM.has(noteKey(n))), keys = new Set(srv.map(noteKey)); return srv.sort((a, b) => a.t - b.t).concat(NOTE_NEW.filter(n => !keys.has(noteKey(n)))); }
+function addNote() {
+  const inp = $('note-in'), x = inp && inp.value.trim(); if (!x) return;
+  const n = { x, t: Date.now() }; NOTE_NEW.push(n); inp.value = ''; renderAll(); setTimeout(() => $('note-in') && $('note-in').focus(), 0);
+  post({ action: 'note_add', text: x, ts: n.t, from: 'desktop' }).then(() => { if (DEMO) return; data.notes = (data.notes || []).concat([{ x, t: n.t }]); NOTE_NEW = NOTE_NEW.filter(y => y !== n); })
+    .catch(() => { NOTE_NEW = NOTE_NEW.filter(y => y !== n); renderAll(); toast('couldn’t save the note'); });
+}
+function rmNote(k) {
+  const n = notesList().find(y => noteKey(y) === k); if (!n) return;
+  if (NOTE_NEW.includes(n)) { NOTE_NEW = NOTE_NEW.filter(y => y !== n); return renderAll(); }
+  NOTE_RM.add(k); renderAll(); post({ action: 'note_done', text: n.x, ts: n.t }).catch(() => { NOTE_RM.delete(k); renderAll(); toast('couldn’t remove the note'); });
 }
 // small popups for the widget settings (greeting, calendars, countdown)
 let POP = null;
@@ -1049,11 +1102,12 @@ function renderPop() {
   const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
   const body = POP === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
       <div class="row"><span>name</span><input class="txt" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div>`
+    : POP === 'var' ? VOPTS.map(([k, l]) => `<button class="row prow" data-act="setslot" data-v="${k}"><span>${l}</span><span class="tick">${SLOT === k ? TICK : ''}</span></button>`).join('')
     : POP === 'cal' ? calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')
     : `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
       (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
       (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
-  box.innerHTML = `<div class="pophd"><b>${({ greet: 'greeting', cal: 'calendars', cd: 'countdown' })[POP]}</b><button class="btn sm tint" data-act="popdone">done</button></div><div class="set popset">${body}</div>`;
+  box.innerHTML = `<div class="pophd"><b>${({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable' })[POP]}</b><button class="btn sm tint" data-act="popdone">done</button></div><div class="set popset">${body}</div>`;
 }
 // ===================== events =====================
 function startAdd(after) {
@@ -1081,6 +1135,10 @@ document.addEventListener('click', e => {
     case 'close': return closeDrawer();
     case 'pop': return openPop(t.dataset.p);
     case 'popdone': return closePop();
+    case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
+    case 'note-add': return addNote();
+    case 'note-rm': return rmNote(t.dataset.k);
+    case 'note-copy': { try { navigator.clipboard.writeText(notesList().map(n => '• ' + n.x).join('\n')); } catch (x) {} t.textContent = 'copied'; setTimeout(() => { if (t.isConnected) t.textContent = 'copy list'; }, 1200); return; }
     case 'slotedit': slotEdit = !slotEdit; return renderAll();
     case 'gpa2': showGpa2 = !showGpa2; return renderAll();
     case 'rules': return openRules(t.dataset.code);
@@ -1164,6 +1222,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && t.dataset && t.dataset.dtin !== undefined) { e.preventDefault(); const dr = t.closest('tr.draft'); t.blur(); if (dr) setTimeout(() => saveDraft(+dr.dataset.draftRow), 0); return; }
   if (e.key === 'Enter' && t.dataset && t.dataset.draft) { e.preventDefault(); saveDraft(+t.dataset.draft); return; }
   if (e.key === 'Enter' && (t.id === 'td-new' || t.id === 'td-due')) { e.preventDefault(); addTodo(); return; }
+  if (e.key === 'Enter' && t.id === 'note-in') { e.preventDefault(); addNote(); return; }
   if (e.key === 'Enter' && t.classList && t.classList.contains('cell') && t.closest('tr.row')) { e.preventDefault(); t.blur(); return; }
   if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
   const views = ['dash', 'sheet', 'grades', 'att', 'tasks'];
@@ -1208,6 +1267,7 @@ function demoData() {
   const safe = o => JSON.parse(JSON.stringify(o, (k, v) => v === -Infinity ? '-inf' : v));
   return { v: 3, courses: C.map(c => c[0] + ' ' + c[1]), assignments: A,
     grades: { engine: true, courses: C.map(c => ({ code: c[0], name: c[1], credits: c[2], passFail: !!R[c[0]].cutoffs.S, rule: safe(R[c[0]]) })) },
+    notes: [{ x: 'grade bars look off in elegant', t: T - 864e5 }],
     history: [['CH 101', 'F25', 4, 4], ['MA 141', 'F25', 4, 3.667], ['ENG 101', 'F25', 4, 4.333], ['HON 110', 'F25', '', 4.333], ['CH 102', 'S26', 4, 4], ['MA 242', 'S26', 4, 3.333], ['BIO 181', 'S26', 4, 4], ['CH 201', 'F26', 4, null]].map(r => ({ code: r[0], term: r[1], hours: r[2] === '' ? null : r[2], gp: r[3] })),
     setup: (() => { let row = 17; return C.map((c, i) => { const r = R[c[0]], pf = !!r.cutoffs.S;
       return { code: c[0], cfg: { row: i + 2, name: c[1], credits: c[2] }, rule: { row: i + 4, vals: [c[0], r.method, r.method === 'points' ? 'points' : 'percent', 'percent', r.round != null ? r.round : '', pf ? r.cutoffs.S : '', '', ''].concat(['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'].map(L => pf ? '' : (r.cutoffs[L] != null ? r.cutoffs[L] : ''))) },

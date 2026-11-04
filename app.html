@@ -177,6 +177,9 @@
   /* 2.7: dashboard cards left-aligned (3), weather icon on the right */
   .side { gap: 8px; }
   .tile { align-items: flex-start; text-align: left; padding: 7px 12px; }
+  .tile.wx.cpt { flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; } .mbars { display: flex; gap: 4px; align-items: flex-end; height: 30px; }
+  .mbars i { flex: 1; height: 100%; border-radius: 4px; background: linear-gradient(to top, var(--c) var(--h), rgba(118,118,128,.24) var(--h)); }
+  .cbar { height: 6px; border-radius: 3px; background: rgba(118,118,128,.24); margin-top: 6px; overflow: hidden; } .cbar i { display: block; height: 100%; border-radius: 3px; }
   [data-slot] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transition: transform .18s; } [data-slot].held { transform: scale(.96); }
   .tile.wx { flex-direction: row; align-items: center; justify-content: space-between; gap: 6px; }
   .wtxt { min-width: 0; } .wxart { flex: none; width: 50px; height: 36px; margin: 0; }
@@ -524,7 +527,8 @@
     const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
     const TOKEN = 'e0f91ee8386a7bbb5b69';
     let appData = null;
-    let SLOT2 = 'weather'; try { SLOT2 = localStorage.getItem('wheel-slot') === 'budget' ? 'budget' : 'weather'; } catch (e) {}   // weather tile: weather or food budget
+    const VOPTS = [['weather', 'weather'], ['budget', 'food budget'], ['completion', 'completion']];
+    let SLOT2 = 'weather'; try { const v = localStorage.getItem('wheel-slot'); if (VOPTS.some(o => o[0] === v)) SLOT2 = v; } catch (e) {}   // the "variable" tile: weather, food budget or completion
     let WPOP = null;
     let weekOffset = 0;
     
@@ -635,7 +639,7 @@
           fetching = false;
           if (data.error) throw new Error(data.error);
           if (EVT) { data.events = EVT.events; data.calendars = EVT.calendars; }
-          applyOv(data); stash = data; saveCache(data);
+          applyOv(data); stash = data; saveCache(data); mergeIss(data.notes);
           document.getElementById('error-msg').style.display = 'none';
           flushStash();
           loadEvents();
@@ -733,7 +737,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.48 (11/04 11:20am)';
+    const BUILD = 'm2.49 (11/04 12:05pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -984,9 +988,22 @@
       CALS[name] = !calOn(name); saveCals(); renderSide(); renderSettings();
       if ($('csheet').classList.contains('show') && $('c-title').textContent === 'upcoming') { const st = $('c-body').scrollTop; $('c-body').innerHTML = upcomingHtml(); $('c-body').scrollTop = st; }
     }
+    // completion: assignments done ÷ all of a class's assignments this semester
+    function completionRows() {
+      const A = (appData && appData.assignments) || [], codes = ((appData && appData.grades && appData.grades.courses) || []).map(c => c.code);
+      return codes.map(c => { const m = A.filter(a => a.c === c); return { c, n: m.length, d: m.filter(a => a.d).length, p: m.length ? Math.round(100 * m.filter(a => a.d).length / m.length) : 0 }; }).filter(r => r.n);
+    }
+    function openCompletion() {
+      const rows = completionRows(); $('c-title').textContent = 'completion';
+      $('c-body').innerHTML = '<div class="group">' + rows.map(r => `<div class="task pad static"><i class="dot" style="background:${colorFor(r.c)}"></i><div class="tmain"><div class="tname">${esc(spaceCode(r.c))}</div><div class="cbar"><i style="width:${r.p}%;background:${colorFor(r.c)}"></i></div></div><span class="tg">${r.p}%</span></div>`).join('') + '</div>';
+      $('c-body').scrollTop = 0; clearTimeout(csT);
+      $('scrim').style.display = 'block'; $('csheet').style.display = 'flex'; void $('csheet').offsetHeight;
+      $('scrim').classList.add('show'); $('csheet').classList.add('show');
+    }
     function renderSide() {
       const W = (appData && appData.weeks) || [], T0 = new Date().setHours(0, 0, 0, 0), nb = W.find(x => x.t >= T0 && x.budget != null), bd = nb ? Math.round((nb.t - T0) / 864e5) : 0;
-      const w = SLOT2 === 'budget' ? `<div class="tile wx" data-slot="1"><div class="wtxt">${nb ? `<div class="tv">$${nb.budget % 1 ? Number(nb.budget).toFixed(2) : nb.budget}</div><div class="ts">left by ${dayLabel(nb.t)}${bd > 0 ? ' · ' + bd + 'd' : ''}</div>` : '<div class="tl">food budget</div><div class="ts">no targets on the sheet</div>'}</div></div>`
+      const comp = completionRows(), w = SLOT2 === 'completion' ? `<div class="tile wx cpt" data-slot="1" data-comp="1"><div class="mbars">${comp.map(r => `<i style="--h:${r.p}%;--c:${colorFor(r.c)}"></i>`).join('')}</div><div class="ts">completion</div></div>`
+        : SLOT2 === 'budget' ? `<div class="tile wx" data-slot="1"><div class="wtxt">${nb ? `<div class="tv">$${nb.budget % 1 ? Number(nb.budget).toFixed(2) : nb.budget}</div><div class="ts">left by ${dayLabel(nb.t)}${bd > 0 ? ' · ' + bd + 'd' : ''}</div>` : '<div class="tl">food budget</div><div class="ts">no targets on the sheet</div>'}</div></div>`
         : WX ? `<div class="tile wx" data-slot="1"><div class="wtxt"><div class="tv">${WX.t}°</div><div class="ts">${WXL[WX.k]} · ${WX.hi}/${WX.lo}</div></div><div class="wxart"><svg viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div></div>`
         : '<div class="tile wx" data-slot="1"><div class="ts">loading…</div></div>';
       const now = Date.now(), up = EV ? shownEv().filter(e => !e.a && (e.t > now || (e.e || 0) > now)).sort((x, y) => x.t - y.t).slice(0, 2) : [];
@@ -1009,7 +1026,7 @@
       const cd = `<div class="tl">${lab}</div><div class="tv">${isNaN(d) ? '–' : d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
       $('side').innerHTML = w + `<div class="tile big" data-up="1">${c}${EV && moreN > 0 ? `<div class="more">+${moreN} more ›</div>` : ''}</div><div class="tile">${cd}</div>`;
     }
-    $('side').addEventListener('click', e => { if (e.target.closest('[data-up]')) { openUpcoming(); return; } if (DEMO && e.target.closest('.wx')) { wxi = (wxi + 1) % WXD.length; setDemoWx(wxi); renderSide(); } });  // demo: tap weather to preview conditions
+    $('side').addEventListener('click', e => { if (e.target.closest('[data-up]')) { openUpcoming(); return; } if (e.target.closest('[data-comp]')) { openCompletion(); return; } if (DEMO && e.target.closest('.wx')) { wxi = (wxi + 1) % WXD.length; setDemoWx(wxi); renderSide(); } });  // demo: tap weather to preview conditions
 
     function renderSettings() {
       const r = (k, v) => `<div class="task srow"><span>${k}</span><span class="tg">${v}</span></div>`;
@@ -1023,7 +1040,7 @@
       const wg = '<div class="grp">widgets</div><div class="group">' + prow('greeting', (GR.rand ? 'random' : 'plain') + (GR.name ? ' · ' + GR.name : ''), 'greet') +
         (cl.length > 1 ? prow('calendars', on + ' of ' + cl.length, 'cal') : '') +
         prow('countdown', CD.mode === 'exam' ? 'next exam' : CD.mode === 'custom' ? (CD.title || 'custom day') : 'last day · ' + pd2(CD.ldoc), 'cd') +
-        row('food budget<div class="tg" style="font-size:13px">shown in place of weather · or hold the tile</div>', `<label class="sw"><input type="checkbox" data-slot2="1"${SLOT2 === 'budget' ? ' checked' : ''}><i></i></label>`) + '</div>';
+        prow('variable', (VOPTS.find(o => o[0] === SLOT2) || VOPTS[0])[1], 'slot') + '</div>';
       const iss = '<div class="grp">issues for next session</div><div class="group">' + ISS.map((i, n) => `<div class="task srow iss-row"><span class="iss">${esc(i.x)}</span><button class="rm" data-rmi="${n}">remove</button></div>`).join('') +
         '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in" placeholder="note an issue…" autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
@@ -1040,7 +1057,7 @@
     $('settings-card').addEventListener('input', e => { if (e.target.id === 'iss-in') { ISSDRAFT = e.target.value; try { localStorage.setItem('wheel-issdraft', ISSDRAFT); } catch (x) {} } });
     $('settings-card').addEventListener('click', e => {
       if (e.target.closest('#iss-add')) addIss();
-      const rm = e.target.closest('[data-rmi]'); if (rm) { ISS.splice(+rm.dataset.rmi, 1); saveISS(); renderSettings(); }
+      const rm = e.target.closest('[data-rmi]'); if (rm) { const it = ISS.splice(+rm.dataset.rmi, 1)[0]; saveISS(); renderSettings(); if (it && it.s) resolveIss(it); }
       if (e.target.closest('#iss-copy')) { const txt = ISS.map(i => '• ' + i.x).join('\n'); try { navigator.clipboard.writeText(txt); } catch (x) {} const b = $('iss-copy'); b.textContent = 'copied'; setTimeout(() => { if (b.isConnected) b.textContent = 'copy list'; }, 1200); }
     });
     $('settings-card').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'iss-in') { e.preventDefault(); addIss(); } });
@@ -1049,7 +1066,7 @@
 
     // ---------- widget popups (greeting, calendars, countdown) and the weather ↔ food budget picker ----------
     let wsT = null;
-    function setSlot2(v) { SLOT2 = v === 'budget' ? 'budget' : 'weather'; try { localStorage.setItem('wheel-slot', SLOT2); } catch (e) {} renderSide(); renderSettings(); if (WPOP === 'slot') renderWpop(); }
+    function setSlot2(v) { SLOT2 = VOPTS.some(o => o[0] === v) ? v : 'weather'; try { localStorage.setItem('wheel-slot', SLOT2); } catch (e) {} renderSide(); renderSettings(); if (WPOP === 'slot') renderWpop(); }
     function openWpop(k) {
       WPOP = k; renderWpop(); $('w-body').scrollTop = 0; clearTimeout(wsT);
       $('scrim').style.display = 'block'; $('wsheet').style.display = 'flex'; void $('wsheet').offsetHeight;
@@ -1062,10 +1079,10 @@
     }
     function renderWpop() {
       const row = (k, inner) => `<div class="task srow"><span>${k}</span>${inner}</div>`, opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
-      $('w-title').textContent = ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', slot: 'this tile' })[WPOP] || '';
+      $('w-title').textContent = ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', slot: 'variable' })[WPOP] || '';
       $('w-body').innerHTML = '<div class="group">' + (WPOP === 'greet' ? row('randomize', `<label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label>`) + row('name', `<input class="sin" type="text" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}">`)
         : WPOP === 'cal' ? calList().map(c => row(`<span style="display:flex;align-items:center"><i class="ci" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span>`, `<label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label>`)).join('')
-        : WPOP === 'slot' ? [['weather', 'weather'], ['budget', 'food budget']].map(([k, l]) => `<button class="lrow throw" data-pick="${k}">${l}<span class="tick">${SLOT2 === k ? TICK : ''}</span></button>`).join('')
+        : WPOP === 'slot' ? VOPTS.map(([k, l]) => `<button class="lrow throw" data-pick="${k}">${l}<span class="tick">${SLOT2 === k ? TICK : ''}</span></button>`).join('')
         : row('show', `<select class="sel" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>`) +
           (CD.mode === 'ldoc' ? row('date', `<input class="sin" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">`) : '') +
           (CD.mode === 'custom' ? row('title', `<input class="sin" type="text" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}">`) + row('date', `<input class="sin" type="date" data-cd="date" value="${esc(CD.date)}">`) : '')) + '</div>';
@@ -1081,7 +1098,7 @@
     $('w-body').addEventListener('input', e => { const d = e.target.dataset || {}; if (d.gr === 'name') { GR.name = e.target.value; saveGR(); GP.key = ''; setGreeting(); } });
     // press and hold the weather / food budget tile to choose which one it shows
     (() => { let lpT = null, sx = 0, sy = 0; window.__lpFired = false;
-      $('side').addEventListener('pointerdown', e => { const t = e.target.closest('[data-slot]'); if (!t) return; sx = e.clientX; sy = e.clientY; clearTimeout(lpT);
+      $('side').addEventListener('pointerdown', e => { window.__lpFired = false; const t = e.target.closest('[data-slot]'); if (!t) return; sx = e.clientX; sy = e.clientY; clearTimeout(lpT);
         lpT = setTimeout(() => { window.__lpFired = true; t.classList.add('held'); setTimeout(() => t.classList.remove('held'), 200); openWpop('slot'); }, 480); });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => $('side').addEventListener(k, () => clearTimeout(lpT)));
       $('side').addEventListener('pointermove', e => { if (Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) > 10) clearTimeout(lpT); });
@@ -1302,6 +1319,21 @@
       if (DEMO) return;
       ISS.filter(i => !i.s && !i.p).forEach(i => { i.p = 1; fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'note_add', text: i.x, ts: i.t }) })
         .then(r => r.json()).then(j => { i.p = 0; if (j && j.ok) { i.s = 1; saveISS(); } }).catch(() => { i.p = 0; }); });
+    }
+    // the list is shared with the desktop through the sheet's Notes tab: server notes + any not sent yet; removing one resolves it there
+    let ISSRM = []; try { ISSRM = JSON.parse(localStorage.getItem('wheel-issues-rm') || '[]'); } catch (e) {}
+    const saveRM = () => { try { localStorage.setItem('wheel-issues-rm', JSON.stringify(ISSRM)); } catch (e) {} };
+    const issKey = i => Math.round(i.t / 1000) + '|' + i.x;
+    function mergeIss(notes) {
+      if (!Array.isArray(notes)) return;
+      const onServer = new Set(notes.map(issKey)); ISSRM = ISSRM.filter(k => onServer.has(k)); saveRM();
+      const server = notes.filter(n => !ISSRM.includes(issKey(n))).sort((a, b) => a.t - b.t).map(n => ({ x: n.x, t: n.t, s: 1 }));
+      ISS = server.concat(ISS.filter(i => !i.s && !onServer.has(issKey(i)))); saveISS();
+      const ae = document.activeElement; if (!(ae && ae.id === 'iss-in')) renderSettings();
+    }
+    function resolveIss(it) {
+      ISSRM.push(issKey(it)); saveRM(); if (DEMO) return;
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'note_done', text: it.x, ts: it.t }) }).catch(() => {});
     }
     const GR = { rand: false, name: 'sam' };
     try { Object.assign(GR, JSON.parse(localStorage.getItem('wheel-greet') || '{}')); } catch (e) {}

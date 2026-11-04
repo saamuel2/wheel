@@ -55,6 +55,7 @@ function doGet(e) {
   try { res.grades = readGrades_(ss); } catch (err) { errors.grades = String(err); }
   try { res.setup = readCourseSetup_(ss); } catch (err) { errors.setup = String(err); }
   try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
+  try { res.notes = readNotes_(ss); } catch (err) { errors.notes = String(err); }
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
@@ -84,6 +85,7 @@ function write_(parse) {
       case 'absence_remove': return out_(absenceRemove_(ss, b));
       case 'ra_done': return out_(raDone_(ss, b));
       case 'note_add': return out_(noteAdd_(ss, b));
+      case 'note_done': return out_(noteDone_(ss, b));
       case 'task_add':  return out_(taskAdd_(b));
       case 'task_done': return out_(taskDone_(b));
       case 'course_save': return out_(courseSave_(ss, b));
@@ -292,6 +294,23 @@ function noteAdd_(ss, b) {
   var sh = ss.getSheetByName('Notes');
   if (!sh) { sh = ss.insertSheet('Notes'); sh.appendRow(['when', 'note', 'from', 'resolved']); sh.setFrozenRows(1); }
   sh.appendRow([new Date(Number(b.ts) || Date.now()), text, String(b.from || 'phone'), false]);
+  return { ok: true };
+}
+// open notes (not resolved), shared by the phone and desktop lists; ts = the note's own time, used to find it again
+function readNotes_(ss) {
+  var sh = ss.getSheetByName('Notes'); if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, 4).getValues().map(function (r, i) {
+    var t = r[0] instanceof Date ? r[0].getTime() : Number(r[0]) || 0;
+    return { row: i + 2, t: t, x: str_(r[1]), from: str_(r[2]), done: r[3] === true };
+  }).filter(function (n) { return n.x && !n.done; });
+}
+// resolving a note ticks its "resolved" box (the row stays as a record)
+function noteDone_(ss, b) {
+  var sh = ss.getSheetByName('Notes'); if (!sh) return { ok: true };
+  var notes = readNotes_(ss), ts = Number(b.ts), text = str_(b.text);
+  var n = notes.filter(function (x) { return (ts && Math.abs(x.t - ts) < 1000 && x.x === text); })[0] || notes.filter(function (x) { return x.x === text; })[0];
+  if (!n) return { ok: true, missing: true };
+  sh.getRange(n.row, 4).setValue(true);
   return { ok: true };
 }
 
