@@ -163,7 +163,7 @@
   .fchip .a { font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 4px; } .fchip .a b { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
   .fchip .g { font-size: 11px; color: var(--sub); font-weight: 600; font-variant-numeric: tabular-nums; }
   .fchip.on { box-shadow: inset 0 0 0 2px var(--c); background: var(--card); }
-  .search { width: 190px; flex: none; height: 41px; }
+  .search { width: 190px; flex: none; height: 41px; padding-left: 34px !important; background: var(--fill) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238E8E93' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M20 20l-4.6-4.6'/%3E%3C/svg%3E") no-repeat 12px 50% / 15px 15px !important; }
   .toolbar .seg { height: 41px; align-items: stretch; } .toolbar .seg button { padding: 0 12px; }
   .grid tr.draft td { background: var(--fill); }
   .grid td.w36 { position: relative; }
@@ -352,7 +352,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.25 (11/07 2:45pm)';
+const BUILD = 'd1.26 (11/07 3:20pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -644,9 +644,9 @@ function morphKeep(o, n, ae) {
   return true;
 }
 function connectHtml() {
-  return `<div class="connect card"><div class="ct">connect to your sheet</div><p>Paste your connection key (the <b>TOKEN</b> script property in your Apps Script backend). It stays in this browser only.</p>
-    <div style="display:flex;gap:8px"><input class="txt" id="key-in" style="flex:1" placeholder="connection key" autocomplete="off"><button class="btn tint" data-act="savekey">connect</button></div>
-    <p class="muted" style="font-size:12px">Or open <a href="?demo">the demo</a> to look around with made-up data.</p></div>`;
+  return `<div class="connect card"><div class="ct">connection key</div>
+    <div style="display:flex;gap:8px"><input class="txt" id="key-in" style="flex:1" autocomplete="off"><button class="btn tint" data-act="savekey">connect</button></div>
+    </div>`;
 }
 const GR = Object.assign({ rand: false, name: 'sam' }, store.get('wheel-greet', {}));
 const DOTW = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
@@ -751,7 +751,7 @@ function upcomingBody() {
   return html + (last === null ? '<div class="muted">nothing on the calendar</div>' : '');
 }
 function openUpcoming() {
-  $('drawer').innerHTML = `<div class="dhd"><h2>upcoming</h2><span class="muted">${calList().length > 1 ? 'tap a calendar to show or hide it' : ''}</span><button class="iconbtn x" data-act="close" aria-label="close">${IC.x}</button></div><div class="upl" id="upl">${upcomingBody()}</div>`;
+  $('drawer').innerHTML = `<div class="dhd"><h2>upcoming</h2><button class="iconbtn x" data-act="close" aria-label="close">${IC.x}</button></div><div class="upl" id="upl">${upcomingBody()}</div>`;
   $('scrim').classList.add('on'); $('drawer').classList.add('on');
 }
 function toggleCal(name) {
@@ -813,8 +813,8 @@ function cdForm() {
   const opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
   return `<div class="cdbody cdf"><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>` +
     (CD.mode === 'ldoc' ? `<input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">` : '') +
-    (CD.mode === 'custom' ? `<div class="two"><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '') +
-    (CD.mode === 'exam' ? '<div class="muted" style="font-size:12px">counts down to your next EX row on the sheet</div>' : '') + '</div>';
+    (CD.mode === 'custom' ? `<div class="two"><input class="txt" data-cd="title" maxlength="40" value="${esc(CD.title)}"><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '') +
+    '</div>';
 }
 function countdownHtml() {
   const T = today(), A = data.assignments;
@@ -842,7 +842,7 @@ function dashGradesHtml() {
 }
 const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted">· ${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
 function raHtml(limit) {
-  const ra = data.ra; if (ra === undefined) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">update the backend to see RA tasks</div></div>';
+  const ra = data.ra; if (ra === undefined) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">not connected</div></div>';
   if (ra === null) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">no RA tab on this sheet</div></div>';
   let list = ra.filter(x => (showRaDone || !x.d) && !x._gone).sort((x, y) => (x.d - y.d) || (x.t == null) - (y.t == null) || (x.t || 0) - (y.t || 0));
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
@@ -857,13 +857,13 @@ function todoOrder() {
 function todoHtml(limit) {
   const td = data.todo;
   const head = `<div class="ct">to-do<span class="r"><a class="link" href="https://tasks.google.com/" target="_blank" rel="noopener">google tasks ${IC.ext}</a></span></div>`;
-  if (td === undefined) return `<div class="card">${head}<div class="muted">update the backend to see your Google Tasks</div></div>`;
-  if (td === null) return `<div class="card">${head}<div class="muted">turn on Google Tasks in the backend: in Apps Script, Services (+) → Google Tasks API → Add, then deploy a new version.</div></div>`;
+  if (td === undefined) return `<div class="card">${head}<div class="muted">not connected</div></div>`;
+  if (td === null) return `<div class="card">${head}<div class="muted">not connected</div></div>`;
   let list = todoOrder().filter(x => !x.d);
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
   return `<div class="card">${head}<div class="xlist">${list.map(x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:var(--tint)" data-act="todo" data-id="${esc(x.id)}">${CHECK}</button><span class="t">${esc(x.n)}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : ''}</span></div>`).join('') || '<div class="empty">nothing to do</div>'}</div>
     ${more ? `<div class="muted" style="font-size:12px;margin-top:6px"><button class="link" data-act="td-all">${more} more</button></div>` : ''}
-    <div class="addline"><input class="txt" id="td-new" data-k="td-new" placeholder="add a to-do" autocomplete="off"><input class="txt" type="date" id="td-due"></div></div>`;
+    <div class="addline"><input class="txt" id="td-new" data-k="td-new" autocomplete="off"><input class="txt" type="date" id="td-due"></div></div>`;
 }
 // ---------- sheet ----------
 let SF = Object.assign({ f: 'upcoming', cls: [], q: '', sort: 'due', dir: 1, out: false }, store.get('desk-sf', {}));
@@ -875,7 +875,7 @@ function classOptions(sel) {
 function dateCell(ms, attrs) {
   const ok = ms != null && !isNaN(ms), k = (/data-k="([^"]*)"/.exec(attrs) || [])[1];
   return `<div class="dcell"><button class="calbtn" data-act="pick" tabindex="-1" aria-label="pick a date">${CAL}</button>` +
-    `<input class="dtxt dtin" data-dtin${k ? ` data-k="${k}x"` : ''} value="${ok ? esc(dayLabel(ms)) : ''}" placeholder="m/d" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="due date">` +
+    `<input class="dtxt dtin" data-dtin${k ? ` data-k="${k}x"` : ''} value="${ok ? esc(dayLabel(ms)) : ''}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="due date">` +
     `<input class="cell due dpick" data-act="pick" type="date" ${attrs} value="${ok ? ymd(ms) : ''}"></div>`;
 }
 // type a date by hand: 11/4 · 11/4/26 · nov 4 · wed 11/4
@@ -905,13 +905,13 @@ function renderSheet(v) {
   const th = cols.map(c => `<th class="${c[1] ? 's' : ''}${SF.sort === c[0] && c[1] ? ' on' : ''}${c[0] === 'done' ? ' w36' : ''}" ${c[1] ? `data-act="sort" data-s="${c[0]}"` : ''}>${c[1]}${SF.sort === c[0] && c[1] ? (SF.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('');
   const ncol = cols.length;
   const draftRow = d => `<tr class="draft" data-draft-row="${d.id}">
-    <td class="w36"><button class="addok" data-act="draft-ok" data-draft="${d.id}" aria-label="add assignment" title="add">${IC.plus}</button></td>
+    <td class="w36"><button class="addok" data-act="draft-ok" data-draft="${d.id}" aria-label="add assignment">${IC.plus}</button></td>
     <td>${dateCell(d.f.t ? fromYmd(d.f.t) : null, `data-draft="${d.id}" data-df="t" data-k="d${d.id}t"`)}</td>
-    <td><input class="cell nm" data-draft="${d.id}" data-df="n" data-k="d${d.id}n" value="${esc(d.f.n)}" placeholder="new assignment — enter to save, esc to cancel" autocomplete="off"></td>
+    <td><input class="cell nm" data-draft="${d.id}" data-df="n" data-k="d${d.id}n" value="${esc(d.f.n)}"  autocomplete="off"></td>
     <td><select class="cell cl" data-draft="${d.id}" data-df="c" data-k="d${d.id}c" style="--c:${colorFor(d.f.c)}">${classOptions(d.f.c)}</select></td>
     <td><input class="cell ty" data-draft="${d.id}" data-df="y" data-k="d${d.id}y" value="${esc(d.f.y)}" autocomplete="off" spellcheck="false"></td>
     <td><input class="cell num" data-draft="${d.id}" data-df="g" data-k="d${d.id}g" value="${esc(d.f.g)}" autocomplete="off"></td>
-    ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}<td class="delc"><button class="delbtn" data-act="draft-x" data-draft="${d.id}" aria-label="cancel" title="cancel">${IC.x}</button></td></tr>`;
+    ${SF.out ? `<td><input class="cell num" data-draft="${d.id}" data-df="o" data-k="d${d.id}o" value="${esc(d.f.o)}" autocomplete="off"></td>` : ''}<td class="delc"><button class="delbtn" data-act="draft-x" data-draft="${d.id}" aria-label="cancel">${IC.x}</button></td></tr>`;
   let rows = DRAFTS.filter(d => d.after == null || !list.includes(byIdx(d.after))).map(draftRow).join('');
   let lastW = null;
   list.forEach(a => {
@@ -919,7 +919,7 @@ function renderSheet(v) {
     else if (SF.sort === 'due') { const w = weekStart(a.t); if (w !== lastW) { lastW = w; const n = weekNo(w); rows += `<tr class="wkh"><td colspan="${ncol}">${n < 1 ? 'before the semester' : 'week ' + n}${w === ws ? ' · this week' : ''}</td></tr>`; } }
     const i = data.assignments.indexOf(a), col = colorFor(a.c), late = !a.d && a.t < T, k = 'r' + i + '|';
     rows += `<tr class="row${a.d ? ' done' : ''}${late ? ' late' : ''}${bigType(a.y) ? ' xp' : ''}" style="--c:${col}" data-i="${i}">
-      <td class="w36"><button class="ins" data-act="insert" data-i="${i}" title="add a row below" aria-label="add a row below">${IC.plus}</button><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td>
+      <td class="w36"><button class="ins" data-act="insert" data-i="${i}" aria-label="add a row below">${IC.plus}</button><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td>
       <td>${dateCell(a.t, `data-f="t" data-k="${k}t"`)}</td>
       <td><input class="cell nm" data-f="n" data-k="${k}n" value="${esc(a.n)}" title="${esc(a.n)}" autocomplete="off"></td>
       <td><select class="cell cl" data-f="c" data-k="${k}c">${classOptions(a.c)}</select></td>
@@ -930,7 +930,7 @@ function renderSheet(v) {
   });
   v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">google sheet ${IC.ext}</a><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="toolbar"><div class="seg">${F.map(f => `<button class="${SF.f === f[0] ? 'on' : ''}" data-act="sf" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
-      <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" placeholder="search" value="${esc(SF.q)}" autocomplete="off"></div>
+      <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" aria-label="search" value="${esc(SF.q)}" autocomplete="off"></div>
     <table class="grid h">${colg}<thead><tr>${th}</tr></thead></table></div>
     <table class="grid b">${colg}<tbody>${rows}${list.length || DRAFTS.length ? '' : `<tr><td colspan="${ncol}" class="empty">${({ upcoming: 'all caught up', grade: 'everything is graded', done: 'nothing done yet', week: 'nothing due this week' }[SF.f] || 'nothing here')}</td></tr>`}</tbody></table>
     `;
@@ -979,7 +979,7 @@ function renderGrades(v) {
     ${gpaCard('gpa', 'term gpa', showGpa, L.gpa, `<ol class="trace">${lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('')}
           ${pf.length ? `<li>${esc(pf.map(c => spaceCode(c.code)).join(', '))}: pass/fail, not in GPA</li>` : ''}<li>${f2(pts)} grade points ÷ ${cr} credits = ${cr ? (pts / cr).toFixed(3) : '–'}</li></ol>`)}
     ${(() => { const O = overallGpa(L); return O ? gpaCard('gpa2', 'overall gpa', showGpa2, O.gpa, `<ol class="trace">${O.terms.map(t => `<li>${esc(t.term)}${t.live ? ' (this term, live)' : ''}: ${f2(t.pts)} grade points ÷ ${t.hrs} credits = ${(t.pts / t.hrs).toFixed(3)}</li>`).join('')}
-          <li>${O.terms.map(t => f2(t.pts)).join(' + ')} = ${f2(O.pts)} grade points ÷ ${O.hrs} credits = ${O.gpa.toFixed(3)}</li></ol><div class="muted" style="font-size:12px;margin-top:6px">finished terms from your GPA Tracker; pass/fail and 0-credit courses left out</div>`) : ''; })()}</div>`;
+          <li>${O.terms.map(t => f2(t.pts)).join(' + ')} = ${f2(O.pts)} grade points ÷ ${O.hrs} credits = ${O.gpa.toFixed(3)}</li></ol>`) : ''; })()}</div>`;
 }
 // ---------- grade inspector + what-if ----------
 let WI = null;
@@ -995,7 +995,7 @@ function openCourse(code) {
     <div class="card"><div class="ct">categories</div><table class="cats"><thead><tr><th>category</th><th class="n">weight</th><th class="n">graded</th><th class="n">score</th></tr></thead><tbody>${cats}</tbody></table></div>
     ${c.trace ? `<div class="card sec"><div class="ct">how it was calculated</div><ol class="trace">${c.trace.map(t => `<li>${esc(t)}</li>`).join('')}</ol></div>` : ''}
     ${WI.rule ? `<div class="card sec"><div class="ct">what if<span class="r"><button class="link" data-act="wi-reset">reset</button></span></div>
-      <p class="muted" style="margin:0 0 10px;font-size:13px">Type grades to see where you'd land. Nothing here is saved.</p>
+      
       <div id="wi-out" style="margin-bottom:12px"></div><div class="wi"><span class="h">assignment</span><span class="h">grade</span><span class="h">out of</span>
       ${items.map((it, i) => `<span class="nm" title="${esc(it.name)}">${esc(it.name)} <small>${esc(it.type)} · ${esc(dayLabel(fromYmd(it.due)))}</small></span><input class="cell num" data-wi="${i}" data-wf="grade" value="${esc(fmtG(it.grade))}" placeholder="–"><input class="cell num" data-wi="${i}" data-wf="possible" value="${it.possible == null ? '' : esc(it.possible)}">`).join('')}</div></div>` : ''}`;
   $('scrim').classList.add('on'); $('drawer').classList.add('on'); whatIf();
@@ -1050,16 +1050,16 @@ function renderRules() {
   const inp = (path, cur, ph, w) => `<input class="txt" data-re="${path}" value="${esc(cur == null ? '' : cur)}" placeholder="${ph || ''}" autocomplete="off" spellcheck="false"${w ? ` style="width:${w}"` : ''}>`;
   const f = (label, ctl, wide) => `<label class="ref"${wide ? ' style="grid-column:1/-1"' : ''}><span>${label}</span>${ctl}</label>`;
   const cats = R.cats.map((c, k) => { const q = i => `cat.${k}.${i}`, cv = c.vals;
-    return `<div class="card recat"><div class="rehd">${inp(q(1), cv[1], 'category name')}${inp(q(2), cv[2], 'type', '84px')}</div>
-      <div class="regrid">${f('weight', inp(q(3), cv[3]))}${f('# items', inp(q(4), cv[4], 'any'))}${f('drop lowest', inp(q(5), cv[5]))}${f('counted as', sel(q(6), cv[6] || 'category average', COUNTED))}</div>
+    return `<div class="card recat"><div class="rehd">${inp(q(1), cv[1])}${inp(q(2), cv[2], '', '84px')}</div>
+      <div class="regrid">${f('weight', inp(q(3), cv[3]))}${f('# items', inp(q(4), cv[4]))}${f('drop lowest', inp(q(5), cv[5]))}${f('counted as', sel(q(6), cv[6] || 'category average', COUNTED))}</div>
       <button class="link" data-act="re-more" data-k="${k}">${R.more[k] ? 'less' : 'more'}</button>
-      ${R.more[k] ? `<div class="regrid">${f('tiers / curves', inp(q(7), cv[7], 'e.g. Exam 1: 95, 90, 85, …; Exam 2: …'), true)}${f('bonus goes to', inp(q(8), cv[8], 'EX, FI'))}${f('cap', inp(q(9), cv[9]))}${f('assume until graded', inp(q(10), cv[10]))}${f('free absences', inp(q(11), cv[11]))}${f('lose per absence', inp(q(12), cv[12]))}${f('replace lowest with', inp(q(13), cv[13], 'type'))}</div>` : ''}</div>`; }).join('');
+      ${R.more[k] ? `<div class="regrid">${f('tiers / curves', inp(q(7), cv[7]), true)}${f('bonus goes to', inp(q(8), cv[8]))}${f('cap', inp(q(9), cv[9]))}${f('assume until graded', inp(q(10), cv[10]))}${f('free absences', inp(q(11), cv[11]))}${f('lose per absence', inp(q(12), cv[12]))}${f('replace lowest with', inp(q(13), cv[13]))}</div>` : ''}</div>`; }).join('');
   $('drawer').innerHTML = `<div class="dhd"><h2 style="color:${col}">${esc(spaceCode(R.code))}</h2><span class="muted">course settings</span><button class="iconbtn x" data-act="close" aria-label="close">${IC.x}</button></div>
     <div class="kv re-prev" id="re-prev"></div>
     <div class="sec"><div class="ct">basics</div><div class="card regrid">${f('name', inp('cfg.name', R.cfg.name))}${f('credit hours', inp('cfg.credits', R.cfg.credits))}${f('course code', `<span class="muted" style="padding:8px 0">${esc(R.code)}</span>`)}</div></div>
     <div class="sec"><div class="ct">grading</div><div class="card"><div class="regrid">
       ${f('method', sel('rule.1', R.rule[1], ['weighted', 'points']))}${f('bare numbers are', sel('rule.2', R.rule[2], ['points', 'percent']))}${f('final grade from', sel('rule.3', R.rule[3], ['percent', 'grade points']))}
-      ${f('round to', inp('rule.4', R.rule[4], 'decimals'))}${f('pass at', inp('rule.5', R.rule[5], 'S/U only'))}${f('drop lowest across', inp('rule.6', R.rule[6], 'EX, AS'))}${f('how many', inp('rule.7', R.rule[7]))}</div>
+      ${f('round to', inp('rule.4', R.rule[4]))}${f('pass at', inp('rule.5', R.rule[5]))}${f('drop lowest across', inp('rule.6', R.rule[6]))}${f('how many', inp('rule.7', R.rule[7]))}</div>
       <div class="ct" style="margin-top:14px">cutoffs</div><div class="recut">${RL.map((L, i) => f(L, inp('rule.' + (8 + i), R.rule[8 + i]))).join('')}</div></div></div>
     <div class="sec"><div class="ct">categories</div>${cats}</div>
     <div class="refoot"><span id="re-err" class="reerr"></span><button class="btn" data-act="close">cancel</button><button class="btn tint" id="re-save" data-act="re-save" disabled>save</button></div>`;
@@ -1103,12 +1103,12 @@ function renderSettings(v) {
       ${prow('countdown', cdSum, 'cd')}
       ${prow('variable', vName(SLOT), 'var')}</div>
     <div class="card"><div class="ct">feedback</div>${notesList().map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')}
-      <div class="row"><input class="txt" id="note-in" data-k="note-in" placeholder="add feedback…" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div></div>
+      <div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div></div>
     <div class="card"><div class="ct">app info</div>
       <div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
       <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '—'}</span><button class="btn sm" data-act="sync">refresh</button></div>
-      <div class="row"><span>connection key<div class="muted" style="font-size:12px">kept in this browser only</div></span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" placeholder="paste key" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div></div></div>`;
+      <div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div></div></div>`;
 }
 // feedback: one list with the phone, kept on the sheet's Notes tab
 let NOTE_NEW = [], NOTE_RM = new Set();
@@ -1140,12 +1140,12 @@ function renderPop() {
   const box = $('pop'); if (!box || !POP) return;
   const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
   const body = POP === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
-      <div class="row"><span>name</span><input class="txt" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div>`
+      <div class="row"><span>name</span><input class="txt" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div>`
     : POP === 'var' ? VOPTS.map(([k, l]) => `<button class="row prow" data-act="setslot" data-v="${k}"><span>${l}</span><span class="tick">${SLOT === k ? TICK : ''}</span></button>`).join('')
     : POP === 'cal' ? calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')
     : `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
       (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
-      (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
+      (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
   box.innerHTML = `<div class="pophd"><span>${({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable' })[POP]}</span><button class="link" data-act="popdone">done</button></div><div class="set popset">${body}</div>`;
 }
 // ===================== events =====================

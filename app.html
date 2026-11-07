@@ -123,7 +123,8 @@
   .tmain { flex: 1; min-width: 0; }
   .tname { font-size: 17px; line-height: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.2px; }
   .task.done .tname { color: var(--sub); }
-  #dash-list .task.done .tname { text-decoration: line-through; text-decoration-color: var(--sub); }
+  .group.mini .task { min-height: 0; } .group.mini .chk { width: 40px; height: 36px; } .group.mini .chk i { width: 20px; height: 20px; }
+  .group.mini .tmain { padding: 0; } .group.mini .tname { font-size: 15px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .grp.dgrp { display: flex; justify-content: space-between; } .grp.dgrp span + span { opacity: .8; } .grp.dgrp.today { color: var(--tint); }
   .tsub { font-size: 13px; line-height: 18px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tsub b { font-weight: 600; }
@@ -483,7 +484,7 @@
     <div class="sh-bar"><button id="sh-cancel">cancel</button><span id="sh-title">new assignment</span><button id="sh-save">add</button></div>
     <div class="sh-body">
       <div class="group">
-        <div class="frow"><input id="f-name" placeholder="name" autocomplete="off"></div>
+        <div class="frow"><label for="f-name">name</label><input id="f-name" autocomplete="off"></div>
         <div class="frow"><label for="f-class">class</label><select id="f-class"></select></div>
         <div class="frow"><label for="f-type">type</label><input id="f-type" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"></div>
         <div class="frow"><label for="f-due">due</label><span class="dtxt" id="f-due-txt"></span><input type="date" id="f-due"></div>
@@ -789,7 +790,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.54 (11/07 2:45pm)';
+    const BUILD = 'm2.55 (11/07 3:20pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -825,6 +826,9 @@
 
     const fmt2 = n => { const t = Number(n).toFixed(2); return t === '100.00' ? '100' : t; };
     const fmtG = g => { if (g == null || g === '') return ''; const n = Number(g); return isNaN(n) ? esc(g) : fmt2(n); };
+    function miniRowHtml(a) {
+      return `<div class="task mini${a.d ? ' done' : ''}" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}"><button class="chk" style="--c:${colorFor(a.c)}"><i>${CHECK}</i></button><div class="tmain"><div class="tname">${esc(a.n)}</div></div></div>`;
+    }
     function rowHtml(a, sub) {
       const col = colorFor(a.c), parts = [a.y ? esc(a.y) : '', fmtG(a.g), sub || ''].filter(Boolean);
       return `<div class="task${a.d ? ' done' : ''}" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}">` +
@@ -846,13 +850,11 @@
       const box = $('dash-list');
       if (!appData || !appData.assignments) { box.innerHTML = ''; return; }
       const rg = getWeekRange();
-      // the whole week, a group per day (like the desktop's day cards): checked-off ones stay, so they can be unchecked
-      const list = appData.assignments.filter(a => a.t >= rg.s && a.t <= rg.e).sort((x, y) => (x.t - y.t) || (x.r - y.r));
-      const T = new Date().setHours(0, 0, 0, 0), days = [];
-      list.forEach(a => { const d = new Date(a.t).setHours(0, 0, 0, 0); let g = days.find(x => x.d === d); if (!g) days.push(g = { d, a: [] }); g.a.push(a); });
-      box.innerHTML = days.length ? days.map(g => { const left = g.a.filter(a => !a.d).length;
-        return `<div class="grp dgrp${g.d === T ? ' today' : ''}"><span>${g.d === T ? 'today' : g.d === T + 864e5 ? 'tomorrow' : dayLabel(g.d)}</span><span>${left ? left + ' left' : 'done'}</span></div><div class="group">` + g.a.map(a => rowHtml(a, '')).join('') + '</div>'; }).join('')
-        : '<div class="grp">this week</div><div class="group"><div class="empty-row">nothing due this week</div></div>';
+      // this week: what's left first (with its day), then what's done, compact (checkbox + title), oldest first — still there to uncheck
+      const wk = appData.assignments.filter(a => a.t >= rg.s && a.t <= rg.e).sort((x, y) => (x.t - y.t) || (x.r - y.r));
+      const open = wk.filter(a => !a.d), done = wk.filter(a => a.d);
+      box.innerHTML = '<div class="grp">still to do</div><div class="group">' + (open.length ? open.map(a => rowHtml(a, dayLabel(a.t))).join('') : '<div class="empty-row">all caught up</div>') + '</div>' +
+        (done.length ? '<div class="grp">done</div><div class="group mini">' + done.map(miniRowHtml).join('') + '</div>' : '');
     }
 
     const TICK = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -908,7 +910,7 @@
       if (pending) commit(pending);
       const a = appData.assignments.find(x => String(x.r) === el.dataset.r && x.n === el.dataset.n && x.c === el.dataset.c);
       if (!a) return;
-      const to = !a.d, leaves = false;   // rows stay where they are (the dashboard keeps the whole week)
+      const to = !a.d, leaves = !!el.closest('#dash-list');   // dashboard: the row slides out and comes back in the other list
       if (!el.closest('#dash-list')) gradeHold.add(kOf(a));   // sheet tab: rows stay put until you press another sort button
       hold = true; setOv(kOf(a), snapOf(a), { d: to }); a.d = to; drawWheel(false); saveCache();
       el.classList.toggle('done', to); const ck = el.querySelector('.chk'); if (ck && to) { ck.classList.remove('ckpop'); void ck.offsetWidth; ck.classList.add('ckpop'); }
@@ -1098,7 +1100,7 @@
         prow('countdown', CD.mode === 'exam' ? 'next exam' : CD.mode === 'custom' ? (CD.title || 'custom day') : 'last day · ' + pd2(CD.ldoc), 'cd') +
         prow('variable', (VOPTS.find(o => o[0] === SLOT2) || VOPTS[0])[1], 'slot') + '</div>';
       const iss = '<div class="grp">feedback</div><div class="group">' + ISS.map((i, n) => `<div class="task srow iss-row"><span class="iss">${esc(i.x)}</span><button class="rm" data-rmi="${n}">remove</button></div>`).join('') +
-        '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in" placeholder="add feedback…" autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
+        '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in"  autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
       const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ${IC.r}</span></button>`).join('') + '</div>' : '';
       $('settings-card').innerHTML = th + cs + wg + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
@@ -1136,12 +1138,12 @@
     function renderWpop() {
       const row = (k, inner) => `<div class="task srow"><span>${k}</span>${inner}</div>`, opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
       $('w-title').textContent = ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', slot: 'variable' })[WPOP] || '';
-      $('w-body').innerHTML = '<div class="group">' + (WPOP === 'greet' ? row('randomize', `<label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label>`) + row('name', `<input class="sin" type="text" data-gr="name" placeholder="your name" maxlength="20" autocomplete="off" value="${esc(GR.name)}">`)
+      $('w-body').innerHTML = '<div class="group">' + (WPOP === 'greet' ? row('randomize', `<label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label>`) + row('name', `<input class="sin" type="text" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}">`)
         : WPOP === 'cal' ? calList().map(c => row(`<span style="display:flex;align-items:center"><i class="ci" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span>`, `<label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label>`)).join('')
         : WPOP === 'slot' ? VOPTS.map(([k, l]) => `<button class="lrow throw" data-pick="${k}">${l}<span class="tick">${SLOT2 === k ? TICK : ''}</span></button>`).join('')
         : row('show', `<select class="sel" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>`) +
           (CD.mode === 'ldoc' ? row('date', `<input class="sin" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">`) : '') +
-          (CD.mode === 'custom' ? row('title', `<input class="sin" type="text" data-cd="title" placeholder="name it" maxlength="40" value="${esc(CD.title)}">`) + row('date', `<input class="sin" type="date" data-cd="date" value="${esc(CD.date)}">`) : '')) + '</div>';
+          (CD.mode === 'custom' ? row('title', `<input class="sin" type="text" data-cd="title" maxlength="40" value="${esc(CD.title)}">`) + row('date', `<input class="sin" type="date" data-cd="date" value="${esc(CD.date)}">`) : '')) + '</div>';
     }
     $('w-done').addEventListener('click', closeWpop);
     $('w-body').addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (b) { setSlot2(b.dataset.pick); setTimeout(closeWpop, 180); } });
@@ -1214,15 +1216,15 @@
       const fr = (label, ctl) => `<div class="frow"><label>${label}</label>${ctl}</div>`;
       const cats = R.cats.map((c, k) => { const q = i => `cat.${k}.${i}`, v = c.vals;
         return `<div class="grp">${esc(String(v[1] || 'category').toLowerCase())}</div><div class="group">` +
-          fr('name', inp(q(1), v[1])) + fr('type', inp(q(2), v[2], '', '', '')) + fr('weight', inp(q(3), v[3], '', 'decimal')) + fr('# items', inp(q(4), v[4], 'any', 'numeric')) +
+          fr('name', inp(q(1), v[1])) + fr('type', inp(q(2), v[2], '', '', '')) + fr('weight', inp(q(3), v[3], '', 'decimal')) + fr('# items', inp(q(4), v[4], '', 'numeric')) +
           fr('drop lowest', inp(q(5), v[5], '', 'numeric')) + fr('counted as', sel(q(6), v[6] || 'category average', COUNTED)) +
-          (R.more[k] ? fr('tiers / curves', inp(q(7), v[7], 'Exam 1: 95, 90, …')) + fr('bonus goes to', inp(q(8), v[8], 'EX, FI')) + fr('cap', inp(q(9), v[9], '', 'decimal')) +
-            fr('assume until graded', inp(q(10), v[10], '', 'decimal')) + fr('free absences', inp(q(11), v[11], '', 'numeric')) + fr('lose per absence', inp(q(12), v[12], '', 'decimal')) + fr('replace lowest with', inp(q(13), v[13], 'type')) : '') +
+          (R.more[k] ? fr('tiers / curves', inp(q(7), v[7], '')) + fr('bonus goes to', inp(q(8), v[8], '')) + fr('cap', inp(q(9), v[9], '', 'decimal')) +
+            fr('assume until graded', inp(q(10), v[10], '', 'decimal')) + fr('free absences', inp(q(11), v[11], '', 'numeric')) + fr('lose per absence', inp(q(12), v[12], '', 'decimal')) + fr('replace lowest with', inp(q(13), v[13], '')) : '') +
           `<button class="lrow" data-rmore="${k}">${R.more[k] ? 'fewer options' : 'more options'}</button></div>`; }).join('');
       $('r-body').innerHTML = `<div class="group rprev" id="r-prev"></div><div class="rerr" id="r-err" style="display:none"></div>
         <div class="grp">basics</div><div class="group">${fr('name', inp('cfg.name', R.cfg.name))}${fr('credit hours', inp('cfg.credits', R.cfg.credits, '', 'decimal'))}${fr('course code', `<span class="tg" style="margin-left:auto">${esc(R.code)}</span>`)}</div>
         <div class="grp">grading</div><div class="group">${fr('method', sel('rule.1', R.rule[1], ['weighted', 'points']))}${fr('bare numbers are', sel('rule.2', R.rule[2], ['points', 'percent']))}${fr('final grade from', sel('rule.3', R.rule[3], ['percent', 'grade points']))}
-          ${fr('round to', inp('rule.4', R.rule[4], 'decimals', 'numeric'))}${fr('pass at', inp('rule.5', R.rule[5], 'S/U only', 'decimal'))}${fr('drop lowest across', inp('rule.6', R.rule[6], 'EX, AS'))}${fr('how many', inp('rule.7', R.rule[7], '', 'numeric'))}</div>
+          ${fr('round to', inp('rule.4', R.rule[4], '', 'numeric'))}${fr('pass at', inp('rule.5', R.rule[5], '', 'decimal'))}${fr('drop lowest across', inp('rule.6', R.rule[6], ''))}${fr('how many', inp('rule.7', R.rule[7], '', 'numeric'))}</div>
         <div class="grp">cutoffs</div><div class="group rcut">${RLET.map((L, i) => `<label>${L}<input data-re="rule.${8 + i}" value="${esc(R.rule[8 + i] == null ? '' : R.rule[8 + i])}" inputmode="decimal" autocomplete="off"></label>`).join('')}</div>
         ${cats}`;
       rulesPreview();
@@ -1310,7 +1312,7 @@
       localGrades(appData);
       const box = $('grades-box'), g = appData && appData.grades;
       if (!g) { box.innerHTML = '<div class="empty">' + (appData ? 'grades aren’t connected yet' : 'loading…') + '</div>'; return; }
-      box.innerHTML = `<div class="group gpa" id="gpa-card"><div><div class="tl">gpa</div><div class="gv${gpaShown ? '' : ' eyebox'}">${gpaShown ? (g.gpa != null ? Number(g.gpa).toFixed(3) : '–') : '<svg class="eye" viewBox="2 9 20 11" width="46" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.2 3.6 5.4 5.4 9 5.4s6.8-1.8 9-5.4"/><path d="M5.2 14.6 3.5 16.6M9.2 16.4l-.9 2.4M14.8 16.4l.9 2.4M18.8 14.6l1.7 2"/></svg>'}</div><div class="ts">${gpaShown ? 'tap to hide' : 'tap to show'}</div></div><div class="r"><div class="tl">credit hours</div><div class="gv sm">${g.credits}</div></div></div>` +
+      box.innerHTML = `<div class="group gpa" id="gpa-card"><div><div class="tl">gpa</div><div class="gv${gpaShown ? '' : ' eyebox'}">${gpaShown ? (g.gpa != null ? Number(g.gpa).toFixed(3) : '–') : '<svg class="eye" viewBox="2 9 20 11" width="46" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.2 3.6 5.4 5.4 9 5.4s6.8-1.8 9-5.4"/><path d="M5.2 14.6 3.5 16.6M9.2 16.4l-.9 2.4M14.8 16.4l.9 2.4M18.8 14.6l1.7 2"/></svg>'}</div></div><div class="r"><div class="tl">credit hours</div><div class="gv sm">${g.credits}</div></div></div>` +
         gpaHow(g) +
         '<div class="grp">classes</div><div class="group">' + g.courses.map(c => {
           const col = colorFor(c.code);
