@@ -90,6 +90,7 @@
     position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;
   }
   .wheel-pct { font-weight: 800; font-size: 64px; line-height: 1; letter-spacing: -1px; }
+  .wheel-pct.full { transform: scale(.8); }
   .wheel-frac { font-weight: 700; font-size: 16px; color: var(--sub); margin-top: 4px; }
   
   .error-toast { color: #FF3B30; font-size: 14px; text-align: center; margin-top: 10px; font-weight: 600; display: none; }
@@ -626,7 +627,8 @@
         const step = now => { if (tok !== wheelTok) return; const q = Math.min((now - t0) / 800, 1); wg.innerHTML = arcs(1 - Math.pow(1 - q, 4)); if (q < 1) requestAnimationFrame(step); };
         requestAnimationFrame(step);
       } else wg.innerHTML = arcs(1);
-      document.getElementById('wheel-pct').textContent = weekTasks.length ? Math.round((doneTasks.length / weekTasks.length) * 100) + '%' : '0%';
+      const wpv = weekTasks.length ? Math.round((doneTasks.length / weekTasks.length) * 100) : 0, wpe = document.getElementById('wheel-pct');
+      wpe.textContent = wpv + '%'; wpe.classList.toggle('full', wpv >= 100);   // three digits: a size smaller so it sits inside the rings
       document.getElementById('wheel-frac').textContent = `${doneTasks.length}/${weekTasks.length} done`;
     }
 
@@ -737,7 +739,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.50 (11/04 1:05pm)';
+    const BUILD = 'm2.51 (11/07 11:40am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
