@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" type="image/png" href="favicon-desktop.png?v=3">
+<link rel="icon" type="image/png" href="favicon-desktop.png?v=4">
 <meta name="apple-mobile-web-app-title" content="assignments">
 <title>assignments</title>
 <style>
@@ -74,7 +74,7 @@
     display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 0 12px;
   }
   .week-nav-btn {
-    width: 44px; height: 44px; border-radius: 16px; background: var(--card); color: var(--text);
+    width: 44px; height: 44px; border-radius: 50%; background: var(--card); color: var(--text);
     display: flex; align-items: center; justify-content: center; text-decoration: none;
     font-size: 22px; font-weight: 700; padding-bottom: 4px; transition: opacity 0.2s;
   }
@@ -123,6 +123,8 @@
   .tmain { flex: 1; min-width: 0; }
   .tname { font-size: 17px; line-height: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.2px; }
   .task.done .tname { color: var(--sub); }
+  #dash-list .task.done .tname { text-decoration: line-through; text-decoration-color: var(--sub); }
+  .grp.dgrp { display: flex; justify-content: space-between; } .grp.dgrp span + span { opacity: .8; } .grp.dgrp.today { color: var(--tint); }
   .tsub { font-size: 13px; line-height: 18px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tsub b { font-weight: 600; }
   .tg { color: var(--sub); font-size: 17px; font-variant-numeric: tabular-nums; }
@@ -178,9 +180,13 @@
   /* 2.7: dashboard cards left-aligned (3), weather icon on the right */
   .side { gap: 8px; }
   .tile { align-items: flex-start; text-align: left; padding: 8px 12px; }
-  .tile.wx.cpt { flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; } .mbars { display: flex; gap: 4px; align-items: flex-end; height: 30px; }
+  .tile.wx.cpt { flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; } .mbars { display: flex; gap: 5px; align-items: flex-end; height: 41px; }   /* same height as the weather text, so swapping never moves the tiles below */
   .mbars i { flex: 1; height: 100%; border-radius: 4px; background: linear-gradient(to top, var(--c) var(--h), rgba(118,118,128,.24) var(--h)); }
   .cbar { height: 6px; border-radius: 3px; background: rgba(118,118,128,.24); margin-top: 8px; overflow: hidden; } .cbar i { display: block; height: 100%; border-radius: 3px; }
+  [data-slot], [data-cdhold] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  [data-slot].in-r { animation: tin-r .38s var(--spring); } [data-slot].in-l { animation: tin-l .38s var(--spring); }
+  @keyframes tin-r { from { transform: translateX(40px); opacity: 0; } to { transform: none; opacity: 1; } } @keyframes tin-l { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  [data-cdhold].held { transform: scale(.96); }
   [data-slot] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transition: transform .18s; } [data-slot].held { transform: scale(.96); }
   .tile.wx { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }
   .wtxt { min-width: 0; } .wxart { flex: none; width: 50px; height: 36px; margin: 0; }
@@ -188,7 +194,7 @@
   .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; max-height: none; margin-top: 1px; }
   /* 2.7: add button + edit/add sheet */
   .hrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; } .hrow h1 { margin: 0; }
-  .plus { width: 36px; height: 36px; border-radius: 16px; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(118,118,128,.24); color: var(--tint); box-shadow: inset 0 1px 0 rgba(255,255,255,.16); touch-action: manipulation; }
+  .plus { width: 36px; height: 36px; border-radius: 50%; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(118,118,128,.24); color: var(--tint); box-shadow: inset 0 1px 0 rgba(255,255,255,.16); touch-action: manipulation; }
   .plus svg { width: 18px; height: 18px; }
   .tb-plus { display: none; position: absolute; right: 12px; top: calc(env(safe-area-inset-top) + 4px); pointer-events: none; }
   .topbar[data-v="view-assignments"] .tb-plus, .topbar[data-v="view-attendance"] .tb-plus { display: flex; } .topbar.show .tb-plus { pointer-events: auto; }
@@ -245,7 +251,7 @@
   .dn .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .dn .cl { font-size: 40px; font-weight: 700; line-height: 42px; } .dn .cp { font-size: 15px; color: var(--sub); font-variant-numeric: tabular-nums; }
   .scale { text-align: center; font-size: 12px; color: var(--sub); margin: 12px 8px 0; line-height: 18px; }
-  .dot { width: 10px; height: 10px; border-radius: 5px; flex: none; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
   #c-title { font-size: 17px; font-weight: 600; max-width: 56%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #csheet .grp { margin-top: 20px; }
   /* 2.10: grade on the right as "94.44 (A)", tap-to-reveal gpa */
@@ -259,7 +265,7 @@
   .topbar#topbar { height: calc(env(safe-area-inset-top) + 68px); padding-top: calc(env(safe-area-inset-top) + 24px); padding-bottom: 0; }
   #tb-title { font-size: 20px; font-weight: 700; letter-spacing: -.2px; opacity: 0; transition: opacity .2s; -webkit-font-smoothing: antialiased; }
   .topbar.show #tb-title { opacity: 1; }
-  .fab { display: none; position: fixed; z-index: 900; right: 12px; top: calc(env(safe-area-inset-top) + 20px); width: 44px; height: 44px; border-radius: 16px; border: 0; padding: 0; align-items: center; justify-content: center; color: #fff; touch-action: manipulation;
+  .fab { display: none; position: fixed; z-index: 900; right: 12px; top: calc(env(safe-area-inset-top) + 20px); width: 44px; height: 44px; border-radius: 50%; border: 0; padding: 0; align-items: center; justify-content: center; color: #fff; touch-action: manipulation;
     background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.05)), rgba(60,60,64,.45); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%); box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 3px 12px rgba(0,0,0,.4); }
   .fab:active { transform: scale(.94); } .fab svg { width: 22px; height: 22px; }
   .topbar[data-v="view-assignments"] ~ .fab, .topbar[data-v="view-attendance"] ~ .fab { display: flex; }
@@ -277,7 +283,7 @@
   .task.gr-row { padding-left: 16px; padding-right: 12px; gap: 12px; }
   .gin { width: 68px; height: 38px; flex: none; border: 0; border-radius: 10px; background: var(--fill); color: var(--text); font-family: inherit; font-size: 17px; font-weight: 600; text-align: center; outline: 0; -webkit-user-select: text; user-select: text; -webkit-appearance: none; appearance: none; font-variant-numeric: tabular-nums; }
   .gin::placeholder { color: #636366; } .gin:focus { background: rgba(118,118,128,.4); box-shadow: 0 0 0 1.5px var(--tint); }
-  .g100 { width: 38px; height: 38px; flex: none; border-radius: 16px; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: var(--fill); color: var(--tint); touch-action: manipulation; transition: background .2s, color .2s; }
+  .g100 { width: 38px; height: 38px; flex: none; border-radius: 50%; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: var(--fill); color: var(--tint); touch-action: manipulation; transition: background .2s, color .2s; }
   .g100.on { background: var(--tint); color: #fff; } .g100:active { transform: scale(.92); }
   #csheet { max-height: 80%; }
   #asheet { z-index: 1300; }
@@ -379,7 +385,7 @@
   html[data-theme=moody] .sw input:checked + i { background: #6B7F52; }
   html[data-theme=moody] .gin:focus { background: rgba(157,178,127,.25); }
   html[data-theme=moody] .fab, html[data-theme=moody] .plus { color: #E6DCC8; }
-  #ptr { position: fixed; left: 50%; top: 0; z-index: 700; width: 36px; height: 36px; margin-left: 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: var(--sub); background: var(--card); opacity: 0; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,.25); transform: translate(-50%, -8px); }
+  #ptr { position: fixed; left: 50%; top: 0; z-index: 700; width: 36px; height: 36px; margin-left: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--sub); background: var(--card); opacity: 0; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,.25); transform: translate(-50%, -8px); }
   #ptr.spin svg { animation: ptrspin .8s linear infinite; } @keyframes ptrspin { to { transform: rotate(360deg); } }
   .content { overscroll-behavior-y: contain; }
   .iss-row { max-height: none; } .iss { flex: 1; min-width: 0; white-space: normal; line-height: 20px; padding: 12px 0; font-size: 17px; }
@@ -391,7 +397,7 @@
   .chip { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 16px; padding: 8px 12px; font-family: inherit; font-size: 15px; font-weight: 600; background: var(--fill); color: var(--text); touch-action: manipulation; }
   .chip i { width: 9px; height: 9px; border-radius: 5px; background: var(--c); flex: none; } .chip.off { opacity: .45; } .chip.off i { background: transparent; box-shadow: inset 0 0 0 1.5px var(--c); }
   .tile.big { cursor: pointer; } .tile.big .more { font-size: 11px; color: var(--sub); margin-top: 4px; }
-  .evr .tsub b { font-weight: 600; } .ci { width: 10px; height: 10px; border-radius: 5px; flex: none; margin-right: 12px; }
+  .evr .tsub b { font-weight: 600; } .ci { width: 10px; height: 10px; border-radius: 50%; flex: none; margin-right: 12px; }
   :root { --dtrack: rgba(255,255,255,.1); } .dtr { stroke: var(--dtrack); }
   html[data-theme=light] { --dtrack: rgba(60,60,67,.12); }
 
@@ -403,9 +409,30 @@
   /* press: things you can tap give a little under your finger, all the same way */
   .lrow, .tile, .plus, .fab, .sh-bar button, .seg button, .chip, .gpa, .week-nav-btn { transition: transform var(--dur-fast) var(--ease), background-color var(--dur-fast), opacity var(--dur-fast); }
   .tile:active, .gpa:active { transform: scale(.97); } .plus:active, .fab:active, .week-nav-btn:active { transform: scale(.9); } .sh-bar button:active { opacity: .45; }
-  .chk.pop i { animation: chkpop .38s var(--ease); } @keyframes chkpop { 0% { transform: scale(.78); } 55% { transform: scale(1.12); } 100% { transform: scale(1); } }
+  .chk.ckpop i { animation: chkpop .38s var(--ease); } @keyframes chkpop { 0% { transform: scale(.78); } 55% { transform: scale(1.12); } 100% { transform: scale(1); } }
   .group, .tile { border-radius: var(--r-card); } .sheet { border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
-  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+  input:focus, select:focus, textarea:focus, button:focus { outline: none; }
+
+  /* ===== tab bar (11/07): built to match the iOS Phone app's — a floating glass capsule, five 64-pt tabs, SF-style filled glyphs,
+     the selected tab sitting in a darker capsule with its glyph and label in system blue ===== */
+  .nav-bar { left: 21px; right: 21px; bottom: 14px; height: 67px; padding: 0 14px; border-radius: 34px; justify-content: space-between;
+    background: rgba(40,40,40,.78) !important; -webkit-backdrop-filter: blur(24px) saturate(180%) !important; backdrop-filter: blur(24px) saturate(180%) !important;
+    box-shadow: inset 0 0 0 .5px rgba(255,255,255,.14), inset 0 .5px 0 rgba(255,255,255,.12), 0 10px 30px rgba(0,0,0,.35) !important; }
+  .nav-bar::before { display: none !important; }
+  .nav-indicator { top: 5px; bottom: 5px; width: 76px; left: calc(14px + (100vw - 70px) / 10 - 38px); border-radius: 29px;
+    background: rgba(0,0,0,.68) !important; box-shadow: none !important;
+    transform: translateX(calc(var(--active-index) * (100vw - 70px) / 5)); transition: transform .42s cubic-bezier(.32,.72,0,1); }
+  .nav-item { flex: 1; height: 100%; gap: 3px; font-size: 10px; font-weight: 600; letter-spacing: .1px; color: #fff !important; transition: color .2s; }
+  .nav-item svg { width: 25px; height: 25px; margin: 0; transition: transform .2s cubic-bezier(.32,.72,0,1); }
+  .nav-item:active { opacity: 1; } .nav-item:active svg { transform: scale(.88); }
+  .nav-item.active { color: #4399F0 !important; }
+  html[data-theme=light] .nav-bar { background: rgba(249,249,249,.82) !important; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08), 0 10px 30px rgba(0,0,0,.12) !important; }
+  html[data-theme=light] .nav-indicator { background: rgba(120,120,128,.16) !important; box-shadow: none !important; }
+  html[data-theme=light] .nav-item { color: #000 !important; } html[data-theme=light] .nav-item.active { color: #007AFF !important; }
+  html[data-theme=elegant] .nav-bar { background: rgba(244,240,233,.84) !important; box-shadow: inset 0 0 0 .5px rgba(24,60,64,.12), 0 10px 30px rgba(24,60,64,.16) !important; }
+  html[data-theme=elegant] .nav-indicator { background: rgba(24,60,64,.1) !important; box-shadow: none !important; }
+  html[data-theme=elegant] .nav-item { color: #183C40 !important; } html[data-theme=elegant] .nav-item.active { color: #2F6B4A !important; }
+  html[data-theme=moody] .nav-bar { background: rgba(38,38,38,.8) !important; } html[data-theme=moody] .nav-item { color: #E6DCC8 !important; } html[data-theme=moody] .nav-item.active { color: #B2C894 !important; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
@@ -504,18 +531,11 @@
 
   <div class="nav-bar" id="nav-bar">
     <div class="nav-indicator" id="nav-indicator"></div>
-    <a href="#" class="nav-item active" data-target="view-dashboard" data-index="0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round">
-        <circle cx="12" cy="12" r="9" stroke-width="1.5" opacity="0.25"/><circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/>
-        <circle cx="12" cy="12" r="6" stroke-width="1.5" opacity="0.25"/><circle cx="12" cy="12" r="6" stroke-width="1.5" stroke-dasharray="25 100" transform="rotate(-90 12 12)"/>
-        <circle cx="12" cy="12" r="3" stroke-width="1.5" opacity="0.25"/><circle cx="12" cy="12" r="3" stroke-width="1.5" stroke-dasharray="12 100" transform="rotate(-90 12 12)"/>
-      </svg>
-      dashboard
-    </a>
-    <a href="#" class="nav-item" data-target="view-assignments" data-index="1"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet</a>
-    <a href="#" class="nav-item" data-target="view-grades" data-index="2"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades</a>
-    <a href="#" class="nav-item" data-target="view-attendance" data-index="3"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>attendance</a>
-    <a href="#" class="nav-item" data-target="view-settings" data-index="4"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.43-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>settings</a>
+    <a href="#" class="nav-item active" data-target="view-dashboard" data-index="0"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.6"><circle cx="14" cy="14" r="11.2" opacity=".28"/><path d="M14 2.8a11.2 11.2 0 1 1-10.6 14.8"/><circle cx="14" cy="14" r="6.4" opacity=".28"/><path d="M14 7.6a6.4 6.4 0 1 1-6.1 8.4"/><circle cx="14" cy="14" r="1.9" fill="currentColor" stroke="none"/></svg><span>dashboard</span></a>
+    <a href="#" class="nav-item" data-target="view-assignments" data-index="1"><svg viewBox="0 0 28 28" fill="currentColor"><circle cx="5.2" cy="7.5" r="2.1"/><circle cx="5.2" cy="14" r="2.1"/><circle cx="5.2" cy="20.5" r="2.1"/><rect x="10" y="6.1" width="15" height="2.8" rx="1.4"/><rect x="10" y="12.6" width="15" height="2.8" rx="1.4"/><rect x="10" y="19.1" width="15" height="2.8" rx="1.4"/></svg><span>sheet</span></a>
+    <a href="#" class="nav-item" data-target="view-grades" data-index="2"><svg viewBox="0 0 28 28" fill="currentColor"><path d="M14 4.2c.4 0 .8.1 1.2.3l10.4 5.1c.9.5.9 1.8 0 2.3L15.2 17c-.8.4-1.6.4-2.4 0L2.4 11.9c-.9-.5-.9-1.8 0-2.3l10.4-5.1c.4-.2.8-.3 1.2-.3z"/><path d="M7.2 15.6l4.9 2.4c1.2.6 2.6.6 3.8 0l4.9-2.4v4.1c0 .6-.3 1.1-.8 1.4-1.8 1.1-3.8 1.7-6 1.7s-4.2-.6-6-1.7c-.5-.3-.8-.8-.8-1.4v-4.1z"/><path d="M24.4 11.2h1.6v6.6a.8.8 0 0 1-1.6 0z"/></svg><span>grades</span></a>
+    <a href="#" class="nav-item" data-target="view-attendance" data-index="3"><svg viewBox="0 0 28 28" fill="currentColor"><path d="M7.6 3.4c.6 0 1 .4 1 1V6h10.8V4.4a1 1 0 1 1 2 0V6h.9C24.5 6 26 7.5 26 9.6v11.8c0 2.1-1.5 3.6-3.7 3.6H5.7C3.5 25 2 23.5 2 21.4V9.6C2 7.5 3.5 6 5.7 6h.9V4.4c0-.6.4-1 1-1zM4.2 12.2v9.1c0 1 .6 1.6 1.6 1.6h16.4c1 0 1.6-.6 1.6-1.6v-9.1z"/><rect x="7" y="14.4" width="3.4" height="3.2" rx=".9"/><rect x="12.3" y="14.4" width="3.4" height="3.2" rx=".9"/><rect x="17.6" y="14.4" width="3.4" height="3.2" rx=".9"/><rect x="7" y="19" width="3.4" height="3.2" rx=".9"/><rect x="12.3" y="19" width="3.4" height="3.2" rx=".9"/></svg><span>attendance</span></a>
+    <a href="#" class="nav-item" data-target="view-settings" data-index="4"><svg viewBox="0 0 28 28" fill="currentColor" fill-rule="evenodd"><path d="M12.4 2.5h3.2l.6 3.1 1.6.7 2.6-1.8 2.3 2.3-1.8 2.6.7 1.6 3.1.6v3.2l-3.1.6-.7 1.6 1.8 2.6-2.3 2.3-2.6-1.8-1.6.7-.6 3.1h-3.2l-.6-3.1-1.6-.7-2.6 1.8-2.3-2.3 1.8-2.6-.7-1.6-3.1-.6v-3.2l3.1-.6.7-1.6-1.8-2.6 2.3-2.3 2.6 1.8 1.6-.7zM14 9.6a4.4 4.4 0 1 0 0 8.8 4.4 4.4 0 0 0 0-8.8z"/></svg><span>settings</span></a>
   </div>
 
   <script src="engine.js"></script>
@@ -655,22 +675,27 @@
       document.getElementById('wheel-frac').textContent = `${doneTasks.length}/${weekTasks.length} done`;
     }
 
-    function fetchData(silent) {
+    // now = true (pull to refresh, opening the app): wait for any fetch already on its way, never use a cached response,
+    // and put what comes back on screen right away instead of waiting for undo windows to close
+    let fetchP = null, fetchNow = false;
+    function fetchData(silent, now) {
       if (DEMO) { if (!silent) { appData = demoData(); synced(); } return Promise.resolve(); }
-      if (fetching) return Promise.resolve(); fetching = true;
-      return fetch(`${API}?token=${encodeURIComponent(TOKEN)}`)
+      if (now) fetchNow = true;
+      if (fetchP) return fetchP; fetching = true;
+      return fetchP = fetch(`${API}?token=${encodeURIComponent(TOKEN)}&_=${Date.now()}`, { cache: 'no-store' })
         .then(res => res.json())
         .then(data => {
-          fetching = false;
+          fetching = false; fetchP = null; const asap = fetchNow; fetchNow = false;
+          if (asap && pending) commit(pending);
           if (data.error) throw new Error(data.error);
           if (EVT) { data.events = EVT.events; data.calendars = EVT.calendars; }
           applyOv(data); stash = data; saveCache(data); mergeIss(data.notes);
           document.getElementById('error-msg').style.display = 'none';
-          flushStash();
+          flushStash(asap);
           loadEvents();
         })
         .catch(err => {
-          fetching = false; console.error(err);
+          fetching = false; fetchP = null; fetchNow = false; console.error(err);
           if (silent && appData) return;
           document.getElementById('wheel-frac').textContent = 'error';
           const errBox = document.getElementById('error-msg');
@@ -721,7 +746,7 @@
         if (y0 === null) return; y0 = null;
         if (pull < 60) { set(pull = 0, true); return; }
         busyP = true; set(56, true); ind.classList.add('spin');
-        Promise.all([checkUpdate(), fetchData(false), DEMO ? new Promise(r => setTimeout(r, 700)) : Promise.resolve(), (loadWx(), Promise.resolve())])
+        Promise.all([checkUpdate(), fetchData(false, true), DEMO ? new Promise(r => setTimeout(r, 700)) : Promise.resolve(), (loadWx(), Promise.resolve())])
           .catch(() => {}).then(() => { setTimeout(() => { ind.classList.remove('spin'); set(pull = 0, true); busyP = false; }, 250); });
       }, { passive: true });
     })();
@@ -729,9 +754,10 @@
       const ae = document.activeElement, ed = ae && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);
       return !!(pending || hold || ed || ['sheet', 'csheet', 'asheet'].some(id => $(id).classList.contains('show')));
     }
-    function flushStash() {
+    function flushStash(asap) {
       if (!stash) return;
-      if (busy()) { setTimeout(flushStash, 2000); return; }
+      if (asap && hold) hold = false;   // a refresh you asked for doesn't wait on row animations
+      if (busy()) { setTimeout(flushStash, asap ? 400 : 2000); return; }
       applyOv(stash); appData = stash; stash = null; synced();
     }
     function saveCache(d) { try { localStorage.setItem('wheel-cache', JSON.stringify({ ts: Date.now(), data: d || appData })); } catch (e) {} }
@@ -763,7 +789,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.53 (11/07 1:30pm)';
+    const BUILD = 'm2.54 (11/07 2:45pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -820,9 +846,13 @@
       const box = $('dash-list');
       if (!appData || !appData.assignments) { box.innerHTML = ''; return; }
       const rg = getWeekRange();
-      const list = appData.assignments.filter(a => !a.d && a.t >= rg.s && a.t <= rg.e).sort((x, y) => (x.t - y.t) || (x.r - y.r));
-      box.innerHTML = '<div class="grp">still to do</div><div class="group">' +
-        (list.length ? list.map(a => rowHtml(a, dayLabel(a.t))).join('') : '<div class="empty-row">all caught up</div>') + '</div>';
+      // the whole week, a group per day (like the desktop's day cards): checked-off ones stay, so they can be unchecked
+      const list = appData.assignments.filter(a => a.t >= rg.s && a.t <= rg.e).sort((x, y) => (x.t - y.t) || (x.r - y.r));
+      const T = new Date().setHours(0, 0, 0, 0), days = [];
+      list.forEach(a => { const d = new Date(a.t).setHours(0, 0, 0, 0); let g = days.find(x => x.d === d); if (!g) days.push(g = { d, a: [] }); g.a.push(a); });
+      box.innerHTML = days.length ? days.map(g => { const left = g.a.filter(a => !a.d).length;
+        return `<div class="grp dgrp${g.d === T ? ' today' : ''}"><span>${g.d === T ? 'today' : g.d === T + 864e5 ? 'tomorrow' : dayLabel(g.d)}</span><span>${left ? left + ' left' : 'done'}</span></div><div class="group">` + g.a.map(a => rowHtml(a, '')).join('') + '</div>'; }).join('')
+        : '<div class="grp">this week</div><div class="group"><div class="empty-row">nothing due this week</div></div>';
     }
 
     const TICK = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -845,7 +875,7 @@
     }
     function renderTasks() {
       const hasG = !!(appData && appData.assignments && appData.assignments.some(a => a.g !== undefined));
-      const F = [['upcoming','upcoming'], ['week','this week']].concat(hasG ? [['grade','to grade']] : [], [['done','done']]);
+      const F = [['upcoming','upcoming']].concat(hasG ? [['grade','to grade']] : [], [['done','done'], ['all','all']]);   // "this week" lives on the dashboard
       if (!F.some(f => f[0] === filter)) filter = 'upcoming';
       const seg = $('seg'), key = F.map(f => f[0]).join();
       if (seg.dataset.k !== key) { seg.dataset.k = key; seg.innerHTML = '<i></i>' + F.map(f => `<button data-f="${f[0]}">${f[1]}</button>`).join(''); }
@@ -855,7 +885,7 @@
       const today = new Date(); today.setHours(0,0,0,0);
       const ws = new Date(today); ws.setDate(ws.getDate() - ws.getDay()); const we = new Date(ws); we.setDate(ws.getDate() + 7);
       let list = appData.assignments.filter(a => (
-        filter === 'upcoming' ? !a.d : filter === 'done' ? a.d : filter === 'grade' ? (a.d && (a.g == null || a.g === '')) : (a.t >= ws.getTime() && a.t < we.getTime())) || gradeHold.has(kOf(a)));
+        filter === 'upcoming' ? !a.d : filter === 'done' ? a.d : filter === 'grade' ? (a.d && (a.g == null || a.g === '')) : filter === 'all' ? true : (a.t >= ws.getTime() && a.t < we.getTime())) || gradeHold.has(kOf(a)));
       list.sort((x, y) => (x.t - y.t) || (x.r - y.r));
       if (filter === 'done') list.reverse();
       const groupBy = (arr, keyFn, headFn, rowFn) => { let h = '', last = null; arr.forEach(a => { const k = keyFn(a); if (k !== last) { if (last !== null) h += '</div>'; h += headFn(a) + '<div class="group">'; last = k; } h += rowFn(a); }); return h + '</div>'; };
@@ -864,7 +894,7 @@
       const cName = c => { const f = (appData.courses || []).find(x => x.toLowerCase().startsWith(String(c).toLowerCase() + ' ')); return f ? esc(f.slice(String(c).length + 1).toLowerCase()) : ''; };
       if (filter === 'grade') list.sort((x, y) => String(x.c).localeCompare(String(y.c)) || (x.t - y.t) || (x.r - y.r));
       box.innerHTML = list.length ? (filter === 'grade' ? groupBy(list, a => a.c, a => `<div class="grp"><b style="color:${colorFor(a.c)}">${esc(a.c)}</b> ${cName(a.c)}</div>`, gradeRowHtml)
-          : filter === 'done' ? groupBy(list, a => wkStart(a.t), a => `<div class="grp">${wkLabel(wkStart(a.t))}</div>`, a => rowHtml(a, dayLabel(a.t)))
+          : filter === 'done' || filter === 'all' ? groupBy(list, a => wkStart(a.t), a => `<div class="grp">${wkLabel(wkStart(a.t))}</div>`, a => rowHtml(a, dayLabel(a.t)))
           : listHtml(list, false))
         : '<div class="empty">' + ({done:'nothing done yet', grade:'everything is graded', week:'nothing due this week'}[filter] || 'all caught up') + '</div>';
     }
@@ -878,10 +908,10 @@
       if (pending) commit(pending);
       const a = appData.assignments.find(x => String(x.r) === el.dataset.r && x.n === el.dataset.n && x.c === el.dataset.c);
       if (!a) return;
-      const to = !a.d, leaves = el.closest('#dash-list') ? to : false;
+      const to = !a.d, leaves = false;   // rows stay where they are (the dashboard keeps the whole week)
       if (!el.closest('#dash-list')) gradeHold.add(kOf(a));   // sheet tab: rows stay put until you press another sort button
       hold = true; setOv(kOf(a), snapOf(a), { d: to }); a.d = to; drawWheel(false); saveCache();
-      el.classList.toggle('done', to); const ck = el.querySelector('.chk'); if (ck && to) { ck.classList.remove('pop'); void ck.offsetWidth; ck.classList.add('pop'); }
+      el.classList.toggle('done', to); const ck = el.querySelector('.chk'); if (ck && to) { ck.classList.remove('ckpop'); void ck.offsetWidth; ck.classList.add('ckpop'); }
       if (leaves) setTimeout(() => el.classList.add('out'), 280);
       setTimeout(release, leaves ? 720 : 450);
       const p = { a: a, to: to, timer: setTimeout(() => commit(p), 3000) };
@@ -1028,7 +1058,7 @@
     }
     function renderSide() {
       const W = (appData && appData.weeks) || [], T0 = new Date().setHours(0, 0, 0, 0), nb = W.find(x => x.t >= T0 && x.budget != null), bd = nb ? Math.round((nb.t - T0) / 864e5) : 0;
-      const comp = completionRows(), w = SLOT2 === 'completion' ? `<div class="tile wx cpt" data-slot="1" data-comp="1"><div class="mbars">${comp.map(r => `<i style="--h:${r.p}%;--c:${colorFor(r.c)}"></i>`).join('')}</div><div class="ts">completion</div></div>`
+      const comp = completionRows(), w = SLOT2 === 'completion' ? `<div class="tile wx cpt" data-slot="1" data-comp="1"><div class="mbars">${comp.map(r => `<i style="--h:${r.p}%;--c:${colorFor(r.c)}"></i>`).join('')}</div></div>`
         : SLOT2 === 'budget' ? `<div class="tile wx" data-slot="1"><div class="wtxt">${nb ? `<div class="tv">$${nb.budget % 1 ? Number(nb.budget).toFixed(2) : nb.budget}</div><div class="ts">left by ${dayLabel(nb.t)}${bd > 0 ? ' · ' + bd + 'd' : ''}</div>` : '<div class="tl">food budget</div><div class="ts">no targets on the sheet</div>'}</div></div>`
         : WX ? `<div class="tile wx" data-slot="1"><div class="wtxt"><div class="tv">${WX.t}°</div><div class="ts">${WXL[WX.k]} · ${WX.hi}/${WX.lo}</div></div><div class="wxart"><svg viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div></div>`
         : '<div class="tile wx" data-slot="1"><div class="ts">loading…</div></div>';
@@ -1050,7 +1080,7 @@
       }
       const d = Math.round((target - today) / 864e5);
       const cd = `<div class="tl">${lab}</div><div class="tv">${isNaN(d) ? '–' : d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div>`;
-      $('side').innerHTML = w + `<div class="tile big" data-up="1">${c}${EV && moreN > 0 ? `<div class="more">+${moreN} more ${IC.r}</div>` : ''}</div><div class="tile">${cd}</div>`;
+      $('side').innerHTML = w + `<div class="tile big" data-up="1">${c}${EV && moreN > 0 ? `<div class="more">+${moreN} more ${IC.r}</div>` : ''}</div><div class="tile" data-cdhold="1">${cd}</div>`;
     }
     $('side').addEventListener('click', e => { if (e.target.closest('[data-up]')) { openUpcoming(); return; } if (e.target.closest('[data-comp]')) { openCompletion(); return; } if (DEMO && e.target.closest('.wx')) { wxi = (wxi + 1) % WXD.length; setDemoWx(wxi); renderSide(); } });  // demo: tap weather to preview conditions
 
@@ -1122,14 +1152,25 @@
       if (d.cd) { CD[d.cd] = t.value; saveCD(); if (t.blur) t.blur(); renderSide(); if (d.cd === 'mode') renderWpop(); }
     });
     $('w-body').addEventListener('input', e => { const d = e.target.dataset || {}; if (d.gr === 'name') { GR.name = e.target.value; saveGR(); GP.key = ''; setGreeting(); } });
-    // press and hold the weather / food budget tile to choose which one it shows
-    (() => { let lpT = null, sx = 0, sy = 0; window.__lpFired = false;
-      $('side').addEventListener('pointerdown', e => { window.__lpFired = false; const t = e.target.closest('[data-slot]'); if (!t) return; sx = e.clientX; sy = e.clientY; clearTimeout(lpT);
-        lpT = setTimeout(() => { window.__lpFired = true; t.classList.add('held'); setTimeout(() => t.classList.remove('held'), 200); openWpop('slot'); }, 480); });
+    // the top tile: hold to choose, swipe sideways to step through weather → food budget → completion. The countdown tile: hold to set it up.
+    (() => { let lpT = null, sx = 0, sy = 0, swiping = false; window.__lpFired = false;
+      const held = t => { window.__lpFired = true; t.classList.add('held'); setTimeout(() => t.classList.remove('held'), 200); };
+      $('side').addEventListener('pointerdown', e => { window.__lpFired = false; swiping = false; const t = e.target.closest('[data-slot], [data-cdhold]'); if (!t) return; sx = e.clientX; sy = e.clientY; clearTimeout(lpT);
+        lpT = setTimeout(() => { held(t); openWpop(t.dataset.cdhold ? 'cd' : 'slot'); }, 480); });
       ['pointerup', 'pointercancel', 'pointerleave'].forEach(k => $('side').addEventListener(k, () => clearTimeout(lpT)));
       $('side').addEventListener('pointermove', e => { if (Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) > 10) clearTimeout(lpT); });
-      $('side').addEventListener('contextmenu', e => { if (e.target.closest('[data-slot]')) e.preventDefault(); });
+      $('side').addEventListener('contextmenu', e => { if (e.target.closest('[data-slot], [data-cdhold]')) e.preventDefault(); });
       $('side').addEventListener('click', e => { if (window.__lpFired) { window.__lpFired = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);
+      // swipe: the tile follows your finger, then the next one slides in from the side you swiped toward
+      let tx0 = null, ty0 = 0, tdx = 0, tt = null;
+      $('side').addEventListener('touchstart', e => { tt = e.target.closest('[data-slot]'); if (!tt || e.touches.length !== 1) { tt = null; return; } tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY; tdx = 0; swiping = false; }, { passive: true });
+      $('side').addEventListener('touchmove', e => { if (!tt) return; const dx = e.touches[0].clientX - tx0, dy = e.touches[0].clientY - ty0;
+        if (!swiping && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.3) { swiping = true; clearTimeout(lpT); }
+        if (swiping) { if (e.cancelable) e.preventDefault(); tdx = dx; tt.style.transition = 'none'; tt.style.transform = `translateX(${dx * .55}px)`; tt.style.opacity = String(1 - Math.min(Math.abs(dx) / 220, .5)); } }, { passive: false });
+      $('side').addEventListener('touchend', () => { if (!tt) return; const t = tt; tt = null; if (!swiping) return; window.__lpFired = true;
+        if (Math.abs(tdx) < 45) { t.style.transition = 'transform .3s var(--spring), opacity .3s'; t.style.transform = ''; t.style.opacity = ''; return; }
+        const i = VOPTS.findIndex(o => o[0] === SLOT2), dir = tdx < 0 ? 1 : -1, next = VOPTS[(i + dir + VOPTS.length) % VOPTS.length][0];
+        setSlot2(next); const n = $('side').querySelector('[data-slot]'); if (n) { n.classList.add(dir > 0 ? 'in-r' : 'in-l'); setTimeout(() => n.classList.remove('in-r', 'in-l'), 400); } }, { passive: true });
     })();
 
     // ---------- course settings: name + credits (Config) and the grading rule (Rules tab); save writes it all at once ----------
@@ -1208,7 +1249,7 @@
     $('settings-card').addEventListener('change', e => { if (e.target.dataset && e.target.dataset.cal) { toggleCal(e.target.dataset.cal); return; } const k = e.target.dataset && e.target.dataset.gr; if (!k) return; GR[k] = k === 'rand' ? e.target.checked : e.target.value; saveGR(); GP.key = ''; setGreeting(); });
     $('settings-card').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.cd; if (!k) return; CD[k] = e.target.value; saveCD(); if (e.target.blur) e.target.blur(); renderSide(); if (k === 'mode') renderSettings(); });
     $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); if (e.target.id === 'btn-loc') { locAsked = false; withLoc(loadWx2, true); } });
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { setGreeting(); renderSide(); fetchData(true); loadWx(); if (!busy()) checkUpdate(); } });
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { setGreeting(); renderSide(); fetchData(true, true); loadWx(); if (!busy()) checkUpdate(); } });
     // Large title -> inline title when scrolled (iOS navigation bar behavior)
     $('scroll-container').addEventListener('scroll', () => $('topbar').classList.toggle('show', $('scroll-container').scrollTop > 34), { passive: true });
     const scrollPos = {}; let scrollView = 'view-dashboard';
@@ -1568,7 +1609,8 @@
     setGreeting(); drawWheel(); // draw empty skeleton immediately
     renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
     if (!DEMO) { try { const c = JSON.parse(localStorage.getItem('wheel-cache') || 'null'); if (c && c.data && c.data.assignments) { appData = c.data; synced(); } } catch (e) {} }
-    fetchData(); // load data
+    fetchData(false, true); // load data
+    window.addEventListener('pageshow', e => { if (e.persisted) fetchData(true, true); });   // reopened from the app switcher
   </script>
 </body>
 </html>
