@@ -578,7 +578,7 @@
       else lbl.textContent = `${Math.abs(weekOffset)} wks ago`;
     }
 
-    let wheelTok = 0;
+    let wheelTok = 0, wheelPrev = null;
     function drawWheel(animate = false) {
       updateWeekLabel();
       const svg = document.getElementById('wheel-svg');
@@ -608,25 +608,36 @@
           const pct = mine.length ? (mine.filter(a => a.d).length / mine.length) : 0;
           const rad = R - (i * thick) - (thick / 2), w = Math.max(thick - GAP, 2);
           html += `<circle cx="100" cy="100" r="${rad}" fill="none" stroke-width="${w}" style="stroke:var(--track)"/>`;
-          if (pct > 0) rings.push({ rad, w, pct, col: colorFor(c) });
+          rings.push({ rad, w, pct, col: colorFor(c) });
         });
       }
       // coloured arcs end in a chevron (same shape as the grade summary); drawn as paths so they can animate
-      const arcs = f => rings.map(g => {
-        const t1 = g.pct * f * 2 * Math.PI; if (t1 <= 0.001) return '';
-        if (g.pct >= 0.999 && f >= 0.999) return `<circle cx="100" cy="100" r="${g.rad}" fill="none" stroke="${g.col}" stroke-width="${g.w}"/>`;
+      const arc = (g, p) => {
+        const t1 = p * 2 * Math.PI; if (t1 <= 0.001) return '';
+        if (p >= 0.999) return `<circle cx="100" cy="100" r="${g.rad}" fill="none" stroke="${g.col}" stroke-width="${g.w}"/>`;
         const r1 = g.rad - g.w / 2, r2 = g.rad + g.w / 2, tc = Math.max(t1 - Math.min(.41 * g.w / g.rad, t1 * .6), 0), big = tc > Math.PI ? 1 : 0;
         const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
         return `<path d="M${P(r2, 0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(g.rad, t1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, 0)}Z" fill="${g.col}"/>`;
-      }).join('');
+      };
+      const arcs = ps => rings.map((g, i) => arc(g, ps[i])).join('');
+      const to = rings.map(g => g.pct);
+      // same week and same rings as last time → only the rings that changed move (e.g. 4/6 → 5/6), from where they were
+      const geo = weekOffset + '|' + rings.map(g => g.rad.toFixed(2) + g.col).join(',');
+      const from = !animate && wheelPrev && wheelPrev.geo === geo && wheelPrev.pcts.some((p, i) => Math.abs(p - to[i]) > 1e-6) ? wheelPrev.shown.slice() : null;
+      wheelPrev = { geo, pcts: to, shown: to.slice() };
       const tok = ++wheelTok;
       svg.innerHTML = html + '<g id="wg"></g>';
       const wg = svg.querySelector('#wg');
-      if (animate && rings.length) {
-        const t0 = performance.now();
-        const step = now => { if (tok !== wheelTok) return; const q = Math.min((now - t0) / 800, 1); wg.innerHTML = arcs(1 - Math.pow(1 - q, 4)); if (q < 1) requestAnimationFrame(step); };
+      const pctEl = document.getElementById('wheel-pct'), tot = weekTasks.length, dn = doneTasks.length;
+      const tween = (a0, ms, ease) => {
+        const t0 = performance.now(), d0 = a0 === null ? 0 : null;
+        const step = now => { if (tok !== wheelTok) return; const q = Math.min((now - t0) / ms, 1), e = ease(q), ps = to.map((t, i) => (a0 ? a0[i] : 0) + (t - (a0 ? a0[i] : 0)) * e);
+          wg.innerHTML = arcs(ps); wheelPrev.shown = ps; if (q < 1) requestAnimationFrame(step); else wheelPrev.shown = to.slice(); };
         requestAnimationFrame(step);
-      } else wg.innerHTML = arcs(1);
+      };
+      if (animate && rings.length) tween(null, 800, q => 1 - Math.pow(1 - q, 4));
+      else if (from) { wg.innerHTML = arcs(from); tween(from, 650, q => 1 - Math.pow(1 - q, 3)); }
+      else wg.innerHTML = arcs(to);
       const wpv = weekTasks.length ? Math.round((doneTasks.length / weekTasks.length) * 100) : 0, wpe = document.getElementById('wheel-pct');
       wpe.textContent = wpv + '%'; wpe.classList.toggle('full', wpv >= 100);   // three digits: a size smaller so it sits inside the rings
       document.getElementById('wheel-frac').textContent = `${doneTasks.length}/${weekTasks.length} done`;
@@ -739,7 +750,7 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const BUILD = 'm2.51 (11/07 11:40am)';
+    const BUILD = 'm2.52 (11/07 12:10pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;

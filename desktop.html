@@ -325,7 +325,7 @@
 <script src="sheetrules.js"></script>
 <script>
 'use strict';
-const BUILD = 'd1.22 (11/07 11:40am)';
+const BUILD = 'd1.23 (11/07 12:10pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -680,21 +680,29 @@ function renderDash(v) {
     <div class="pair">${raHtml(8)}${todoHtml(8)}</div>`;
 }
 function wheelCourses(wk) { const seen = []; wk.forEach(a => { if (!seen.includes(a.c) && a.c && !blankCls(a.c)) seen.push(a.c); }); return seen.sort(); }
+// week wheel. When the same week's rings re-render with a different count (e.g. 4/6 → 5/6), only the changed ring moves, from where it was.
+let DW = null, dwTok = 0;
 function wheelSvg(wk) {
   const R = 96, CUT = .54, MAXT = 20, GAP = 2.5, cs = wheelCourses(wk);
-  if (!cs.length) return `<circle cx="100" cy="100" r="${R - 9}" fill="none" stroke-width="18" stroke="var(--track)"/>`;
-  const th = Math.min(MAXT, R * (1 - CUT) / cs.length); let h = '';
-  cs.forEach((c, i) => {
-    const mine = wk.filter(a => a.c === c), pct = mine.filter(a => a.d).length / mine.length, rad = R - i * th - th / 2, w = Math.max(th - GAP, 2), col = colorFor(c);
-    h += `<circle cx="100" cy="100" r="${rad}" fill="none" stroke-width="${w}" stroke="var(--track)"/>`;
-    if (pct >= .999) h += `<circle cx="100" cy="100" r="${rad}" fill="none" stroke="${col}" stroke-width="${w}"/>`;
-    else if (pct > 0) {
-      const t1 = pct * 2 * Math.PI, r1 = rad - w / 2, r2 = rad + w / 2, tc = Math.max(t1 - Math.min(.41 * w / rad, t1 * .6), 0), big = tc > Math.PI ? 1 : 0;
-      const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
-      h += `<path d="M${P(r2, 0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(rad, t1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, 0)}Z" fill="${col}"/>`;
-    }
-  });
-  return h;
+  if (!cs.length) { DW = null; return `<circle cx="100" cy="100" r="${R - 9}" fill="none" stroke-width="18" stroke="var(--track)"/>`; }
+  const th = Math.min(MAXT, R * (1 - CUT) / cs.length);
+  const rings = cs.map((c, i) => { const mine = wk.filter(a => a.c === c); return { rad: R - i * th - th / 2, w: Math.max(th - GAP, 2), col: colorFor(c), pct: mine.filter(a => a.d).length / mine.length }; });
+  const arc = (g, p) => {
+    if (p >= .999) return `<circle cx="100" cy="100" r="${g.rad}" fill="none" stroke="${g.col}" stroke-width="${g.w}"/>`;
+    if (p <= .001) return '';
+    const t1 = p * 2 * Math.PI, r1 = g.rad - g.w / 2, r2 = g.rad + g.w / 2, tc = Math.max(t1 - Math.min(.41 * g.w / g.rad, t1 * .6), 0), big = tc > Math.PI ? 1 : 0;
+    const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
+    return `<path d="M${P(r2, 0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(g.rad, t1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, 0)}Z" fill="${g.col}"/>`;
+  };
+  const arcs = ps => rings.map((g, i) => arc(g, ps[i])).join(''), to = rings.map(g => g.pct);
+  const geo = weekOff + '|' + rings.map(g => g.rad.toFixed(2) + g.col).join(',');
+  const from = DW && DW.geo === geo && DW.pcts.some((p, i) => Math.abs(p - to[i]) > 1e-6) ? DW.shown.slice() : null;
+  DW = { geo, pcts: to, shown: from || to.slice() };
+  if (from) { const tok = ++dwTok, t0 = performance.now();
+    const step = now => { const g = document.getElementById('dwg'); if (tok !== dwTok || !g) return; const q = Math.min((now - t0) / 650, 1), e = 1 - Math.pow(1 - q, 3), ps = to.map((t, i) => from[i] + (t - from[i]) * e);
+      g.innerHTML = arcs(ps); DW.shown = ps; if (q < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step); }
+  return rings.map(g => `<circle cx="100" cy="100" r="${g.rad}" fill="none" stroke-width="${g.w}" stroke="var(--track)"/>`).join('') + `<g id="dwg">${arcs(from || to)}</g>`;
 }
 function nextUpHtml() {
   const ev = data.events, now = Date.now(), all = ev ? shownEv().filter(e => (e.e || e.t) > now) : [];
