@@ -174,7 +174,7 @@ var Engine = (function () {
     var b = cat.rule.bin; if (!b || !isNum(pct)) return pct;
     var curve = b.curves && b.curves[norm(label)];                      // this item has its own curve (e.g. one per exam)
     var L = letterFor(pct, curve || b.cutoffs || STD_CUTOFFS), vals = b.values || DEFAULT_SCALE, v = L ? vals[L] : null;
-    trace.push(label + ': ' + fmt(pct) + '%' + (curve ? ' (curved)' : '') + ' → ' + (L || '?') + ' → ' + fmt(v));
+    trace.push(label + ': ' + fmt(pct) + '%' + (curve ? ' (curved)' : '') + (L && /^t\d+$/.test(L) ? '' : ' → ' + (L || '?')) + ' → ' + fmt(v));
     return isNum(v) ? v : pct;
   }
 
