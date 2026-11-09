@@ -273,12 +273,12 @@ function GRADEBLOCKS(colA, cols, assignments, attendance, config) {
     b.cats.forEach(function (c) {
       var s = g.cats.filter(function (x) { return clean_(x.abbr).toLowerCase() === c.type.toLowerCase(); })[0]; if (!s) return;
       var addon = ADDON_KINDS_[s.kind], n = s.graded + s.dropped.length, of = num_(c.items);
-      var sc = addon ? (s.kind === 'flat' || s.kind === 'catbonus' ? sumPct_(rule, s, items) : s.notes.join('; ') || '–') : (s.pct == null ? '–' : s.pct);
+      var sc = addon ? (s.kind === 'extraitems' ? (s.notes.join('; ') || '–') : sumPct_(rule, s, items)) : (s.pct == null ? '–' : s.pct);
       out[c.row - 1] = [sc, of ? n + ' of ' + of : n];
     });
   });
   var gpa = Engine.gpa(gpaList);
-  out[0] = [gpa == null ? '' : Math.round(gpa * 1000) / 1000, out[0][1] || ''];
+  out[0] = [gpa == null ? '' : gpa, out[0][1] || ''];
   return out;
 }
 var ADDON_KINDS_ = { flat: 1, bonus: 1, catbonus: 1, extraitems: 1 };
@@ -312,7 +312,7 @@ function blockRows_(b) {
   rows.push(['category'].concat(lab));
   b.cats.forEach(function (c) {
     var extra = /^extra/.test(c.combine || '');
-    rows.push([(extra ? '+ ' : '') + c.name, c.type, c.weight, c.items, c.combine || 'average', c.drop, c.map, c.until, c.other]);
+    rows.push([c.name, c.type, c.weight, c.items, c.combine || 'average', c.drop, c.map, c.until, c.other]);
   });
   return rows;
 }
