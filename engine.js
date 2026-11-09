@@ -216,9 +216,11 @@ var Engine = (function () {
     if (pool) {
       var inPool = units.filter(function (u) { return pool.cats.map(norm).indexOf(norm(u.cat.abbr)) > -1; });
       var expected = 0; pool.cats.forEach(function (a) { var c = cats.filter(function (x) { return norm(x.abbr) === norm(a); })[0]; if (c) expected += c.rule.split ? c.count : 1; });
-      var k = Math.max(0, Math.min(pool.drop, inPool.length - (expected - pool.drop)));
+      // a whole category only counts as finished once all of its items are graded, so nothing drops early
+      var done = inPool.filter(function (u) { return u.cat.rule.split || u.cat.graded.length >= u.cat.count; }).length;
+      var k = Math.max(0, Math.min(pool.drop, done - (expected - pool.drop)));
       for (var i = 0; i < k; i++) { var low = lowest(inPool); inPool.splice(inPool.indexOf(low), 1); units.splice(units.indexOf(low), 1); trace.push('dropped lowest: ' + low.name + ' (' + fmt(low.v) + ')'); }
-      if (k < pool.drop) trace.push('lowest of ' + pool.cats.join('/') + ' drops once all ' + expected + ' are graded (' + inPool.length + ' so far)');
+      if (k < pool.drop) trace.push('lowest of ' + pool.cats.join('/') + ' drops once all ' + expected + ' are graded (' + done + ' so far)');
     }
     var sum = 0, wsum = 0;
     units.forEach(function (u) { sum += u.w * u.v; wsum += u.w; u.cat.used = (u.cat.used || 0) + u.w;
