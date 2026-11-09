@@ -13,7 +13,9 @@
  *   pool: { cats: ['EX','AS'], drop: 1 },  // drop the lowest unit(s) across several categories (after binning)
  *   categories: [{
  *     abbr, name, weight,
- *     kind: 'normal' | 'extra' | 'flat' | 'bonus' | 'attendance',
+ *     kind: 'normal' | 'extra' | 'flat' | 'bonus' | 'catbonus' | 'extraitems' | 'attendance',
+ *       flat: added to the final grade · bonus: added to target items · catbonus: added to a category's score
+ *       extraitems: counted as more items in the 'to' category without raising its total (can pass 100%)
  *     within: 'average' | 'points',   // weighted: mean of item %s, or Σearned / Σpossible
  *     split: true,                    // weighted: every item is its own unit (own bin, own letter)
  *     drop: 1,                        // keep the best (count − drop); drops only once more than that are graded
@@ -32,6 +34,7 @@ var Engine = (function () {
   var DEFAULT_SCALE = { 'A+': 4.333, 'A': 4, 'A-': 3.667, 'B+': 3.333, 'B': 3, 'B-': 2.667, 'C+': 2.333, 'C': 2, 'C-': 1.667, 'D+': 1.333, 'D': 1, 'D-': 0.667, 'F': 0 };
   var STD_CUTOFFS = { 'A+': 97, 'A': 93, 'A-': 90, 'B+': 87, 'B': 83, 'B-': 80, 'C+': 77, 'C': 73, 'C-': 70, 'D+': 67, 'D': 63, 'D-': 60, 'F': 0 };
 
+  var ADDON = { flat: 1, bonus: 1, catbonus: 1, extraitems: 1 };
   function isNum(v) { return typeof v === 'number' && isFinite(v); }
   function r2(n) { return Math.round(n * 100) / 100; }
   function fmt(n) { return isNum(n) ? String(r2(n)) : '—'; }
@@ -124,6 +127,17 @@ var Engine = (function () {
       cat.count -= n;
     });
 
+    // extra credit into a category: points on its score (catbonus) or extra items on top of its total (extraitems)
+    cats.filter(function (c) { return c.kind === 'catbonus' || c.kind === 'extraitems'; }).forEach(function (b) {
+      (b.rule.to || []).slice(0, 1).forEach(function (a) {
+        var t = byAbbr[norm(a)]; if (!t || !b.graded.length) return;
+        if (b.kind === 'extraitems') { t.extras = (t.extras || []).concat(b.graded); b.notes.push(b.graded.length + ' extra item(s) in ' + t.name); return; }
+        var add = b.graded.reduce(function (s, x) { return s + x.p.pct; }, 0);
+        if (isNum(b.rule.cap)) add = Math.min(add, b.rule.cap);
+        t.bonus = (t.bonus || 0) + add; t.notes.push('+' + fmt(add) + ' from ' + b.name); b.notes.push('+' + fmt(add) + ' on ' + t.name);
+      });
+    });
+
     var value = rule.method === 'points' ? byPoints(rule, cats, trace) : byWeight(rule, cats, trace);
 
     cats.filter(function (c) { return c.kind === 'flat'; }).forEach(function (c) {
@@ -141,14 +155,20 @@ var Engine = (function () {
 
   function lowest(list, key) { return list.reduce(function (a, b) { return (key ? b[key].pct : b.v) < (key ? a[key].pct : a.v) ? b : a; }); }
   function catPct(cat) {
+    var base = catBase(cat);
+    return isNum(base) && cat.bonus ? base + cat.bonus : base;
+  }
+  function catBase(cat) {
     if (!cat.graded.length) return null;
+    var ex = cat.extras || [];
     if (cat.rule.within === 'points') {
       var e = 0, p = 0, miss = 0;
       cat.graded.forEach(function (x) { if (x.p.possible) { e += x.p.earned; p += x.p.possible; } else miss++; });
       if (miss && cat.notes.indexOf(miss + ' graded item(s) have no possible points — left out') < 0) cat.notes.push(miss + ' graded item(s) have no possible points — left out');
+      ex.forEach(function (x) { e += x.p.earned != null ? x.p.earned : (x.p.pct / 100) * (p / cat.graded.length); });
       return p ? 100 * e / p : null;
     }
-    return cat.graded.reduce(function (s, x) { return s + x.p.pct; }, 0) / cat.graded.length;
+    return cat.graded.concat(ex).reduce(function (s, x) { return s + x.p.pct; }, 0) / cat.graded.length;
   }
   function bin(cat, label, pct, trace) {
     var b = cat.rule.bin; if (!b || !isNum(pct)) return pct;
@@ -161,12 +181,14 @@ var Engine = (function () {
   function byPoints(rule, cats, trace) {
     var earned = 0, possible = 0;
     cats.forEach(function (c) {
-      if (c.kind === 'flat' || c.kind === 'bonus') return;
+      if (ADDON[c.kind]) return;
       var each = c.count ? c.weight / c.count : 0, e = 0, p = 0;
       c.graded.forEach(function (x) {
         e += x.p.earned != null ? x.p.earned : x.p.pct / 100 * (x.p.possible || each);
         if (c.kind !== 'extra') p += x.p.possible || each;
       });
+      (c.extras || []).forEach(function (x) { e += x.p.earned != null ? x.p.earned : x.p.pct / 100 * (x.p.possible || each); });
+      if (c.bonus && p) e += c.bonus / 100 * p;
       c.pct = p ? 100 * e / p : null;
       if (c.rule.bin && p) e = bin(c, c.name, c.pct, trace) / 100 * p;
       if (c.kind === 'extra' && isNum(c.rule.cap)) e = Math.min(e, c.rule.cap);
@@ -181,7 +203,7 @@ var Engine = (function () {
   function byWeight(rule, cats, trace) {
     var prog = rule.progressive !== false, units = [];
     cats.forEach(function (c) {
-      if (c.kind === 'flat' || c.kind === 'bonus') return;
+      if (ADDON[c.kind]) return;
       c.pct = catPct(c);
       if (c.kind === 'extra') return;
       if (c.rule.split) {

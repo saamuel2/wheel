@@ -332,7 +332,80 @@ function readGpaHistory_() {
 var RULES_COURSE_ROW = 4, RULES_COURSE_N = 10, RULES_CAT_ROW = 17;
 function cellOut_(v) { return (typeof v === 'number' || typeof v === 'boolean') ? v : (v instanceof Date ? '' : str_(v)); }
 function cellIn_(v) { if (v === '' || v == null) return ''; if (typeof v === 'number') return v; var s = String(v).trim(); return s !== '' && !isNaN(Number(s)) ? Number(s) : s; }
+// ---------- the grades tab (one block per course; replaces Rules + Grades) ----------
+function gradesTab_(ss) {
+  var list = ss.getSheets();
+  for (var i = 0; i < list.length; i++) {
+    var n = list[i].getName().toLowerCase();
+    if ((n === 'grades' || n === 'grades (new)') && /^grade by:/i.test(str_(list[i].getRange(2, 4).getValue()))) return list[i];
+  }
+  return null;
+}
+function readBlocks_(sh) {
+  var last = Math.max(sh.getLastRow(), 2);
+  return blocksFromSheet_(sh.getRange(1, 1, last, 1).getValues(), sh.getRange(1, 4, last, 8).getValues());
+}
+function cfgInfo_(ss, code) {
+  var cfg = ss.getSheetByName('Config').getRange(2, 1, 10, 4).getValues(), c = null;
+  cfg.forEach(function (x, j) { if (str_(x[0]).toLowerCase() === code) c = { row: j + 2, name: str_(x[1]), credits: cellOut_(x[3]) }; });
+  return c;
+}
+function setupFromBlocks_(ss, sh) {
+  return readBlocks_(sh).map(function (b) {
+    return { code: b.code, layout: 'blocks', cfg: cfgInfo_(ss, b.code), row: b.row, head: b.head,
+      cats: b.cats.map(function (c) { var o = {}; ['name', 'type', 'weight', 'items', 'combine', 'drop', 'map', 'until', 'other'].forEach(function (k) { o[k] = cellOut_(c[k]); }); return o; }) };
+  });
+}
+function blockSave_(ss, sh, b) {
+  var code = str_(b.code).toLowerCase(), blocks = readBlocks_(sh), cur = blocks.filter(function (x) { return x.code === code; })[0];
+  if (!cur) return { ok: false, error: code + ' isn’t on the grades tab' };
+  var low = function (v) { return str_(v).toLowerCase(); }, isNum = function (v) { return v === '' || typeof v === 'number'; }, bad = [];
+  var head = {}; ['grade by', 'entered as', 'final from', 'round to', 'pass at', 'drop lowest across', 'cutoffs'].forEach(function (k) { var v = b.head && b.head[k]; if (v != null && str_(v) !== '') head[k] = str_(v); });
+  if (['weights', 'points'].indexOf(low(head['grade by'] || 'weights')) < 0) bad.push('grade by');
+  if (['percent', 'points'].indexOf(low(head['entered as'] || 'percent')) < 0) bad.push('entered as');
+  head['grade by'] = low(head['grade by'] || 'weights'); head['entered as'] = low(head['entered as'] || 'percent');
+  ['round to', 'pass at'].forEach(function (k) { if (head[k] != null && isNaN(Number(head[k]))) bad.push(k); });
+  if (head['cutoffs'] && !parseCutoffs_(head['cutoffs'])) bad.push('cutoffs');
+  var types = {};
+  var cats = (b.cats || []).map(function (c, k) {
+    var o = { name: str_(c.name), type: str_(c.type), weight: cellIn_(c.weight), items: cellIn_(c.items), combine: low(c.combine) || 'average',
+      drop: cellIn_(c.drop), map: str_(c.map), until: cellIn_(c.until), other: str_(c.other) };
+    if (!o.name) bad.push('category ' + (k + 1) + ' name');
+    if (!o.type) bad.push((o.name || 'category ' + (k + 1)) + ' type');
+    if (types[low(o.type)]) bad.push('type ' + o.type + ' is used twice'); types[low(o.type)] = 1;
+    ['weight', 'items', 'drop', 'until'].forEach(function (f) { if (!isNum(o[f])) bad.push(o.name + ' ' + f); });
+    if (COMBINE.indexOf(o.combine) < 0) bad.push(o.name + ' combine by');
+    return o;
+  });
+  if (!cats.length) bad.push('at least one category');
+  if (bad.length) return { ok: false, error: 'check: ' + bad.join(', ') };
+  // a type still used by assignments can't disappear
+  var gone = cur.cats.filter(function (c) { return !types[low(c.type)]; }).map(function (c) { return low(c.type); });
+  if (gone.length) {
+    var ash = ss.getSheetByName('Assignments'), lastA = Math.max(ash.getLastRow(), 3), used = {};
+    ash.getRange(3, 4, lastA - 2, 2).getValues().forEach(function (r) { if (low(r[0]) === code) used[low(r[1])] = (used[low(r[1])] || 0) + 1; });
+    var busy = gone.filter(function (t) { return used[t]; });
+    if (busy.length) return { ok: false, error: busy.map(function (t) { return t.toUpperCase() + ' (' + used[t] + ' assignments)'; }).join(', ') + ' still in use' };
+  }
+  var nb = { code: code, head: head, cats: cats };
+  try { var t = tablesFromBlocks_([nb]), r = rulesFromSheet_(t.courses, t.cats); if (r[0]) Engine.grade(r[0], [], { absences: {} }); }
+  catch (err) { return { ok: false, error: 'these rules don’t compute: ' + err }; }
+  var rows = blockRows_(nb), have = 2 + cur.cats.length, need = rows.length, start = cur.row;
+  if (need > have) sh.insertRowsAfter(start + have - 1, need - have);
+  else if (need < have) sh.deleteRows(start + need, have - need);
+  sh.getRange(start, 1, need, 1).setValues(rows.map(function (r) { return [r[0]]; }));
+  sh.getRange(start, 4, need, 8).setValues(rows.map(function (r) { return r.slice(1, 9); }));
+  var cf = cfgInfo_(ss, code);
+  if (cf && b.cfg) {
+    var cfg = ss.getSheetByName('Config');
+    if (b.cfg.name != null && str_(b.cfg.name)) cfg.getRange(cf.row, 2).setValue(str_(b.cfg.name));
+    if (b.cfg.credits != null) { var cr = cellIn_(b.cfg.credits); if (!isNum(cr)) return { ok: false, error: 'credits must be a number' }; cfg.getRange(cf.row, 4).setValue(cr); }
+  }
+  return { ok: true };
+}
+
 function readCourseSetup_(ss) {
+  var gt = gradesTab_(ss); if (gt) return setupFromBlocks_(ss, gt);
   var rs = ss.getSheetByName('Rules'); if (!rs) return null;
   var cfg = ss.getSheetByName('Config').getRange(2, 1, 10, 4).getValues();
   var cr = rs.getRange(RULES_COURSE_ROW, 1, RULES_COURSE_N, 20).getValues(), last = rs.getLastRow();
@@ -349,6 +422,7 @@ function readCourseSetup_(ss) {
   return out;
 }
 function courseSave_(ss, b) {
+  var gt = gradesTab_(ss); if (gt) return blockSave_(ss, gt, b);
   var code = str_(b.code).toLowerCase(), cur = (readCourseSetup_(ss) || []).filter(function (x) { return x.code === code; })[0];
   if (!cur) return { ok: false, error: 'course ' + code + ' not found on the Rules tab' };
   var rule = (b.rule || []).map(cellIn_), cats = b.cats || [], bad = [];
@@ -429,13 +503,14 @@ function absenceRemove_(ss, b) {
 // With a Rules tab: the grading engine (Grades.gs) does the math and explains each step.
 // Without one (older semester sheets): the v1 Config + Report formulas, unchanged.
 function readGrades_(ss) {
-  var rulesSh = ss.getSheetByName('Rules');
-  return rulesSh && typeof Engine !== 'undefined' ? gradesFromEngine_(ss, rulesSh) : readGradesV1_(ss);
+  var rulesSh = ss.getSheetByName('Rules'), gt = gradesTab_(ss);
+  return (gt || rulesSh) && typeof Engine !== 'undefined' ? gradesFromEngine_(ss, rulesSh, gt) : readGradesV1_(ss);
 }
 
-function gradesFromEngine_(ss, rulesSh) {
-  var lastR = Math.max(rulesSh.getLastRow(), 17);
-  var rules = rulesFromSheet_(rulesSh.getRange('A4:T13').getValues(), rulesSh.getRange(17, 1, lastR - 16, 14).getValues());
+function gradesFromEngine_(ss, rulesSh, gt) {
+  var rules;
+  if (gt) { var lastG = Math.max(gt.getLastRow(), 2); rules = rulesFromBlocks_(gt.getRange(1, 1, lastG, 1).getValues(), gt.getRange(1, 4, lastG, 8).getValues()); }
+  else { var lastR = Math.max(rulesSh.getLastRow(), 17); rules = rulesFromSheet_(rulesSh.getRange('A4:T13').getValues(), rulesSh.getRange(17, 1, lastR - 16, 14).getValues()); }
   var ash = ss.getSheetByName('Assignments'), lastA = Math.max(ash.getLastRow(), 3);
   var items = itemsFromSheet_(ash.getRange(3, 2, lastA - 2, OUT_COL - 1).getValues());
   var att = ss.getSheetByName('Attendance'), absences = att ? absencesFromSheet_(att.getDataRange().getValues().slice(1)) : {};
@@ -453,7 +528,7 @@ function gradesFromEngine_(ss, rulesSh) {
       raw: g.value == null ? null : Math.round(g.value * 10000) / 10000, letter: g.letter || '', gp: g.gp, cuts: cuts,
       cats: g.cats.map(function (k) {
         return { name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct,
-          extra: null, share: k.kind === 'normal' && total ? (k.weight || 0) / total : 0, dropped: k.dropped, notes: k.notes };
+          extra: ADDON_KINDS_[k.kind] ? (parseFloat(String(sumPct_(rule, k, items)).replace('+', '')) || null) : null, share: k.kind === 'normal' && total ? (k.weight || 0) / total : 0, dropped: k.dropped, notes: k.notes };
       }),
       trace: g.trace,
       rule: jsonSafe_(rule)

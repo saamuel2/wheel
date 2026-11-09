@@ -250,7 +250,8 @@
   .regrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 12px; }
   .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 12px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
   .recat { margin-bottom: 12px; } .rehd { display: flex; gap: 8px; margin-bottom: 12px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
-  .recat .link { margin-top: 8px; font-size: 12px; } .recat .regrid + .link + .regrid { margin-top: 12px; }
+  .recat .rehd .iconbtn { flex: none; } .recat.ec { background: color-mix(in srgb, var(--tint) 6%, var(--card)); } .txt.up { text-transform: uppercase; }
+  .readd { display: flex; gap: 8px; } .readd .btn svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 2px; }
   .refoot { position: sticky; bottom: -24px; display: flex; gap: 8px; align-items: center; justify-content: flex-end; padding: 16px 0 8px; background: var(--bg); }
   .reerr { flex: 1; color: var(--red); font-size: 13px; } #re-save:disabled { opacity: .45; cursor: default; }
   .re-prev { grid-template-columns: 1fr 1fr; }
@@ -352,7 +353,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.26 (11/07 3:20pm)';
+const BUILD = 'd1.27 (11/09 11:30am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -1013,64 +1014,78 @@ function closeDrawer() {
   if (pendingData) { const d = pendingData; pendingData = null; applyOv(d); setData(d); }
 }
 
-// ---------- course settings: name + credits (Config) and the grading rule (Rules tab) ----------
+// ---------- course settings: name + credits (Config) and the course's block on the grades tab ----------
 // Edit freely; the preview recomputes this course from your real assignments; Save writes it all at once.
 let RE = null;
 const RL = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'];
-const COUNTED = ['category average', 'points total', 'each item separately', 'extra credit', 'bonus on another item', 'added to final', 'from attendance'];
+const COMBINE = ['average', 'points', 'each own share', 'attendance', 'extra → final grade', 'extra → category', 'extra → items', 'extra → extra items'];
+const OPTS = { 'extra → final grade': ['up to'], 'extra → category': ['to', 'up to'], 'extra → items': ['to', 'up to'], 'extra → extra items': ['to'], attendance: ['free absences', 'per absence'] };
+const optsFor = comb => OPTS[comb] || ['replaced by'];
+const kvParse = t => { const o = {}; String(t || '').split(';').forEach(p => { const m = p.match(/^\s*([^:]+):\s*(.*)$/); if (m) o[m[1].trim().toLowerCase()] = m[2].trim(); }); return o; };
+const kvJoin = o => Object.keys(o).filter(k => String(o[k]).trim() !== '').map(k => k + ': ' + String(o[k]).trim()).join('; ');
+function cutParse(t) { const c = SheetRules.parseCutoffs(t) || {}, o = {}; RL.forEach(L => o[L] = c[L] != null ? c[L] : ''); return o; }
+const cutJoin = o => RL.filter(L => String(o[L]).trim() !== '').map(L => L + ' ' + String(o[L]).trim()).join(', ');
+function reState() {
+  const head = Object.assign({}, RE.head); head.cutoffs = cutJoin(RE.cut);
+  return { cfg: RE.cfg, head, cats: RE.cats.map(c => { const o = Object.assign({}, c.opt), keep = optsFor(c.combine);
+    Object.keys(o).forEach(k => { if (['to', 'up to', 'replaced by', 'free absences', 'per absence'].includes(k) && !keep.includes(k)) delete o[k]; });
+    return { name: c.name, type: c.type, weight: c.weight, items: c.items, combine: c.combine, drop: c.drop, map: c.map, until: c.until, other: kvJoin(o) }; }) };
+}
 function openRules(code) {
-  const x = (data.setup || []).find(y => y.code === code); if (!x) return;
-  const rule = x.rule.vals.slice(); while (rule.length < 20) rule.push('');
-  RE = { code, cfg: { name: x.cfg ? x.cfg.name : '', credits: x.cfg ? x.cfg.credits : '' }, rule, cats: x.cats.map(c => ({ row: c.row, vals: c.vals.slice().concat(Array(Math.max(0, 14 - c.vals.length)).fill('')) })), more: {}, saving: false, err: '' };
-  RE.orig = JSON.stringify([RE.cfg, RE.rule, RE.cats]);
+  const x = (data.setup || []).find(y => y.code === code); if (!x || x.layout !== 'blocks') return;
+  RE = { code, cfg: { name: x.cfg ? x.cfg.name : '', credits: x.cfg ? x.cfg.credits : '' }, head: Object.assign({}, x.head), cut: cutParse(x.head.cutoffs),
+    cats: x.cats.map(c => Object.assign({}, c, { opt: kvParse(c.other), combine: String(c.combine || 'average').toLowerCase() })), saving: false, err: '' };
+  ['grade by', 'entered as'].forEach(k => { RE.head[k] = String(RE.head[k] || (k === 'grade by' ? 'weights' : 'percent')).toLowerCase(); });
+  RE.orig = JSON.stringify(reState());
   renderRules(); $('drawer').scrollTop = 0; $('drawer').classList.add('on'); $('scrim').classList.add('on');
 }
 function setRe(path, v) {
-  const p = path.split('.');
-  if (p[0] === 'cfg') RE.cfg[p[1]] = v; else if (p[0] === 'rule') RE.rule[+p[1]] = v; else RE.cats[+p[1]].vals[+p[2]] = v;
-  RE.err = ''; rulesPreview();
+  const i = path.indexOf('.'), a = path.slice(0, i), rest = path.slice(i + 1);
+  if (a === 'cfg') RE.cfg[rest] = v; else if (a === 'head') RE.head[rest] = rest === 'final from' && v === 'percent' ? '' : v; else if (a === 'cut') RE.cut[rest] = v;
+  else { const j = rest.indexOf('.'), k = +rest.slice(0, j), f = rest.slice(j + 1); if (a === 'cat') RE.cats[k][f] = f === 'type' ? v.toUpperCase() : v; else RE.cats[k].opt[f] = v; }
+  RE.err = '';
+  if (/^cat\.\d+\.combine$/.test(path)) { const y = $('drawer').scrollTop; renderRules(); $('drawer').scrollTop = y; } else rulesPreview();
 }
 function rulesPreview() {
   const box = $('re-prev'); if (!box || !RE) return;
-  let html;
+  const st = reState(); let html;
   try {
-    const r = SheetRules.fromSheet([RE.rule], RE.cats.map(c => c.vals))[0];
+    const t = SheetRules.tables([{ code: RE.code, head: st.head, cats: st.cats }]), r = SheetRules.fromSheet(t.courses, t.cats)[0];
     const g = r ? Engine.grade(r, engineItems(data.assignments), { absences: absences() }) : null, now = gradeOf(RE.code);
     html = `<div class="card"><div class="k">with these rules</div><div class="v">${g && g.value != null ? esc(g.letter || '–') + ' · ' + f2(g.value) : '–'}</div></div>
       <div class="card"><div class="k">right now</div><div class="v muted">${now && now.raw != null ? esc(now.letter || '–') + ' · ' + f2(now.raw) : '–'}</div></div>`;
   } catch (x) { html = `<div class="card" style="grid-column:1/-1"><div class="k">with these rules</div><div class="v" style="font-size:14px;color:var(--red)">doesn’t compute: ${esc(x.message || x)}</div></div>`; }
   box.innerHTML = html;
-  const dirty = JSON.stringify([RE.cfg, RE.rule, RE.cats]) !== RE.orig, b = $('re-save');
+  const dirty = JSON.stringify(st) !== RE.orig, b = $('re-save');
   if (b) { b.disabled = !dirty || RE.saving; b.textContent = RE.saving ? 'saving…' : 'save'; }
   const er = $('re-err'); if (er) er.textContent = RE.err || '';
 }
 function renderRules() {
-  const R = RE, col = colorFor(R.code), v = i => esc(R.rule[i] == null ? '' : R.rule[i]);
-  const sel = (path, cur, opts) => `<select class="txt" data-re="${path}">${opts.map(o => `<option value="${esc(o)}"${String(cur).toLowerCase() === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}${opts.includes(String(cur).toLowerCase()) || cur === '' ? '' : `<option selected>${esc(cur)}</option>`}</select>`;
-  const inp = (path, cur, ph, w) => `<input class="txt" data-re="${path}" value="${esc(cur == null ? '' : cur)}" placeholder="${ph || ''}" autocomplete="off" spellcheck="false"${w ? ` style="width:${w}"` : ''}>`;
+  const R = RE, col = colorFor(R.code);
+  const sel = (path, cur, opts) => `<select class="txt" data-re="${esc(path)}">${opts.map(o => `<option value="${esc(o)}"${String(cur).toLowerCase() === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}${opts.includes(String(cur).toLowerCase()) || cur === '' ? '' : `<option selected>${esc(cur)}</option>`}</select>`;
+  const inp = (path, cur, w, cls) => `<input class="txt${cls ? ' ' + cls : ''}" data-re="${esc(path)}" value="${esc(cur == null ? '' : cur)}" autocomplete="off" spellcheck="false"${w ? ` style="width:${w}"` : ''}>`;
   const f = (label, ctl, wide) => `<label class="ref"${wide ? ' style="grid-column:1/-1"' : ''}><span>${label}</span>${ctl}</label>`;
-  const cats = R.cats.map((c, k) => { const q = i => `cat.${k}.${i}`, cv = c.vals;
-    return `<div class="card recat"><div class="rehd">${inp(q(1), cv[1])}${inp(q(2), cv[2], '', '84px')}</div>
-      <div class="regrid">${f('weight', inp(q(3), cv[3]))}${f('# items', inp(q(4), cv[4]))}${f('drop lowest', inp(q(5), cv[5]))}${f('counted as', sel(q(6), cv[6] || 'category average', COUNTED))}</div>
-      <button class="link" data-act="re-more" data-k="${k}">${R.more[k] ? 'less' : 'more'}</button>
-      ${R.more[k] ? `<div class="regrid">${f('tiers / curves', inp(q(7), cv[7]), true)}${f('bonus goes to', inp(q(8), cv[8]))}${f('cap', inp(q(9), cv[9]))}${f('assume until graded', inp(q(10), cv[10]))}${f('free absences', inp(q(11), cv[11]))}${f('lose per absence', inp(q(12), cv[12]))}${f('replace lowest with', inp(q(13), cv[13]))}</div>` : ''}</div>`; }).join('');
+  const cats = R.cats.map((c, k) => { const q = x => `cat.${k}.${x}`, extra = /^extra/.test(c.combine);
+    return `<div class="card recat${extra ? ' ec' : ''}"><div class="rehd">${inp(q('name'), c.name)}${inp(q('type'), c.type, '84px', 'up')}<button class="iconbtn x" data-act="re-rm" data-k="${k}" aria-label="remove">${IC.x}</button></div>
+      <div class="regrid">${f('combine by', sel(q('combine'), c.combine, COMBINE))}${extra ? '' : f('weight', inp(q('weight'), c.weight)) + f('items', inp(q('items'), c.items)) + f('drop lowest', inp(q('drop'), c.drop)) + f('until graded', inp(q('until'), c.until))}
+        ${optsFor(c.combine).map(o => f(o, inp(`opt.${k}.${o}`, c.opt[o]))).join('')}${extra ? '' : f('score map', inp(q('map'), c.map), true)}</div></div>`; }).join('');
   $('drawer').innerHTML = `<div class="dhd"><h2 style="color:${col}">${esc(spaceCode(R.code))}</h2><span class="muted">course settings</span><button class="iconbtn x" data-act="close" aria-label="close">${IC.x}</button></div>
     <div class="kv re-prev" id="re-prev"></div>
     <div class="sec"><div class="ct">basics</div><div class="card regrid">${f('name', inp('cfg.name', R.cfg.name))}${f('credit hours', inp('cfg.credits', R.cfg.credits))}${f('course code', `<span class="muted" style="padding:8px 0">${esc(R.code)}</span>`)}</div></div>
     <div class="sec"><div class="ct">grading</div><div class="card"><div class="regrid">
-      ${f('method', sel('rule.1', R.rule[1], ['weighted', 'points']))}${f('bare numbers are', sel('rule.2', R.rule[2], ['points', 'percent']))}${f('final grade from', sel('rule.3', R.rule[3], ['percent', 'grade points']))}
-      ${f('round to', inp('rule.4', R.rule[4]))}${f('pass at', inp('rule.5', R.rule[5]))}${f('drop lowest across', inp('rule.6', R.rule[6]))}${f('how many', inp('rule.7', R.rule[7]))}</div>
-      <div class="ct" style="margin-top:14px">cutoffs</div><div class="recut">${RL.map((L, i) => f(L, inp('rule.' + (8 + i), R.rule[8 + i]))).join('')}</div></div></div>
-    <div class="sec"><div class="ct">categories</div>${cats}</div>
+      ${f('grade by', sel('head.grade by', R.head['grade by'], ['weights', 'points']))}${f('entered as', sel('head.entered as', R.head['entered as'], ['percent', 'points']))}${f('final from', sel('head.final from', R.head['final from'] || 'percent', ['percent', 'grade points']))}
+      ${f('round to', inp('head.round to', R.head['round to']))}${f('pass at', inp('head.pass at', R.head['pass at']))}${f('drop lowest across', inp('head.drop lowest across', R.head['drop lowest across']))}</div>
+      <div class="ct" style="margin-top:14px">cutoffs</div><div class="recut">${RL.map(L => f(L, inp('cut.' + L, R.cut[L]))).join('')}</div></div></div>
+    <div class="sec"><div class="ct">categories</div>${cats}<div class="readd"><button class="btn" data-act="re-add" data-k="cat">${IC.plus} category</button><button class="btn" data-act="re-add" data-k="extra">${IC.plus} extra credit</button></div></div>
     <div class="refoot"><span id="re-err" class="reerr"></span><button class="btn" data-act="close">cancel</button><button class="btn tint" id="re-save" data-act="re-save" disabled>save</button></div>`;
   rulesPreview();
 }
 function saveRules() {
   if (!RE || RE.saving) return;
-  const R = RE; R.saving = true; R.err = ''; rulesPreview();
-  post({ action: 'course_save', code: R.code, cfg: R.cfg, rule: R.rule, cats: R.cats })
+  const R = RE, st = reState(); R.saving = true; R.err = ''; rulesPreview();
+  post({ action: 'course_save', code: R.code, cfg: st.cfg, head: st.head, cats: st.cats })
     .then(() => { if (RE !== R) return; const x = (data.setup || []).find(y => y.code === R.code);
-      if (x) { x.rule.vals = R.rule.slice(); x.cats = R.cats.map(c => ({ row: c.row, vals: c.vals.slice() })); if (x.cfg) { x.cfg.name = R.cfg.name; x.cfg.credits = R.cfg.credits; } }
+      if (x) { x.head = st.head; x.cats = st.cats; if (x.cfg) { x.cfg.name = R.cfg.name; x.cfg.credits = R.cfg.credits; } }
       closeDrawer(); toast('saved ' + spaceCode(R.code) + ' settings'); load(true); })
     .catch(err => { R.saving = false; R.err = String(err.message || err); rulesPreview(); });
 }
@@ -1181,7 +1196,8 @@ document.addEventListener('click', e => {
     case 'slotedit': slotEdit = !slotEdit; return renderAll();
     case 'gpa2': showGpa2 = !showGpa2; return renderAll();
     case 'rules': return openRules(t.dataset.code);
-    case 're-more': RE.more[t.dataset.k] = !RE.more[t.dataset.k]; return renderRules();
+    case 're-rm': RE.cats.splice(+t.dataset.k, 1); return renderRules();
+    case 're-add': RE.cats.push({ name: '', type: '', weight: '', items: '', combine: t.dataset.k === 'extra' ? 'extra → final grade' : 'average', drop: '', map: '', until: '', opt: {} }); renderRules(); $('drawer').scrollTop = $('drawer').scrollHeight; return;
     case 're-save': return saveRules();
     case 'upcoming': return openUpcoming();
     case 'calchip': return toggleCal(t.dataset.cal);
@@ -1310,9 +1326,10 @@ function demoData() {
     grades: { engine: true, courses: C.map(c => ({ code: c[0], name: c[1], credits: c[2], passFail: !!R[c[0]].cutoffs.S, rule: safe(R[c[0]]) })) },
     notes: [{ x: 'grade bars look off in elegant', t: T - 864e5 }],
     history: [['CH 101', 'F25', 4, 4], ['MA 141', 'F25', 4, 3.667], ['ENG 101', 'F25', 4, 4.333], ['HON 110', 'F25', '', 4.333], ['CH 102', 'S26', 4, 4], ['MA 242', 'S26', 4, 3.333], ['BIO 181', 'S26', 4, 4], ['CH 201', 'F26', 4, null]].map(r => ({ code: r[0], term: r[1], hours: r[2] === '' ? null : r[2], gp: r[3] })),
-    setup: (() => { let row = 17; return C.map((c, i) => { const r = R[c[0]], pf = !!r.cutoffs.S;
-      return { code: c[0], cfg: { row: i + 2, name: c[1], credits: c[2] }, rule: { row: i + 4, vals: [c[0], r.method, r.method === 'points' ? 'points' : 'percent', 'percent', r.round != null ? r.round : '', pf ? r.cutoffs.S : '', '', ''].concat(['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'].map(L => pf ? '' : (r.cutoffs[L] != null ? r.cutoffs[L] : ''))) },
-        cats: r.categories.map(k => ({ row: row++, vals: [c[0], k.name, k.abbr, k.weight, k.expect != null ? k.expect : '', k.drop != null ? k.drop : '', k.within === 'points' ? 'points total' : 'category average', '', '', '', '', '', '', ''] })) }; }); })(),
+    setup: C.map((c, i) => { const r = R[c[0]], pf = !!r.cutoffs.S, head = { 'grade by': r.method === 'points' ? 'points' : 'weights', 'entered as': r.method === 'points' ? 'points' : 'percent' };
+      if (r.round != null) head['round to'] = r.round; if (pf) head['pass at'] = r.cutoffs.S; else head.cutoffs = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'].map(L => L + ' ' + r.cutoffs[L]).join(', ');
+      return { code: c[0], layout: 'blocks', cfg: { row: i + 2, name: c[1], credits: c[2] }, head,
+        cats: r.categories.map(k => ({ name: k.name, type: k.abbr, weight: k.weight, items: k.expect != null ? k.expect : '', combine: k.within === 'points' ? 'points' : 'average', drop: k.drop != null ? k.drop : '', map: '', until: '', other: '' })) }; }),
     attendance: [{ code: 'ch201', rule: 'none', dates: [addDays(sem0, 15)] }, { code: 'eng210', rule: '3 free, then −1 point each', dates: [addDays(sem0, 22), addDays(sem0, 50)] }],
     weeks: Array.from({ length: 17 }, (_, w) => ({ t: addDays(sem0, w * 7 + 7), label: 'end of week ' + (w + 1), budget: Math.round(1000 - w * 1000 / 16) })),
     ra: [{ r: 2, n: 'Roommate agreements', t: addDays(sem0, 20), d: true, note: '' }, { r: 3, n: 'Closing information post', t: addDays(T, 9), d: false, note: '' }, { r: 4, n: 'Winter break duty sign-up', t: addDays(T, 2), d: false, note: 'staff meeting' }, { r: 5, n: 'Intent to return form', t: null, due: 'TBD', d: false, note: '' }],
