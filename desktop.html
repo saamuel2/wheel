@@ -66,7 +66,7 @@
   h1 { font-size: 28px; font-weight: 700; letter-spacing: -.5px; margin: 0; text-transform: lowercase; }
   .head { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
   .head .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; } .btn.ic { display: inline-flex; align-items: center; justify-content: center; padding-left: 10px; padding-right: 10px; align-self: stretch; color: inherit; } .btn.ic svg { width: 15px; height: 15px; }
-  .gsw { height: calc(100vh - 128px); max-width: 1030px; border-radius: var(--r-card); overflow: hidden; background: #fff; } .gsw iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .gsw { height: calc(100vh - 196px); max-width: 1030px; border-radius: var(--r-card); overflow: hidden; background: #fff; } .gsw iframe { width: 100%; height: 100%; border: 0; display: block; }
   .card { background: var(--card); border-radius: 14px; padding: 16px 20px; }
   .ct { font-size: 13px; font-weight: 600; color: var(--sub); letter-spacing: 0; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
   .ct .r { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; display: flex; gap: 8px; align-items: center; }
@@ -364,7 +364,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.36 (11/10 12:50am)';
+const BUILD = 'd1.37 (11/10 12:55am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -638,7 +638,7 @@ function renderAll() {
   if (VIEW === 'course' && !COURSE) VIEW = 'settings';
   if (!data && VIEW !== 'settings') { v.innerHTML = '<div class="empty" style="padding-top:20vh">loading…</div>'; return; }
   const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.k ? { k: ae.dataset.k, s: ae.selectionStart, e: ae.selectionEnd } : null;
-  if (keep && ae.isConnected && v.contains(ae)) {   // typing: update everything around the focused box without replacing it, so the iPad keyboard doesn't reset
+  if (keep && ae.isConnected && v.contains(ae) && !(VIEW === 'sheet' && SF.gs)) {   // typing: update everything around the focused box without replacing it, so the iPad keyboard doesn't reset
     const tmp = document.createElement('div'); fn(tmp);
     if (morphKeep(v, tmp, ae)) { if (VIEW === 'course') rulesPreview(); growBars(); return; }
     v.replaceChildren(...tmp.childNodes);
@@ -911,11 +911,6 @@ function parseDateText(s) {
 const GS_EMBED = SHEET_URL + '?rm=minimal#gid=1498365095&range=A1';
 const sheetHead = () => `<div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><button class="btn${SF.gs ? ' on' : ''}" data-act="gs">google sheet</button><a class="btn ic" href="${SHEET_URL}" target="_blank" rel="noopener" aria-label="open in google sheets" title="open in google sheets">${IC.ext.replace(/width="11" height="11"/, 'width="15" height="15"')}</a><button class="btn tint" data-act="add">add assignment</button></div></div>`;
 function renderSheet(v) {
-  if (SF.gs) {   // the real sheet (Assignments, columns A–G). Built once; later refreshes leave it alone so it doesn't reload
-    if (v.querySelector('#gsframe')) return;
-    v.innerHTML = sheetHead() + `<div class="gsw"><iframe id="gsframe" src="${GS_EMBED}" title="google sheet"></iframe></div>`;
-    return;
-  }
   const A = data.assignments, T = today(), ws = weekStart(Date.now()), nws = addDays(ws, 7);
   const F = [['upcoming', 'upcoming'], ['week', 'this week'], ['grade', 'to grade'], ['done', 'done'], ['all', 'all']];
   let list = A.filter(a => !blankCls(a.c) || a.c === '').filter(a => STAY.has(kOf(a)) || (SF.f === 'upcoming' ? !a.d : SF.f === 'done' ? a.d : SF.f === 'grade' ? (a.d && (a.g == null || a.g === '') && !isExtra(a.c)) : SF.f === 'week' ? (a.t >= ws && a.t < nws) : true));
@@ -955,9 +950,16 @@ function renderSheet(v) {
       ${SF.out ? `<td><input class="cell num" data-f="o" data-k="${k}o" value="${a.o == null ? '' : esc(a.o)}" autocomplete="off"></td>` : ''}<td class="delc"><button class="delbtn" data-act="del" aria-label="delete assignment" title="delete">${IC.x}</button></td></tr>`;
     DRAFTS.filter(d => d.after === i).forEach(d => { rows += draftRow(d); });
   });
-  v.innerHTML = `<div class="stick">${sheetHead()}
+  const top = `${sheetHead()}
     <div class="toolbar"><div class="seg">${F.map(f => `<button class="${SF.f === f[0] ? 'on' : ''}" data-act="sf" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
-      <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" aria-label="search" value="${esc(SF.q)}" autocomplete="off"></div>
+      <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" aria-label="search" value="${esc(SF.q)}" autocomplete="off"></div>`;
+  if (SF.gs) {   // the real sheet (Assignments, columns A–G) under the same header; the frame is built once so refreshes don't reload it
+    const st = v.querySelector('.stick.gs');
+    if (st && v.querySelector('#gsframe')) { st.innerHTML = top; return; }
+    v.innerHTML = `<div class="stick gs">${top}</div><div class="gsw"><iframe id="gsframe" src="${GS_EMBED}" title="google sheet"></iframe></div>`;
+    return;
+  }
+  v.innerHTML = `<div class="stick">${top}
     <table class="grid h">${colg}<thead><tr>${th}</tr></thead></table></div>
     <table class="grid b">${colg}<tbody>${rows}${list.length || DRAFTS.length ? '' : `<tr><td colspan="${ncol}" class="empty">${({ upcoming: 'all caught up', grade: 'everything is graded', done: 'nothing done yet', week: 'nothing due this week' }[SF.f] || 'nothing here')}</td></tr>`}</tbody></table>
     `;
