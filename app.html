@@ -231,7 +231,7 @@
   .sw input:checked + i { background: #34C759; } .sw input:checked + i::after { transform: translateX(20px); }
   /* 2.8: wheel = 4/7 width; next up double height; blank-until-chosen date field */
   .lcol { width: 57.1429%; max-width: none; }
-  .hero .wheel-pct { font-size: 36px; } .hero .wheel-frac { font-size: 12px; }
+  .hero .wheel-pct { font-size: 24px; } .hero .wheel-frac { font-size: 10.5px; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .side { gap: 8px; }
   .tile.big { flex: 2; justify-content: flex-start; padding-top: 12px; }
   .tile.big .tl { margin-bottom: 8px; } .ev + .ev { margin-top: 8px; }
@@ -417,7 +417,7 @@
   /* ===== tab bar (11/07): built to match the iOS Phone app's — a floating glass capsule, five 64-pt tabs, SF-style filled glyphs,
      the selected tab sitting in a darker capsule with its glyph and label in system blue ===== */
   .nav-bar { left: 21px; right: 21px; bottom: 14px; height: 67px; padding: 0 14px; border-radius: 34px; justify-content: space-between;
-    background: rgba(40,40,40,.78) !important; -webkit-backdrop-filter: blur(24px) saturate(180%) !important; backdrop-filter: blur(24px) saturate(180%) !important;
+    background: rgba(40,40,40,.55) !important; -webkit-backdrop-filter: blur(24px) saturate(180%) !important; backdrop-filter: blur(24px) saturate(180%) !important;
     box-shadow: inset 0 0 0 .5px rgba(255,255,255,.14), inset 0 .5px 0 rgba(255,255,255,.12), 0 10px 30px rgba(0,0,0,.35) !important; }
   .nav-bar::before { display: none !important; }
   .nav-indicator { top: 5px; bottom: 5px; width: 76px; left: calc(14px + (100vw - 70px) / 10 - 38px); border-radius: 29px;
@@ -427,13 +427,13 @@
   .nav-item svg { width: 25px; height: 25px; margin: 0; transition: transform .2s cubic-bezier(.32,.72,0,1); }
   .nav-item:active { opacity: 1; } .nav-item:active svg { transform: scale(.88); }
   .nav-item.active { color: #4399F0 !important; }
-  html[data-theme=light] .nav-bar { background: rgba(249,249,249,.82) !important; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08), 0 10px 30px rgba(0,0,0,.12) !important; }
+  html[data-theme=light] .nav-bar { background: rgba(249,249,249,.6) !important; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.08), 0 10px 30px rgba(0,0,0,.12) !important; }
   html[data-theme=light] .nav-indicator { background: rgba(120,120,128,.16) !important; box-shadow: none !important; }
   html[data-theme=light] .nav-item { color: #000 !important; } html[data-theme=light] .nav-item.active { color: #007AFF !important; }
-  html[data-theme=elegant] .nav-bar { background: rgba(244,240,233,.84) !important; box-shadow: inset 0 0 0 .5px rgba(24,60,64,.12), 0 10px 30px rgba(24,60,64,.16) !important; }
+  html[data-theme=elegant] .nav-bar { background: rgba(244,243,240,.6) !important; box-shadow: inset 0 0 0 .5px rgba(24,60,64,.12), 0 10px 30px rgba(24,60,64,.16) !important; }
   html[data-theme=elegant] .nav-indicator { background: rgba(24,60,64,.1) !important; box-shadow: none !important; }
   html[data-theme=elegant] .nav-item { color: #183C40 !important; } html[data-theme=elegant] .nav-item.active { color: #2F6B4A !important; }
-  html[data-theme=moody] .nav-bar { background: rgba(38,38,38,.8) !important; } html[data-theme=moody] .nav-item { color: #E6DCC8 !important; } html[data-theme=moody] .nav-item.active { color: #B2C894 !important; }
+  html[data-theme=moody] .nav-bar { background: rgba(38,38,38,.56) !important; } html[data-theme=moody] .nav-item { color: #E6DCC8 !important; } html[data-theme=moody] .nav-item.active { color: #B2C894 !important; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
@@ -567,7 +567,7 @@
     let weekOffset = 0;
     
     // Core parameters for SVG Drawing
-    const R = 96; const CUTOUT = 0.54; const MAX_THICK = 20; const GAP = 2.5;
+    const R = 96; const CUTOUT = 0.4; const MAX_THICK = 26; const GAP = 2.5;
     
     const COLORS = {
       'bch351':'#b2e2b6','biochem':'#b2e2b6','bio240':'#9ed2f6','anat+phys':'#9ed2f6',
@@ -673,7 +673,7 @@
       else wg.innerHTML = arcs(to);
       const wpv = weekTasks.length ? Math.round((doneTasks.length / weekTasks.length) * 100) : 0, wpe = document.getElementById('wheel-pct');
       wpe.textContent = wpv + '%'; wpe.classList.toggle('full', wpv >= 100);   // three digits: a size smaller so it sits inside the rings
-      document.getElementById('wheel-frac').textContent = `${doneTasks.length}/${weekTasks.length} done`;
+      document.getElementById('wheel-frac').textContent = `${doneTasks.length}/${weekTasks.length}`;
     }
 
     // now = true (pull to refresh, opening the app): wait for any fetch already on its way, never use a cached response,
@@ -790,7 +790,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.57 (11/09 11:50pm)';
+    const BUILD = 'm2.58 (11/10 8:45am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
