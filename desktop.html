@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#000000">
-<link rel="icon" type="image/png" href="favicon-desktop.png?v=4">
+<link rel="icon" type="image/png" href="favicon-desktop.png?v=5" id="favicon">
 <link rel="apple-touch-icon" href="icon-ipad.png">
 <link rel="manifest" href="desktop.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="tracker">
-<title>tracker</title>
+<meta name="apple-mobile-web-app-title" content="assignments">
+<title>assignments</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
 <script>try{var t=localStorage.getItem('wheel-theme');t=t&&t.replace(/"/g,'');if(t==='light'||t==='elegant'||t==='moody')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
@@ -43,7 +43,7 @@
 
   /* sidebar */
   .side { padding: 24px 12px; display: flex; flex-direction: column; gap: 2px; border-right: .5px solid var(--sep); overflow-y: auto; }
-  .brand { font-size: 22px; font-weight: 700; letter-spacing: -.4px; padding: 0 12px 20px; display: flex; align-items: center; gap: 9px; } .brand img { flex: none; display: block; }
+  .brand { font-size: 22px; font-weight: 700; letter-spacing: -.4px; padding: 0 12px 20px; display: flex; align-items: center; gap: 9px; } .brand .logo { flex: none; display: block; }
   .nav { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; color: var(--sub); border: 0; background: none; text-align: left; font-weight: 500; }
   .nav svg { width: 20px; height: 20px; flex: none; }
   .nav:hover { background: var(--fill); color: var(--text); }
@@ -216,7 +216,7 @@
   .glance .col.wide1 > .card + .card .bar { margin-top: 6px; } .vcard { display: flex; flex-direction: column; }
   .cbars { flex: 1; min-height: 0; display: flex; gap: 8px; align-items: stretch; margin-top: 2px; } .cb { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
   .cbt { flex: 1; width: 100%; max-width: 30px; background: var(--track); border-radius: 6px; display: flex; align-items: flex-end; }
-  .cbt i { position: relative; display: block; width: 100%; border-radius: 6px; min-height: 2px; } .cbt b { font-style: normal; position: absolute; left: 0; right: 0; top: 3px; text-align: center; font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45); font-variant-numeric: tabular-nums; }
+  .cbt i { position: relative; display: block; width: 100%; border-radius: 6px; min-height: 2px; transition: height .65s cubic-bezier(.22,.8,.3,1); } .cbt b { font-style: normal; position: absolute; left: 0; right: 0; top: 3px; text-align: center; font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.45); font-variant-numeric: tabular-nums; }
   .cbt b.out { top: auto; bottom: 100%; margin-bottom: 1px; color: var(--sub); }
   .cb span { font-size: 11px; line-height: 11px; color: var(--sub); text-align: center; text-transform: lowercase; font-variant-numeric: tabular-nums; }
   .wxrow { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; } .wxart { width: 74px; height: 60px; flex: none; }
@@ -333,7 +333,7 @@
 <body>
 <div class="app">
   <nav class="side" id="side">
-    <div class="brand"><img src="favicon-desktop.svg" alt="" width="22" height="22">tracker</div>
+    <div class="brand"><svg class="logo" id="logo" viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><circle cx="32" cy="32" r="25" fill="none" stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-dasharray="117.81 157.08" transform="rotate(-90 32 32)"/><circle cx="32" cy="32" r="6.5" fill="currentColor"/></svg>assignments</div>
     <svg class="swheel" id="swheel" viewBox="0 0 100 100" aria-hidden="true"></svg>
     <button class="nav" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard</button>
     <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet</button>
@@ -365,7 +365,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.32 (11/10 12:20am)';
+const BUILD = 'd1.33 (11/10 12:25am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -431,6 +431,7 @@ function colorFor(code) {
 const spaceCode = c => String(c || '').replace(/^([a-z]+)(\d+)$/i, (m, a, b) => a.toUpperCase() + ' ' + b);
 
 // ===================== data =====================
+const CBP = {};   // completion bar heights last shown, so a change grows from there
 let data = null, lastSync = 0, syncState = 'busy', fetching = false, pendingData = null;
 const OV = {};                                // local edits stay on screen until the sheet shows them (or 90 s pass)
 const kOf = a => a.c + '|' + a.n + '|' + a.t;
@@ -624,7 +625,7 @@ let SLOT = store.get('desk-slot', 'budget'), slotEdit = false, raAll = false, td
 function go(v, fade) {
   if (v !== 'sheet') TEST = {};
   if (v === 'extra' || v === 'tasks') v = 'dash';   // the tasks page is gone; RA tasks + to-do live on the dashboard
-  if (v !== VIEW) spinWheel2(14);
+  if (v !== VIEW) spinWheel2(5);
   VIEW = v; store.set('desk-view', v);
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
   document.querySelectorAll('.view').forEach(s => { s.classList.toggle('on', s.id === 'v-' + v); s.classList.toggle('fade', fade !== false && s.id === 'v-' + v); });
@@ -632,7 +633,7 @@ function go(v, fade) {
 }
 function renderAll() {
   if (!DEMO && !KEY && VIEW !== 'settings') { $('v-' + VIEW).innerHTML = connectHtml(); return; }
-  subnav(); try { sideWheel(); } catch (x) {}
+  subnav(); try { sideWheel(); brandColor(); } catch (x) {}
   const fn = { dash: renderDash, sheet: renderSheet, grades: renderGrades, att: renderAtt, settings: renderSettings, course: renderCourse }[VIEW];
   const v = $('v-' + VIEW);
   if (VIEW === 'course' && !COURSE) VIEW = 'settings';
@@ -640,10 +641,11 @@ function renderAll() {
   const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.k ? { k: ae.dataset.k, s: ae.selectionStart, e: ae.selectionEnd } : null;
   if (keep && ae.isConnected && v.contains(ae)) {   // typing: update everything around the focused box without replacing it, so the iPad keyboard doesn't reset
     const tmp = document.createElement('div'); fn(tmp);
-    if (morphKeep(v, tmp, ae)) { if (VIEW === 'course') rulesPreview(); return; }
+    if (morphKeep(v, tmp, ae)) { if (VIEW === 'course') rulesPreview(); growBars(); return; }
     v.replaceChildren(...tmp.childNodes);
   } else fn(v);
   if (VIEW === 'course') rulesPreview();
+  growBars();
   if (keep) { const el = v.querySelector('[data-k="' + CSS.escape(keep.k) + '"]'); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (x) {} } }
 }
 function morphKeep(o, n, ae) {
@@ -790,7 +792,7 @@ function completionHtml(pen) {
   const A = data.assignments || [], codes = courseList().map(c => c.code).filter(c => !isExtra(c));
   const rows = codes.map(c => { const m = A.filter(a => a.c === c); return { c, n: m.length, d: m.filter(a => a.d).length }; }).filter(r => r.n);
   return `<div class="card vcard"><div class="ct">completion${pen}</div><div class="cbars">${rows.map(r => { const p = Math.round(100 * r.d / r.n), m = String(r.c).match(/^([a-z]+)\s*(\d.*)$/i) || [0, r.c, ''];
-    return `<div class="cb" title="${esc(spaceCode(r.c))}: ${r.d} of ${r.n} done"><div class="cbt"><i style="height:${p}%;background:${colorFor(r.c)}"><b class="${p < 22 ? 'out' : ''}">${p}</b></i></div><span>${esc(m[1])}<br>${esc(m[2])}</span></div>`; }).join('')}</div></div>`;
+    return `<div class="cb" title="${esc(spaceCode(r.c))}: ${r.d} of ${r.n} done"><div class="cbt"><i data-c="${esc(r.c)}" data-p="${p}" style="height:${CBP[r.c] != null ? CBP[r.c] : p}%;background:${colorFor(r.c)}"><b class="${p < 22 ? 'out' : ''}">${p}</b></i></div><span>${esc(m[1])}<br>${esc(m[2])}</span></div>`; }).join('')}</div></div>`;
 }
 // weather (same source and drawings as the phone): open-meteo at your saved location, Raleigh until the browser shares one
 let WX = null, wxAt = 0;
@@ -1158,7 +1160,7 @@ function sideWheel() {
 const SPIN = { ang: [], vel: 0, raf: 0, speeds: [1, -1.6, 1.3, -0.8, 1.9, -1.2, 0.7, -2.1, 1.5, -1] };
 function spinWheel2(kick) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  SPIN.vel = Math.max(-40, Math.min(40, SPIN.vel + kick));
+  SPIN.vel = Math.max(-12, Math.min(12, SPIN.vel + kick));
   if (SPIN.raf) return;
   let last = performance.now();
   const step = now => {
@@ -1171,7 +1173,20 @@ function spinWheel2(kick) {
   SPIN.raf = requestAnimationFrame(step);
 }
 (() => { let y = 0; const m = $('main'); if (!m) return; y = m.scrollTop;
-  m.addEventListener('scroll', () => { const d = m.scrollTop - y; y = m.scrollTop; if (Math.abs(d) < 200) spinWheel2(d * .06); }, { passive: true }); })();
+  m.addEventListener('scroll', () => { const d = m.scrollTop - y; y = m.scrollTop; if (Math.abs(d) < 200) spinWheel2(d * .022); }, { passive: true }); })();
+function brandColor() {
+  const c = colorFor('gn427'), l = $('logo'); if (l) l.style.color = c;
+  if (brandColor.c === c) return; brandColor.c = c;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="none" stroke="${c}" stroke-width="13" stroke-linecap="round" stroke-dasharray="117.81 157.08" transform="rotate(-90 32 32)"/><circle cx="32" cy="32" r="6.5" fill="${c}"/></svg>`;
+  const f = $('favicon'); if (f) { f.type = 'image/svg+xml'; f.href = 'data:image/svg+xml,' + encodeURIComponent(svg); }
+}
+// completion bars grow from where they were, like the wheel's rings
+function growBars() {
+  const bars = document.querySelectorAll('.cbt i[data-c]'), go = [];
+  bars.forEach(i => { const c = i.dataset.c, p = +i.dataset.p, was = CBP[c]; CBP[c] = p; if (was != null && was !== p) go.push([i, p]); });
+  if (!go.length) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => go.forEach(([i, p]) => { i.style.height = p + '%'; })));
+}
 function subnav() {
   const sn = $('subnav'); if (!sn) return;
   const on = (VIEW === 'settings' || VIEW === 'course') && data && data.setup;

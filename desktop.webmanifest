@@ -1,6 +1,6 @@
 {
-  "name": "tracker",
-  "short_name": "tracker",
+  "name": "assignments",
+  "short_name": "assignments",
   "start_url": "desktop.html",
   "scope": "./",
   "display": "standalone",
