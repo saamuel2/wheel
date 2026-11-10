@@ -65,7 +65,8 @@
   @keyframes fade { from { opacity: 0; transform: translateY(3px); } }
   h1 { font-size: 28px; font-weight: 700; letter-spacing: -.5px; margin: 0; text-transform: lowercase; }
   .head { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
-  .head .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .head .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; } .btn.ic { display: inline-flex; align-items: center; justify-content: center; padding-left: 10px; padding-right: 10px; }
+  .gsw { height: calc(100vh - 128px); max-width: 1010px; border-radius: var(--r-card); overflow: hidden; background: #fff; } .gsw iframe { width: 100%; height: 100%; border: 0; display: block; }
   .card { background: var(--card); border-radius: 14px; padding: 16px 20px; }
   .ct { font-size: 13px; font-weight: 600; color: var(--sub); letter-spacing: 0; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
   .ct .r { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; display: flex; gap: 8px; align-items: center; }
@@ -96,8 +97,8 @@
   .wheel { position: relative; width: 196px; height: 196px; margin: 8px auto 8px; }
   .wheel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   .wheel .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .wpct { font-size: 40px; font-weight: 700; letter-spacing: -1px; line-height: 1; } .wpct.full { font-size: 34px; }
-  .wfrac { color: var(--sub); font-weight: 700; margin-top: 4px; font-size: 13px; }
+  .wpct { font-size: 26px; font-weight: 700; letter-spacing: -.5px; line-height: 1; } .wpct.full { font-size: 22px; }
+  .wfrac { color: var(--sub); font-weight: 700; margin-top: 3px; font-size: 11px; font-variant-numeric: tabular-nums; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; font-size: 11px; color: var(--sub); }
   .legend b { display: inline-block; width: 7px; height: 7px; border-radius: 4px; margin-right: 4px; }
   .big { font-size: 28px; font-weight: 700; letter-spacing: -.4px; line-height: 1.15; }
@@ -252,9 +253,7 @@
   .regrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 12px; }
   .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 12px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
   .recat { margin-bottom: 12px; } .rehd { display: flex; gap: 8px; margin-bottom: 12px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
-  .swheel { width: 100%; height: auto; aspect-ratio: 1; padding: 0 6px; margin: 0 0 22px; display: block; flex: none; } .swheel .sw-arc { transition: stroke-dasharray .65s cubic-bezier(.22,.8,.3,1), opacity .2s; }
-  @media (prefers-reduced-motion: reduce) { .swheel .sw-arc { transition: none; } }
-  .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 5px 12px 5px 46px; font-size: 13px; gap: 8px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .swheel { width: 100%; height: auto; aspect-ratio: 1; padding: 0 6px; margin: 0 0 22px; display: block; flex: none; }   .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 5px 12px 5px 46px; font-size: 13px; gap: 8px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
   .cgrid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; } @media (max-width: 1100px) { .cgrid { grid-template-columns: 1fr; } }
   .recut.r12 { grid-template-columns: repeat(12, minmax(44px, 1fr)); } @media (max-width: 1000px) { .recut.r12 { grid-template-columns: repeat(6, 1fr); } }
   .tscroll { overflow-x: auto; margin: 0 -4px; } .ctab { min-width: 980px; } .ctab td { vertical-align: middle; padding: 6px 4px; } .ctab .txt { height: 32px; padding: 0 8px; width: 100%; font-size: 13px; }
@@ -365,7 +364,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.33 (11/10 12:25am)';
+const BUILD = 'd1.34 (11/10 12:40am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -716,7 +715,7 @@ function renderDash(v) {
   v.innerHTML = `<div class="head"><h1>${esc(greet())}</h1><div class="tools"><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="glance">
       <div class="card"><div class="wk"><button class="iconbtn" data-act="wk-" aria-label="previous week">${IC.l}</button><span class="lbl">${rel}</span><button class="iconbtn" data-act="wk+" aria-label="next week">${IC.r}</button></div>
-        <div class="wheel"><svg viewBox="0 0 200 200">${wheelSvg(wk)}</svg><div class="c"><div class="wpct${wk.length && done === wk.length ? ' full' : ''}">${wk.length ? Math.round(done / wk.length * 100) : 0}%</div><div class="wfrac">${done}/${wk.length} done</div></div></div>
+        <div class="wheel"><svg viewBox="0 0 200 200">${wheelSvg(wk)}</svg><div class="c"><div class="wpct${wk.length && done === wk.length ? ' full' : ''}">${wk.length ? Math.round(done / wk.length * 100) : 0}%</div><div class="wfrac">${done}/${wk.length}</div></div></div>
         <div class="legend">${wheelCourses(wk).map(c => `<span><b style="background:${colorFor(c)}"></b>${esc(c)}</span>`).join('')}</div></div>
       ${nextUpHtml()}
       <div class="col${SLOT === 'completion' && !slotEdit ? ' wide1' : ''}">${slotHtml()}${countdownHtml()}</div>
@@ -732,7 +731,7 @@ function wheelCourses(wk) { const seen = []; wk.forEach(a => { if (!seen.include
 // week wheel. When the same week's rings re-render with a different count (e.g. 4/6 → 5/6), only the changed ring moves, from where it was.
 let DW = null, dwTok = 0;
 function wheelSvg(wk) {
-  const R = 96, CUT = .54, MAXT = 20, GAP = 2.5, cs = wheelCourses(wk);
+  const R = 96, CUT = .4, MAXT = 26, GAP = 2.5, cs = wheelCourses(wk);
   if (!cs.length) { DW = null; return `<circle cx="100" cy="100" r="${R - 9}" fill="none" stroke-width="18" stroke="var(--track)"/>`; }
   const th = Math.min(MAXT, R * (1 - CUT) / cs.length);
   const rings = cs.map((c, i) => { const mine = wk.filter(a => a.c === c); return { rad: R - i * th - th / 2, w: Math.max(th - GAP, 2), col: colorFor(c), pct: mine.filter(a => a.d).length / mine.length }; });
@@ -910,6 +909,12 @@ function parseDateText(s) {
   return ymd(dt.getTime());
 }
 function renderSheet(v) {
+  if (SF.gs) {   // the real sheet (Assignments, columns A–G). Built once; later refreshes leave it alone so it doesn't reload
+    if (v.querySelector('#gsframe')) return;
+    v.innerHTML = `<div class="head"><h1>sheet</h1><div class="tools"><button class="btn on" data-act="gs">google sheet</button><a class="btn ic" href="${SHEET_URL}" target="_blank" rel="noopener" aria-label="open in google sheets" title="open in google sheets">${IC.ext}</a></div></div>
+      <div class="gsw"><iframe id="gsframe" src="${SHEET_URL}?rm=minimal#gid=1498365095&range=A1" title="google sheet"></iframe></div>`;
+    return;
+  }
   const A = data.assignments, T = today(), ws = weekStart(Date.now()), nws = addDays(ws, 7);
   const F = [['upcoming', 'upcoming'], ['week', 'this week'], ['grade', 'to grade'], ['done', 'done'], ['all', 'all']];
   let list = A.filter(a => !blankCls(a.c) || a.c === '').filter(a => STAY.has(kOf(a)) || (SF.f === 'upcoming' ? !a.d : SF.f === 'done' ? a.d : SF.f === 'grade' ? (a.d && (a.g == null || a.g === '') && !isExtra(a.c)) : SF.f === 'week' ? (a.t >= ws && a.t < nws) : true));
@@ -949,7 +954,7 @@ function renderSheet(v) {
       ${SF.out ? `<td><input class="cell num" data-f="o" data-k="${k}o" value="${a.o == null ? '' : esc(a.o)}" autocomplete="off"></td>` : ''}<td class="delc"><button class="delbtn" data-act="del" aria-label="delete assignment" title="delete">${IC.x}</button></td></tr>`;
     DRAFTS.filter(d => d.after === i).forEach(d => { rows += draftRow(d); });
   });
-  v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><a class="btn" href="${SHEET_URL}" target="_blank" rel="noopener">google sheet ${IC.ext}</a><button class="btn tint" data-act="add">add assignment</button></div></div>
+  v.innerHTML = `<div class="stick"><div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><button class="btn" data-act="gs">google sheet</button><a class="btn ic" href="${SHEET_URL}" target="_blank" rel="noopener" aria-label="open in google sheets" title="open in google sheets">${IC.ext}</a><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="toolbar"><div class="seg">${F.map(f => `<button class="${SF.f === f[0] ? 'on' : ''}" data-act="sf" data-f="${f[0]}">${f[1]}</button>`).join('')}</div>
       <div class="cchips">${classes.map(chip).join('')}</div><input class="txt search" id="sq" data-k="sq" aria-label="search" value="${esc(SF.q)}" autocomplete="off"></div>
     <table class="grid h">${colg}<thead><tr>${th}</tr></thead></table></div>
@@ -1145,16 +1150,41 @@ function sideWheel() {
   const A = (data && data.assignments) || [], ws = weekStart(Date.now()), we = addDays(ws, 7), wk = A.filter(a => a.t >= ws && a.t < we), cs = wheelCourses(wk);
   el.hidden = !cs.length; if (!cs.length) return;
   const R = 49, IN = 7, GAP = 1.3, th = (R - IN) / cs.length, w = Math.max(th - GAP, 1.5);
-  const rings = cs.map((c, i) => { const mine = wk.filter(a => a.c === c), rad = R - i * th - th / 2; return { c, rad, col: colorFor(c), p: mine.filter(a => a.d).length / mine.length, C: 2 * Math.PI * rad }; });
-  const geo = rings.map(g => g.c + g.rad.toFixed(2)).join(',') + '|' + w.toFixed(2);
+  const bg = (getComputedStyle(document.documentElement).getPropertyValue('--bg') || '').trim();
+  const rings = cs.map((c, i) => { const mine = wk.filter(a => a.c === c); return { c, rad: R - i * th - th / 2, w, col: colorFor(c), p: mine.filter(a => a.d).length / mine.length }; });
+  const geo = rings.map(g => g.c + g.rad.toFixed(2) + g.col).join(',') + '|' + w.toFixed(2) + bg;
   if (el.dataset.geo !== geo) {
-    el.dataset.geo = geo;
+    el.dataset.geo = geo; SW.shown = {};
     el.innerHTML = rings.map((g, i) => `<circle cx="50" cy="50" r="${g.rad.toFixed(2)}" fill="none" stroke="var(--track)" stroke-width="${w.toFixed(2)}"/>` +
-      `<g class="sw-rot" data-i="${i}" transform="rotate(${(SPIN.ang[i] || 0).toFixed(2)} 50 50)"><circle class="sw-arc" data-i="${i}" cx="50" cy="50" r="${g.rad.toFixed(2)}" fill="none" stroke="${g.col}" stroke-width="${w.toFixed(2)}" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="0 ${g.C.toFixed(2)}"/></g>`).join('');
-    void el.getBoundingClientRect();
+      `<g class="sw-rot" data-i="${i}" transform="rotate(${(SPIN.ang[i] || 0).toFixed(2)} 50 50)"></g>`).join('');
   }
-  rings.forEach((g, i) => { const a = el.querySelector(`.sw-arc[data-i="${i}"]`); if (!a) return;
-    const len = g.p >= .999 ? g.C : g.p * g.C; a.style.opacity = g.p > .001 ? 1 : 0; a.setAttribute('stroke-dasharray', `${len.toFixed(2)} ${(g.C + 1).toFixed(2)}`); });
+  rings.forEach((g, i) => {
+    const gEl = el.querySelector(`.sw-rot[data-i="${i}"]`); if (!gEl) return;
+    const from = SW.shown[g.c], to = g.p;
+    if (from == null || Math.abs(from - to) < 1e-6) { SW.shown[g.c] = to; gEl.innerHTML = ringArc(g, to, bg); return; }
+    const tok = (SW.tok[g.c] = (SW.tok[g.c] || 0) + 1), t0 = performance.now();
+    const step = now => { if (SW.tok[g.c] !== tok || !gEl.isConnected) return;
+      const q = Math.min((now - t0) / 650, 1), e = 1 - Math.pow(1 - q, 3), p = from + (to - from) * e;
+      SW.shown[g.c] = p; gEl.innerHTML = ringArc(g, p, bg); if (q < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+}
+const SW = { shown: {}, tok: {} };
+// one ring of wheel2: brightens from its start to its chevron tip, so even a full ring shows which way it's turning
+function hexRgb(h) { h = String(h).trim().replace('#', ''); if (h.length === 3) h = h.split('').map(x => x + x).join(''); if (!/^[0-9a-f]{6}$/i.test(h)) return null; return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function ringArc(g, p, bg) {
+  if (p <= .001) return '';
+  const full = p >= .999, a1 = (full ? 1 : p) * 2 * Math.PI, r1 = g.rad - g.w / 2, r2 = g.rad + g.w / 2;
+  const tip = full ? 0 : Math.min(.41 * g.w / g.rad, a1 * .6), tc = a1 - tip;
+  const P = (r, t) => (50 + r * Math.sin(t)).toFixed(2) + ' ' + (50 - r * Math.cos(t)).toFixed(2);
+  const c1 = hexRgb(g.col), c0 = hexRgb(bg), mix = t => { if (!c1 || !c0) return g.col; const k = .5 + .5 * t; return 'rgb(' + c1.map((v, i) => Math.round(c0[i] + (v - c0[i]) * k)).join(',') + ')'; };
+  const N = Math.max(2, Math.ceil(tc / (Math.PI / 40))); let h = '';
+  for (let k = 0; k < N; k++) {
+    const a = k * tc / N, b = Math.min((k + 1) * tc / N + (k < N - 1 ? .012 : 0), tc), big = b - a > Math.PI ? 1 : 0;
+    h += `<path d="M${P(r2, a)}A${r2} ${r2} 0 ${big} 1 ${P(r2, b)}L${P(r1, b)}A${r1} ${r1} 0 ${big} 0 ${P(r1, a)}Z" fill="${mix((k + .5) / N * (tc / a1))}"/>`;
+  }
+  if (!full) h += `<path d="M${P(r2, tc - .004)}L${P(r2, tc)}L${P(g.rad, a1)}L${P(r1, tc)}L${P(r1, tc - .004)}Z" fill="${mix(1)}"/>`;
+  return h;
 }
 // each ring has its own speed and direction; scrolling feeds them momentum, which then eases off
 const SPIN = { ang: [], vel: 0, raf: 0, speeds: [1, -1.6, 1.3, -0.8, 1.9, -1.2, 0.7, -2.1, 1.5, -1] };
@@ -1319,6 +1349,7 @@ document.addEventListener('click', e => {
     case 're-revert': RE = reFrom(RE.code); return renderAll();
     case 'upcoming': return openUpcoming();
     case 'calchip': return toggleCal(t.dataset.cal);
+    case 'gs': SF.gs = !SF.gs; saveSF(); $('v-sheet').innerHTML = ''; return renderAll();
     case 'add': return startAdd();
     case 'sf': STAY.clear(); TEST = {}; SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
     case 'scls': { STAY.clear(); const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
