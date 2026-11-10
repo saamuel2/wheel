@@ -22,8 +22,8 @@
     --serif: ui-serif, "New York", "Iowan Old Style", Georgia, serif; color-scheme: dark; }
   html[data-theme=light] { --bg: #F2F2F7; --card: #fff; --card2: #F2F2F7; --text: #000; --sub: #6C6C70; --tint: #007AFF; --sep: rgba(60,60,67,.22); --fill: rgba(120,120,128,.12);
     --track: #E5E5EA; --press: #E5E5EA; --chkc: #fff; --ph: #C7C7CC; --dtrack: rgba(60,60,67,.12); --red: #FF3B30; color-scheme: light; }
-  html[data-theme=elegant] { --bg: #E6E0D6; --card: #F4F0E9; --card2: #ECE6DC; --text: #183C40; --sub: #5E6E63; --tint: #2F6B4A; --sep: rgba(24,60,64,.17); --fill: rgba(24,60,64,.09);
-    --track: #D7D0C4; --press: #EBE6DD; --chkc: #F4F0E9; --ph: #A29C91; --dtrack: rgba(24,60,64,.12); --red: #A33A55; --serif: "Newsreader", ui-serif, Georgia, serif; color-scheme: light; }
+  html[data-theme=elegant] { --bg: #E5E3DF; --card: #F4F3F0; --card2: #EBE9E5; --text: #183C40; --sub: #5E6E63; --tint: #2F6B4A; --sep: rgba(24,60,64,.17); --fill: rgba(24,60,64,.09);
+    --track: #D6D3CD; --press: #EBE9E5; --chkc: #F4F3F0; --ph: #9F9C96; --dtrack: rgba(24,60,64,.12); --red: #A33A55; --serif: "Newsreader", ui-serif, Georgia, serif; color-scheme: light; }
   html[data-theme=moody] { --bg: #111111; --card: #1B1B1B; --card2: #272727; --text: #E6DCC8; --sub: #A3A3A3; --tint: #9DB27F; --sep: rgba(255,255,255,.13); --fill: rgba(255,255,255,.09);
     --track: #2B2B2B; --press: #272727; --chkc: #111111; --ph: #666666; --dtrack: rgba(255,255,255,.10); --red: #D8728A; --serif: "Newsreader", ui-serif, Georgia, serif; }
   html[data-theme=elegant] .card { box-shadow: inset 0 0 0 .5px rgba(24,60,64,.14), 0 1px 3px rgba(24,60,64,.06); }
@@ -43,13 +43,15 @@
 
   /* sidebar */
   .side { padding: 24px 12px; display: flex; flex-direction: column; gap: 2px; border-right: .5px solid var(--sep); overflow-y: auto; }
-  .brand { font-size: 22px; font-weight: 700; letter-spacing: -.4px; padding: 0 12px 20px; }
+  .brand { font-size: 22px; font-weight: 700; letter-spacing: -.4px; padding: 0 12px 20px; display: flex; align-items: center; gap: 9px; } .brand img { flex: none; display: block; }
   .nav { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 8px; color: var(--sub); border: 0; background: none; text-align: left; font-weight: 500; }
   .nav svg { width: 20px; height: 20px; flex: none; }
   .nav:hover { background: var(--fill); color: var(--text); }
   .nav.on { background: var(--fill); color: var(--tint); }
   .side .grow { flex: 1; }
-  .sync { font-size: 12px; color: var(--sub); padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+  .sync { display: none !important; }
+  .nav[data-view=settings] svg { transition: color .3s; } .side.busy .nav[data-view=settings] svg { animation: gearspin 1.2s linear infinite; } .side.off .nav[data-view=settings] svg { color: var(--red); }
+  @keyframes gearspin { to { transform: rotate(360deg); } } @media (prefers-reduced-motion: reduce) { .side.busy .nav[data-view=settings] svg { animation-duration: 4s; } }
   .sync i { width: 7px; height: 7px; border-radius: 50%; background: #30D158; }
   .sync.off i { background: var(--red); } .sync.busy i { background: #FFD60A; }
   .addbtn { margin: 4px 0 12px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px; border-radius: 8px; border: 0; background: var(--tint); color: #fff; font-weight: 600; }
@@ -323,7 +325,7 @@
 <body>
 <div class="app">
   <nav class="side" id="side">
-    <div class="brand">tracker</div>
+    <div class="brand"><img src="favicon-desktop.svg" alt="" width="22" height="22">tracker</div>
     <button class="addbtn" data-act="add"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>add assignment</button>
     <button class="nav" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard</button>
     <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet</button>
@@ -353,7 +355,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.27 (11/09 11:30am)';
+const BUILD = 'd1.28 (11/09 11:50pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -439,7 +441,7 @@ const editing = () => { const a = document.activeElement; return !!(a && /^(INPU
 function load(silent) {
   if (DEMO) { if (!data) { data = demoData(); lastSync = Date.now(); setSync('ok'); renderAll(); } return Promise.resolve(); }
   if (!KEY) { setSync('off', 'not connected'); renderAll(); return Promise.resolve(); }
-  if (fetching) return Promise.resolve(); fetching = true; if (!silent) setSync('busy');
+  if (fetching) return Promise.resolve(); fetching = true; gear();
   return fetch(API + '?token=' + encodeURIComponent(KEY)).then(r => r.json()).then(d => {
     fetching = false;
     if (d.error) { setSync('off', d.error === 'bad token' ? 'wrong connection key' : d.error); if (d.error === 'bad token') { data = null; renderAll(); } return; }
@@ -462,17 +464,19 @@ function setData(d) { data = d; LIVE = null; store.set('desk-cache', d); renderA
 setInterval(() => { if (pendingData && !editing() && !$('drawer').classList.contains('on')) { const d = pendingData; pendingData = null; applyOv(d); setData(d); } }, 1500);
 function setSync(s, msg) {
   syncState = s; const el = $('sync'); el.className = 'sync' + (s === 'off' ? ' off' : s === 'busy' ? ' busy' : '');
+  const sd = $('side'); sd.classList.toggle('busy', s === 'busy' || fetching || inflight > 0); sd.classList.toggle('off', s === 'off'); sd.querySelector('.nav[data-view=settings]').title = s === 'off' ? (msg || 'offline') : '';
   el.querySelector('span').textContent = msg || (s === 'busy' ? 'syncing…' : s === 'ok' ? (DEMO ? 'demo data' : 'synced ' + fmtT(lastSync)) : 'offline');
 }
+function gear() { const sd = $('side'); if (sd) sd.classList.toggle('busy', fetching || inflight > 0); }
 let inflight = 0;   // saves on their way to the sheet — an app update never reloads the page under them
 function post(body) {
   if (DEMO) return Promise.resolve({ ok: true, id: 'demo' + Date.now() });
-  inflight++;
+  inflight++; gear();
   return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(Object.assign({ token: KEY }, body)) })
     .then(r => r.json()).catch(e => {   // some browsers refuse the POST ("load failed") — send the same save as a GET instead
       if (e && e.name === 'SyntaxError') throw e;
       return fetch(API + '?token=' + encodeURIComponent(KEY) + '&w=' + encodeURIComponent(JSON.stringify(Object.assign({ token: KEY }, body)))).then(r => r.json());
-    }).then(j => { inflight--; if (!j || !j.ok) throw new Error((j && j.error) || 'save failed'); return j; }, e => { inflight--; throw e; });
+    }).then(j => { inflight--; gear(); if (!j || !j.ok) throw new Error((j && j.error) || 'save failed'); return j; }, e => { inflight--; gear(); throw e; });
 }
 const cached = store.get('desk-cache', null);
 if (!DEMO && cached && KEY) data = cached;
@@ -1118,7 +1122,7 @@ function renderSettings(v) {
       ${prow('countdown', cdSum, 'cd')}
       ${prow('variable', vName(SLOT), 'var')}</div>
     <div class="card"><div class="ct">feedback</div>${notesList().map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')}
-      <div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div></div>
+      <div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div>${notesList().length ? askRow() : ''}</div>
     <div class="card"><div class="ct">app info</div>
       <div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
@@ -1134,6 +1138,17 @@ function addNote() {
   const n = { x, t: Date.now() }; NOTE_NEW.push(n); inp.value = ''; renderAll(); setTimeout(() => $('note-in') && $('note-in').focus(), 0);
   post({ action: 'note_add', text: x, ts: n.t, from: 'desktop' }).then(() => { if (DEMO) return; data.notes = (data.notes || []).concat([{ x, t: n.t }]); NOTE_NEW = NOTE_NEW.filter(y => y !== n); })
     .catch(() => { NOTE_NEW = NOTE_NEW.filter(y => y !== n); renderAll(); toast('couldn’t save the note'); });
+}
+// send the open feedback to Claude: a scheduled Claude task picks it up within a few hours
+function askRow() {
+  const a = data && data.claude && data.claude.asked;
+  return a ? `<div class="row"><span class="muted" style="flex:1">sent to claude · ${esc(new Date(a).toLocaleDateString([], { weekday: 'short' }).toLowerCase())} ${esc(fmtT(a))}</span><button class="btn sm" data-act="ask-cancel">cancel</button></div>`
+    : '<div class="row"><span style="flex:1"></span><button class="btn tint" data-act="ask-claude">send to claude</button></div>';
+}
+function askClaude(cancel) {
+  const prev = data.claude; data.claude = Object.assign({}, prev, { asked: cancel ? null : Date.now() }); renderAll();
+  post({ action: 'claude_ask', cancel: !!cancel }).then(j => { if (j && j.claude) { data.claude = j.claude; renderAll(); } })
+    .catch(() => { data.claude = prev; renderAll(); toast('couldn’t reach the sheet'); });
 }
 function rmNote(k) {
   const n = notesList().find(y => noteKey(y) === k); if (!n) return;
@@ -1192,6 +1207,8 @@ document.addEventListener('click', e => {
     case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
     case 'note-add': return addNote();
     case 'note-rm': return rmNote(t.dataset.k);
+    case 'ask-claude': return askClaude(false);
+    case 'ask-cancel': return askClaude(true);
     case 'note-copy': { try { navigator.clipboard.writeText(notesList().map(n => '• ' + n.x).join('\n')); } catch (x) {} t.textContent = 'copied'; setTimeout(() => { if (t.isConnected) t.textContent = 'copy list'; }, 1200); return; }
     case 'slotedit': slotEdit = !slotEdit; return renderAll();
     case 'gpa2': showGpa2 = !showGpa2; return renderAll();

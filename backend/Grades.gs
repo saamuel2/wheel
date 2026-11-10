@@ -1,4 +1,4 @@
-/** Grades.gs — grading engine + sheet functions. Paste into Extensions → Apps Script. */
+/** Grades.gs — grading engine + sheet functions. Built by engine/build.js; edit engine.js and engine/sheet-adapter.js instead. */
 /**
  * Grading engine (v2) — one engine for the sheet (custom functions) and the apps (API trace).
  * Pure functions, no Apps Script services: runs in Apps Script, the browser and Node.

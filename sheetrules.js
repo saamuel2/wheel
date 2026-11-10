@@ -1,4 +1,4 @@
-/* sheetrules.js — turns grades-tab blocks (or Rules-tab rows) into engine rules in the browser (same code as Grades.gs, built from sheet-adapter.js). Needs engine.js first. */
+/* sheetrules.js — turns grades-tab blocks (or Rules-tab rows) into engine rules in the browser (same code as Grades.gs, built from engine/sheet-adapter.js). Needs engine.js first. */
 var SheetRules = (function () {
 
 // ===================================================================================

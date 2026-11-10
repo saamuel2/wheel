@@ -55,7 +55,7 @@ function doGet(e) {
   try { res.grades = readGrades_(ss); } catch (err) { errors.grades = String(err); }
   try { res.setup = readCourseSetup_(ss); } catch (err) { errors.setup = String(err); }
   try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
-  try { res.notes = readNotes_(ss); } catch (err) { errors.notes = String(err); }
+  try { res.notes = readNotes_(ss); res.claude = readClaudeAsk_(ss); } catch (err) { errors.notes = String(err); }
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
@@ -86,6 +86,7 @@ function write_(parse) {
       case 'ra_done': return out_(raDone_(ss, b));
       case 'note_add': return out_(noteAdd_(ss, b));
       case 'note_done': return out_(noteDone_(ss, b));
+      case 'claude_ask': return out_(claudeAsk_(ss, b));
       case 'task_add':  return out_(taskAdd_(b));
       case 'task_done': return out_(taskDone_(b));
       case 'course_save': return out_(courseSave_(ss, b));
@@ -177,6 +178,13 @@ function setDone_(ss, b, val) {
   return { ok: true, row: r };
 }
 
+// "7/8" in the grade box means 7 out of 8: split it so Sheets never reads it as a date (Jul 8)
+function splitFrac_(f) {
+  if (!f || f.grade == null) return f;
+  var m = String(f.grade).trim().match(/^(-?\d*\.?\d+)\s*\/\s*(\d*\.?\d+)$/);
+  if (m && Number(m[2]) > 0) { f.grade = Number(m[1]); f.outOf = Number(m[2]); }
+  return f;
+}
 function cellVal_(g) {   // keep "43/50" and "86%" as typed; plain numbers as numbers
   if (g === '' || g == null) return '';
   var s = String(g).trim();
@@ -184,6 +192,7 @@ function cellVal_(g) {   // keep "43/50" and "86%" as typed; plain numbers as nu
 }
 
 function writeFields_(sh, r, f, ss) {
+  splitFrac_(f);
   if (f.done !== undefined) sh.getRange(r, 1).setValue(!!f.done);
   if (f.due) sh.getRange(r, 2).setValue(ymdToCell_(f.due, ss));
   if (f.name !== undefined) sh.getRange(r, 3).setValue(f.name);
@@ -208,7 +217,7 @@ function deleteRow_(ss, b) {
 }
 
 function addRow_(ss, b) {
-  var sh = ss.getSheetByName('Assignments'), r = lastContentRow_(sh) + 1, f = b.fields || {};
+  var sh = ss.getSheetByName('Assignments'), r = lastContentRow_(sh) + 1, f = splitFrac_(b.fields || {});
   if (!f.name || !f.className || !f.due) return { ok: false, error: 'missing fields' };
   if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r - sh.getMaxRows() + 20);
   // one write for the whole row (the Assignments tab is a table, which is picky about cell-by-cell edits)
@@ -225,7 +234,7 @@ function addRow_(ss, b) {
 
 // several assignments at once (pasted from Moodle); each { name, className, type, due, outOf }
 function addMany_(ss, b) {
-  var rows = (b.rows || []).filter(function (f) { return f && f.name && f.className && f.due; });
+  var rows = (b.rows || []).filter(function (f) { return f && f.name && f.className && f.due; }).map(splitFrac_);
   if (!rows.length) return { ok: false, error: 'nothing to add' };
   var sh = ss.getSheetByName('Assignments'), r0 = lastContentRow_(sh) + 1;
   if (r0 + rows.length - 1 > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r0 + rows.length - sh.getMaxRows() + 20);
@@ -312,6 +321,20 @@ function noteDone_(ss, b) {
   if (!n) return { ok: true, missing: true };
   sh.getRange(n.row, 4).setValue(true);
   return { ok: true };
+}
+
+// asking Claude to work through the open notes: Notes!F1:G2 hold the request and the last run.
+// A scheduled Claude task checks G1 every few hours; when it's set, it works the open notes, then clears G1 and stamps G2.
+function readClaudeAsk_(ss) {
+  var sh = ss.getSheetByName('Notes'); if (!sh) return { asked: null, last: null };
+  var v = sh.getRange(1, 7, 2, 1).getValues(), ms = function (x) { return x instanceof Date ? x.getTime() : (Number(x) || null); };
+  return { asked: ms(v[0][0]), last: ms(v[1][0]) };
+}
+function claudeAsk_(ss, b) {
+  var sh = ss.getSheetByName('Notes'); if (!sh) return { ok: false, error: 'no Notes tab' };
+  sh.getRange(1, 6, 2, 1).setValues([['claude asked'], ['claude last ran']]);
+  sh.getRange(1, 7).setValue(b.cancel ? '' : new Date());
+  return { ok: true, claude: readClaudeAsk_(ss) };
 }
 
 // ---------- GPA Tracker (finished terms, for "overall gpa"): GPA tab A Code · B Course · C Term · D Hours · E Grade · F Letter · G GPA ----------

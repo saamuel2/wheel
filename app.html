@@ -330,9 +330,9 @@
   html[data-theme=light] .frow input[type=date] { color-scheme: light; }
 
   /* elegant: tan paper with deep green type (from the Journal Club deck), moody mauve highlights, Newsreader serif */
-  html[data-theme=elegant] { --bg: #E6E0D6; --card: #F4F0E9; --text: #183C40; --sub: #5E6E63; --tint: #2F6B4A; --sep: rgba(24,60,64,.17); --fill: rgba(24,60,64,.09);
-    --track: #D7D0C4; --press: #EBE6DD; --navtxt: #F4F0E9; --chkc: #F4F0E9; --ph: #A29C91; --dtrack: rgba(24,60,64,.12); --serif: "Newsreader", ui-serif, "New York", Georgia, serif; color-scheme: light; }
-  html[data-theme=elegant] body { background: #E6E0D6; }
+  html[data-theme=elegant] { --bg: #E5E3DF; --card: #F4F3F0; --text: #183C40; --sub: #5E6E63; --tint: #2F6B4A; --sep: rgba(24,60,64,.17); --fill: rgba(24,60,64,.09);
+    --track: #D6D3CD; --press: #EBE9E5; --navtxt: #F4F3F0; --chkc: #F4F3F0; --ph: #9F9C96; --dtrack: rgba(24,60,64,.12); --serif: "Newsreader", ui-serif, "New York", Georgia, serif; color-scheme: light; }
+  html[data-theme=elegant] body { background: #E5E3DF; }
   html[data-theme=elegant] h1, html[data-theme=elegant] .wheel-pct, html[data-theme=elegant] .tv, html[data-theme=elegant] .gv, html[data-theme=elegant] .abig,
   html[data-theme=elegant] #tb-title, html[data-theme=elegant] #sh-title, html[data-theme=elegant] #a-title, html[data-theme=elegant] #c-title, html[data-theme=elegant] .dn .cl, html[data-theme=elegant] .dn .cp,
   html[data-theme=elegant] .gpa .tl, html[data-theme=elegant] .gpa .ts, html[data-theme=elegant] .gr, html[data-theme=elegant] .wheel-frac { font-family: var(--serif); font-weight: 500; letter-spacing: 0; font-variant-numeric: lining-nums tabular-nums; font-feature-settings: "lnum" 1, "tnum" 1; }
@@ -590,7 +590,7 @@
     function applyTheme(t) {
       THEME = t; try { localStorage.setItem('wheel-theme', t); } catch (e) {}
       if (t === 'default') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
-      const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = ({ light: '#F2F2F7', elegant: '#E6E0D6', moody: '#111111' })[t] || '#000000';
+      const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = ({ light: '#F2F2F7', elegant: '#E5E3DF', moody: '#111111' })[t] || '#000000';
       drawWheel(false); renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
     }
 
@@ -790,7 +790,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.56 (11/09 11:30am)';
+    const BUILD = 'm2.57 (11/09 11:50pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -1101,7 +1101,7 @@
         prow('variable', (VOPTS.find(o => o[0] === SLOT2) || VOPTS[0])[1], 'slot') + '</div>';
       const iss = '<div class="grp">feedback</div><div class="group">' + ISS.map((i, n) => `<div class="task srow iss-row"><span class="iss">${esc(i.x)}</span><button class="rm" data-rmi="${n}">remove</button></div>`).join('') +
         '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in"  autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
-        (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
+        (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' + askRow() : '') + '</div>';
       const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ${IC.r}</span></button>`).join('') + '</div>' : '';
       $('settings-card').innerHTML = th + cs + wg + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
@@ -1115,6 +1115,7 @@
     $('settings-card').addEventListener('input', e => { if (e.target.id === 'iss-in') { ISSDRAFT = e.target.value; try { localStorage.setItem('wheel-issdraft', ISSDRAFT); } catch (x) {} } });
     $('settings-card').addEventListener('click', e => {
       if (e.target.closest('#iss-add')) addIss();
+      if (e.target.closest('#ask-claude')) askClaude(false); if (e.target.closest('#ask-cancel')) askClaude(true);
       const rm = e.target.closest('[data-rmi]'); if (rm) { const it = ISS.splice(+rm.dataset.rmi, 1)[0]; saveISS(); renderSettings(); if (it && it.s) resolveIss(it); }
       if (e.target.closest('#iss-copy')) { const txt = ISS.map(i => '• ' + i.x).join('\n'); try { navigator.clipboard.writeText(txt); } catch (x) {} const b = $('iss-copy'); b.textContent = 'copied'; setTimeout(() => { if (b.isConnected) b.textContent = 'copy list'; }, 1200); }
     });
@@ -1419,6 +1420,21 @@
       ISS = server.concat(ISS.filter(i => !i.s && !onServer.has(issKey(i)))); saveISS();
       const ae = document.activeElement; if (!(ae && ae.id === 'iss-in')) renderSettings();
     }
+    // send the open feedback to Claude: a scheduled Claude task picks it up within a few hours
+    function askRow() {
+      const a = appData && appData.claude && appData.claude.asked;
+      return a ? `<div class="task srow iss-row"><span class="iss" style="color:var(--sub)">sent to claude · ${esc(dayShort(a))} ${esc(fmtT(a))}</span><button class="rm" id="ask-cancel">cancel</button></div>`
+        : '<button class="lrow" id="ask-claude">send to claude</button>';
+    }
+    function askClaude(cancel) {
+      appData.claude = Object.assign({}, appData.claude, { asked: cancel ? null : Date.now() }); renderSettings(); if (DEMO) return;
+      const body = { token: TOKEN, action: 'claude_ask', cancel: !!cancel };
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(body) }).then(r => r.json())
+        .catch(err => { if (err && err.name === 'SyntaxError') throw err; return fetch(API + '?token=' + encodeURIComponent(TOKEN) + '&w=' + encodeURIComponent(JSON.stringify(body))).then(r => r.json()); })
+        .then(j => { if (!j || !j.ok) throw 0; appData.claude = j.claude; renderSettings(); })
+        .catch(() => { appData.claude = Object.assign({}, appData.claude, { asked: cancel ? Date.now() : null }); renderSettings(); showUndo('couldn’t reach the sheet', false); setTimeout(hideUndo, 2600); });
+    }
+    const dayShort = ms => new Date(ms).toLocaleDateString([], { weekday: 'short' }).toLowerCase();
     function resolveIss(it) {
       ISSRM.push(issKey(it)); saveRM(); if (DEMO) return;
       fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'note_done', text: it.x, ts: it.t }) }).catch(() => {});
