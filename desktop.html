@@ -252,6 +252,12 @@
   .regrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 12px; }
   .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 12px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
   .recat { margin-bottom: 12px; } .rehd { display: flex; gap: 8px; margin-bottom: 12px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
+  .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 5px 12px 5px 46px; font-size: 13px; gap: 8px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  .cgrid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; } @media (max-width: 1100px) { .cgrid { grid-template-columns: 1fr; } }
+  .recut.r12 { grid-template-columns: repeat(12, minmax(44px, 1fr)); } @media (max-width: 1000px) { .recut.r12 { grid-template-columns: repeat(6, 1fr); } }
+  .tscroll { overflow-x: auto; margin: 0 -4px; } .ctab { min-width: 980px; } .ctab td { vertical-align: middle; padding: 6px 4px; } .ctab .txt { height: 32px; padding: 0 8px; width: 100%; font-size: 13px; }
+  .ctab .txt.nm { min-width: 140px; font-weight: 600; } .ctab .w1 { width: 64px; } .ctab .w2 { width: 90px; } .ctab .map { min-width: 120px; } .ctab select.txt { min-width: 128px; } .ctab .sc { font-weight: 700; white-space: nowrap; }
+  .ctab tr.ec td { background: color-mix(in srgb, var(--tint) 5%, transparent); } .ctab .opts { display: flex; gap: 8px; } .ctab .opt { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--sub); white-space: nowrap; }
   .recat .rehd .iconbtn { flex: none; } .recat.ec { background: color-mix(in srgb, var(--tint) 6%, var(--card)); } .txt.up { text-transform: uppercase; }
   .readd { display: flex; gap: 8px; } .readd .btn svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 2px; }
   .refoot { position: sticky; bottom: -24px; display: flex; gap: 8px; align-items: center; justify-content: flex-end; padding: 16px 0 8px; background: var(--bg); }
@@ -332,6 +338,7 @@
     <button class="nav" data-view="att"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>attendance</button>
     <div class="grow"></div>
     <button class="nav" data-view="settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.47.47 0 0 0-.47.41l-.36 2.54a7.4 7.4 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.73 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.04.3-.08.63-.08.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>settings</button>
+    <div class="subnav" id="subnav"></div>
     <div class="sync" id="sync" hidden><i></i><span></span></div>
   </nav>
 
@@ -342,6 +349,7 @@
     <section class="view" id="v-grades"></section>
     <section class="view" id="v-att"></section>
     <section class="view" id="v-settings"></section>
+    <section class="view" id="v-course"></section>
   </main>
 </div>
 
@@ -354,7 +362,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.29 (11/09 11:45pm)';
+const BUILD = 'd1.30 (11/10 12:20am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -620,15 +628,18 @@ function go(v, fade) {
 }
 function renderAll() {
   if (!DEMO && !KEY && VIEW !== 'settings') { $('v-' + VIEW).innerHTML = connectHtml(); return; }
-  const fn = { dash: renderDash, sheet: renderSheet, grades: renderGrades, att: renderAtt, settings: renderSettings }[VIEW];
+  subnav();
+  const fn = { dash: renderDash, sheet: renderSheet, grades: renderGrades, att: renderAtt, settings: renderSettings, course: renderCourse }[VIEW];
   const v = $('v-' + VIEW);
+  if (VIEW === 'course' && !COURSE) VIEW = 'settings';
   if (!data && VIEW !== 'settings') { v.innerHTML = '<div class="empty" style="padding-top:20vh">loading…</div>'; return; }
   const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.k ? { k: ae.dataset.k, s: ae.selectionStart, e: ae.selectionEnd } : null;
   if (keep && ae.isConnected && v.contains(ae)) {   // typing: update everything around the focused box without replacing it, so the iPad keyboard doesn't reset
     const tmp = document.createElement('div'); fn(tmp);
-    if (morphKeep(v, tmp, ae)) return;
+    if (morphKeep(v, tmp, ae)) { if (VIEW === 'course') rulesPreview(); return; }
     v.replaceChildren(...tmp.childNodes);
   } else fn(v);
+  if (VIEW === 'course') rulesPreview();
   if (keep) { const el = v.querySelector('[data-k="' + CSS.escape(keep.k) + '"]'); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (x) {} } }
 }
 function morphKeep(o, n, ae) {
@@ -998,11 +1009,8 @@ function openCourse(code) {
       <div class="card"><div class="k">${c.passFail ? 'grading' : 'grade points'}</div><div class="v">${c.passFail ? 'S/U' : c.gp != null ? c.gp : '–'}</div></div></div>
     <div class="card"><div class="ct">categories</div><table class="cats"><thead><tr><th>category</th><th class="n">weight</th><th class="n">graded</th><th class="n">score</th></tr></thead><tbody>${cats}</tbody></table></div>
     ${c.trace ? `<div class="card sec"><div class="ct">how it was calculated</div><ol class="trace">${c.trace.map(t => `<li>${esc(t)}</li>`).join('')}</ol></div>` : ''}
-    ${WI.rule ? `<div class="card sec"><div class="ct">what if<span class="r"><button class="link" data-act="wi-reset">reset</button></span></div>
-      
-      <div id="wi-out" style="margin-bottom:12px"></div><div class="wi"><span class="h">assignment</span><span class="h">grade</span><span class="h">out of</span>
-      ${items.map((it, i) => `<span class="nm" title="${esc(it.name)}">${esc(it.name)} <small>${esc(it.type)} · ${esc(dayLabel(fromYmd(it.due)))}</small></span><input class="cell num" data-wi="${i}" data-wf="grade" value="${esc(fmtG(it.grade))}" placeholder="–"><input class="cell num" data-wi="${i}" data-wf="possible" value="${it.possible == null ? '' : esc(it.possible)}">`).join('')}</div></div>` : ''}`;
-  $('scrim').classList.add('on'); $('drawer').classList.add('on'); whatIf();
+`;
+  $('scrim').classList.add('on'); $('drawer').classList.add('on');
 }
 function whatIf() {
   const out = $('wi-out'); if (!out || !WI || !WI.rule) return;
@@ -1013,7 +1021,7 @@ function whatIf() {
 }
 function closeDrawer() {
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('.drawer')) ae.blur();
-  $('drawer').classList.remove('on'); $('scrim').classList.remove('on'); WI = null; RE = null;
+  $('drawer').classList.remove('on'); $('scrim').classList.remove('on'); WI = null;
   if (pendingData) { const d = pendingData; pendingData = null; applyOv(d); setData(d); }
 }
 
@@ -1034,63 +1042,95 @@ function reState() {
     Object.keys(o).forEach(k => { if (['to', 'up to', 'replaced by', 'free absences', 'per absence'].includes(k) && !keep.includes(k)) delete o[k]; });
     return { name: c.name, type: c.type, weight: c.weight, items: c.items, combine: c.combine, drop: c.drop, map: c.map, until: c.until, other: kvJoin(o) }; }) };
 }
-function openRules(code) {
-  const x = (data.setup || []).find(y => y.code === code); if (!x || x.layout !== 'blocks') return;
-  RE = { code, cfg: { name: x.cfg ? x.cfg.name : '', credits: x.cfg ? x.cfg.credits : '' }, head: Object.assign({}, x.head), cut: cutParse(x.head.cutoffs),
+// a course is its own page under settings: sidebar lists the courses beneath settings while you're in there
+let COURSE = store.get('desk-course', null);
+function reFrom(code) {
+  const x = (data && data.setup || []).find(y => y.code === code); if (!x || x.layout !== 'blocks') return null;
+  const R = { code, cfg: { name: x.cfg ? x.cfg.name : '', credits: x.cfg ? x.cfg.credits : '' }, head: Object.assign({}, x.head), cut: cutParse(x.head.cutoffs),
     cats: x.cats.map(c => Object.assign({}, c, { opt: kvParse(c.other), combine: String(c.combine || 'average').toLowerCase() })), saving: false, err: '' };
-  ['grade by', 'entered as'].forEach(k => { RE.head[k] = String(RE.head[k] || (k === 'grade by' ? 'weights' : 'percent')).toLowerCase(); });
-  RE.orig = JSON.stringify(reState());
-  renderRules(); $('drawer').scrollTop = 0; $('drawer').classList.add('on'); $('scrim').classList.add('on');
+  ['grade by', 'entered as'].forEach(k => { R.head[k] = String(R.head[k] || (k === 'grade by' ? 'weights' : 'percent')).toLowerCase(); });
+  const keep = RE; RE = R; R.orig = JSON.stringify(reState()); RE = keep; return R;
 }
+function openRules(code) { COURSE = code; store.set('desk-course', code); if (!RE || RE.code !== code) RE = reFrom(code); go('course'); }
+const reDirty = () => !!RE && JSON.stringify(reState()) !== RE.orig;
 function setRe(path, v) {
   const i = path.indexOf('.'), a = path.slice(0, i), rest = path.slice(i + 1);
   if (a === 'cfg') RE.cfg[rest] = v; else if (a === 'head') RE.head[rest] = rest === 'final from' && v === 'percent' ? '' : v; else if (a === 'cut') RE.cut[rest] = v;
   else { const j = rest.indexOf('.'), k = +rest.slice(0, j), f = rest.slice(j + 1); if (a === 'cat') RE.cats[k][f] = f === 'type' ? v.toUpperCase() : v; else RE.cats[k].opt[f] = v; }
   RE.err = '';
-  if (/^cat\.\d+\.combine$/.test(path)) { const y = $('drawer').scrollTop; renderRules(); $('drawer').scrollTop = y; } else rulesPreview();
+  if (/^cat\.\d+\.combine$/.test(path)) renderRules(); else rulesPreview();
+}
+function coursePreview() {
+  if (!RE) return null;
+  try { const st = reState(), t = SheetRules.tables([{ code: RE.code, head: st.head, cats: st.cats }]), r = SheetRules.fromSheet(t.courses, t.cats)[0];
+    return { g: r ? Engine.grade(r, engineItems(data.assignments), { absences: absences() }) : null };
+  } catch (x) { return { err: String(x.message || x) }; }
+}
+function catScore(g, c) {
+  const k = g && g.cats.find(x => String(x.abbr).toLowerCase() === String(c.type).toLowerCase()); if (!k) return ['–', '–'];
+  const extra = /^extra/.test(c.combine), n = k.graded + (k.dropped || []).length;
+  let sc = k.pct != null ? f2(k.pct) : '–';
+  if (extra) { let add = 0, hit = false; (k.notes || []).join('; ').replace(/\+(-?[\d.]+)/g, (_, v) => { add += +v; hit = true; });
+    if (!hit && k.kind === 'flat') { data.assignments.filter(a => a.c === RE.code && String(a.y).toLowerCase() === String(c.type).toLowerCase() && a.g !== '' && a.g != null).forEach(a => { const v = parseFloat(a.g); if (isFinite(v)) { add += v; hit = true; } }); }
+    sc = hit ? '+' + f2(add) : '–'; }
+  return [sc, c.items !== '' && c.items != null ? n + ' of ' + c.items : String(n)];
 }
 function rulesPreview() {
-  const box = $('re-prev'); if (!box || !RE) return;
-  const st = reState(); let html;
-  try {
-    const t = SheetRules.tables([{ code: RE.code, head: st.head, cats: st.cats }]), r = SheetRules.fromSheet(t.courses, t.cats)[0];
-    const g = r ? Engine.grade(r, engineItems(data.assignments), { absences: absences() }) : null, now = gradeOf(RE.code);
-    html = `<div class="card"><div class="k">with these rules</div><div class="v">${g && g.value != null ? esc(g.letter || '–') + ' · ' + f2(g.value) : '–'}</div></div>
-      <div class="card"><div class="k">right now</div><div class="v muted">${now && now.raw != null ? esc(now.letter || '–') + ' · ' + f2(now.raw) : '–'}</div></div>`;
-  } catch (x) { html = `<div class="card" style="grid-column:1/-1"><div class="k">with these rules</div><div class="v" style="font-size:14px;color:var(--red)">doesn’t compute: ${esc(x.message || x)}</div></div>`; }
-  box.innerHTML = html;
-  const dirty = JSON.stringify(st) !== RE.orig, b = $('re-save');
-  if (b) { b.disabled = !dirty || RE.saving; b.textContent = RE.saving ? 'saving…' : 'save'; }
+  if (!RE || VIEW !== 'course') return;
+  const P = coursePreview(), g = P && P.g, now = gradeOf(RE.code), box = $('re-prev');
+  if (box) box.innerHTML = P && P.err ? `<div class="card" style="grid-column:1/-1"><div class="k">with these rules</div><div class="v" style="font-size:14px;color:var(--red)">doesn’t compute: ${esc(P.err)}</div></div>`
+    : `<div class="card"><div class="k">grade</div><div class="v">${now && now.raw != null ? esc(now.letter || '–') + ' · ' + f2(now.raw) : '–'}</div></div>
+       <div class="card"><div class="k">with these rules</div><div class="v${reDirty() ? '' : ' muted'}">${g && g.value != null ? esc(g.letter || '–') + ' · ' + f2(g.value) : '–'}</div></div>
+       <div class="card"><div class="k">${now && now.passFail ? 'grading' : 'grade points'}</div><div class="v">${now && now.passFail ? 'S/U' : g && g.gp != null ? g.gp : '–'}</div></div>`;
+  RE.cats.forEach((c, k) => { const [sc, gr] = catScore(g, c), a = document.querySelector(`[data-sc="${k}"]`), b = document.querySelector(`[data-gr="${k}"]`); if (a) a.textContent = sc; if (b) b.textContent = gr; });
+  const tr = $('re-trace'); if (tr) tr.innerHTML = g && g.trace.length ? g.trace.map(t => `<li>${esc(t)}</li>`).join('') : '<li>–</li>';
+  const dirty = reDirty();
+  const sv = $('re-save'); if (sv) { sv.disabled = !dirty || RE.saving; sv.textContent = RE.saving ? 'saving…' : 'save'; }
+  const rv = $('re-revert'); if (rv) rv.hidden = !dirty;
   const er = $('re-err'); if (er) er.textContent = RE.err || '';
 }
-function renderRules() {
+function renderRules() { if (VIEW === 'course') renderAll(); }
+function renderCourse(v) {
+  if (!RE || RE.code !== COURSE) RE = reFrom(COURSE);
+  if (!RE) { v.innerHTML = '<div class="empty" style="padding-top:20vh">–</div>'; return; }
   const R = RE, col = colorFor(R.code);
-  const sel = (path, cur, opts) => `<select class="txt" data-re="${esc(path)}">${opts.map(o => `<option value="${esc(o)}"${String(cur).toLowerCase() === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}${opts.includes(String(cur).toLowerCase()) || cur === '' ? '' : `<option selected>${esc(cur)}</option>`}</select>`;
-  const inp = (path, cur, w, cls) => `<input class="txt${cls ? ' ' + cls : ''}" data-re="${esc(path)}" value="${esc(cur == null ? '' : cur)}" autocomplete="off" spellcheck="false"${w ? ` style="width:${w}"` : ''}>`;
-  const f = (label, ctl, wide) => `<label class="ref"${wide ? ' style="grid-column:1/-1"' : ''}><span>${label}</span>${ctl}</label>`;
-  const cats = R.cats.map((c, k) => { const q = x => `cat.${k}.${x}`, extra = /^extra/.test(c.combine);
-    return `<div class="card recat${extra ? ' ec' : ''}"><div class="rehd">${inp(q('name'), c.name)}${inp(q('type'), c.type, '84px', 'up')}<button class="iconbtn x" data-act="re-rm" data-k="${k}" aria-label="remove">${IC.x}</button></div>
-      <div class="regrid">${f('combine by', sel(q('combine'), c.combine, COMBINE))}${extra ? '' : f('weight', inp(q('weight'), c.weight)) + f('items', inp(q('items'), c.items)) + f('drop lowest', inp(q('drop'), c.drop)) + f('until graded', inp(q('until'), c.until))}
-        ${optsFor(c.combine).map(o => f(o, inp(`opt.${k}.${o}`, c.opt[o]))).join('')}${extra ? '' : f('score map', inp(q('map'), c.map), true)}</div></div>`; }).join('');
-  $('drawer').innerHTML = `<div class="dhd"><h2 style="color:${col}">${esc(spaceCode(R.code))}</h2><span class="muted">course settings</span><button class="iconbtn x" data-act="close" aria-label="close">${IC.x}</button></div>
+  const sel = (path, cur, opts) => `<select class="txt" data-re="${esc(path)}" data-k="${esc(path)}">${opts.map(o => `<option value="${esc(o)}"${String(cur).toLowerCase() === o ? ' selected' : ''}>${esc(o)}</option>`).join('')}${opts.includes(String(cur).toLowerCase()) || cur === '' ? '' : `<option selected>${esc(cur)}</option>`}</select>`;
+  const inp = (path, cur, cls) => `<input class="txt${cls ? ' ' + cls : ''}" data-re="${esc(path)}" data-k="${esc(path)}" value="${esc(cur == null ? '' : cur)}" autocomplete="off" spellcheck="false">`;
+  const f = (label, ctl) => `<label class="ref"><span>${label}</span>${ctl}</label>`;
+  const rows = R.cats.map((c, k) => { const q = x => `cat.${k}.${x}`, extra = /^extra/.test(c.combine);
+    const opts = optsFor(c.combine).map(o => `<label class="opt"><span>${o}</span>${inp(`opt.${k}.${o}`, c.opt[o], o === 'to' ? 'w2' : 'w1')}</label>`).join('');
+    return `<tr class="${extra ? 'ec' : ''}"><td>${inp(q('name'), c.name, 'nm')}</td><td class="n sc" data-sc="${k}">–</td><td class="n sc" data-gr="${k}">–</td><td>${inp(q('type'), c.type, 'up w1')}</td>
+      <td>${extra ? '' : inp(q('weight'), c.weight, 'w1 num')}</td><td>${extra ? '' : inp(q('items'), c.items, 'w1 num')}</td><td>${sel(q('combine'), c.combine, COMBINE)}</td>
+      <td>${extra ? '' : inp(q('drop'), c.drop, 'w1 num')}</td><td>${extra ? '' : inp(q('map'), c.map, 'map')}</td><td>${extra ? '' : inp(q('until'), c.until, 'w1 num')}</td>
+      <td><div class="opts">${opts}</div></td><td><button class="iconbtn x" data-act="re-rm" data-k="${k}" aria-label="remove">${IC.x}</button></td></tr>`; }).join('');
+  v.innerHTML = `<div class="head"><h1 style="color:${col}">${esc(spaceCode(R.code))}</h1><span class="muted" style="font-size:17px">${esc(R.cfg.name || '')}</span>
+      <div class="tools"><span id="re-err" class="reerr"></span><button class="btn" id="re-revert" data-act="re-revert" hidden>revert</button><button class="btn tint" id="re-save" data-act="re-save" disabled>save</button></div></div>
     <div class="kv re-prev" id="re-prev"></div>
-    <div class="sec"><div class="ct">basics</div><div class="card regrid">${f('name', inp('cfg.name', R.cfg.name))}${f('credit hours', inp('cfg.credits', R.cfg.credits))}${f('course code', `<span class="muted" style="padding:8px 0">${esc(R.code)}</span>`)}</div></div>
-    <div class="sec"><div class="ct">grading</div><div class="card"><div class="regrid">
-      ${f('grade by', sel('head.grade by', R.head['grade by'], ['weights', 'points']))}${f('entered as', sel('head.entered as', R.head['entered as'], ['percent', 'points']))}${f('final from', sel('head.final from', R.head['final from'] || 'percent', ['percent', 'grade points']))}
-      ${f('round to', inp('head.round to', R.head['round to']))}${f('pass at', inp('head.pass at', R.head['pass at']))}${f('drop lowest across', inp('head.drop lowest across', R.head['drop lowest across']))}</div>
-      <div class="ct" style="margin-top:14px">cutoffs</div><div class="recut">${RL.map(L => f(L, inp('cut.' + L, R.cut[L]))).join('')}</div></div></div>
-    <div class="sec"><div class="ct">categories</div>${cats}<div class="readd"><button class="btn" data-act="re-add" data-k="cat">${IC.plus} category</button><button class="btn" data-act="re-add" data-k="extra">${IC.plus} extra credit</button></div></div>
-    <div class="refoot"><span id="re-err" class="reerr"></span><button class="btn" data-act="close">cancel</button><button class="btn tint" id="re-save" data-act="re-save" disabled>save</button></div>`;
+    <div class="cgrid">
+      <div class="card"><div class="ct">basics</div><div class="regrid">${f('name', inp('cfg.name', R.cfg.name))}${f('credit hours', inp('cfg.credits', R.cfg.credits))}${f('course code', `<span class="muted" style="padding:8px 0">${esc(R.code)}</span>`)}</div></div>
+      <div class="card"><div class="ct">grading</div><div class="regrid">${f('grade by', sel('head.grade by', R.head['grade by'], ['weights', 'points']))}${f('entered as', sel('head.entered as', R.head['entered as'], ['percent', 'points']))}${f('final from', sel('head.final from', R.head['final from'] || 'percent', ['percent', 'grade points']))}
+        ${f('round to', inp('head.round to', R.head['round to']))}${f('pass at', inp('head.pass at', R.head['pass at']))}${f('drop lowest across', inp('head.drop lowest across', R.head['drop lowest across']))}</div></div>
+    </div>
+    <div class="card sec"><div class="ct">cutoffs</div><div class="recut r12">${RL.map(L => f(L, inp('cut.' + L, R.cut[L]))).join('')}</div></div>
+    <div class="card sec"><div class="ct">categories</div><div class="tscroll"><table class="cats ctab"><thead><tr><th>category</th><th class="n">score</th><th class="n">graded</th><th>type</th><th>weight</th><th>items</th><th>combine by</th><th>drop</th><th>score map</th><th>until graded</th><th>options</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="readd"><button class="btn" data-act="re-add" data-k="cat">${IC.plus} category</button><button class="btn" data-act="re-add" data-k="extra">${IC.plus} extra credit</button></div></div>
+    <div class="card sec"><div class="ct">how it’s calculated</div><ol class="trace" id="re-trace"></ol></div>`;
   rulesPreview();
 }
 function saveRules() {
   if (!RE || RE.saving) return;
   const R = RE, st = reState(); R.saving = true; R.err = ''; rulesPreview();
   post({ action: 'course_save', code: R.code, cfg: st.cfg, head: st.head, cats: st.cats })
-    .then(() => { if (RE !== R) return; const x = (data.setup || []).find(y => y.code === R.code);
+    .then(() => { const x = (data.setup || []).find(y => y.code === R.code);
       if (x) { x.head = st.head; x.cats = st.cats; if (x.cfg) { x.cfg.name = R.cfg.name; x.cfg.credits = R.cfg.credits; } }
-      closeDrawer(); toast('saved ' + spaceCode(R.code) + ' settings'); load(true); })
+      R.saving = false; R.orig = JSON.stringify(st); if (RE === R) rulesPreview(); toast('saved ' + spaceCode(R.code)); load(true); })
     .catch(err => { R.saving = false; R.err = String(err.message || err); rulesPreview(); });
+}
+function subnav() {
+  const sn = $('subnav'); if (!sn) return;
+  const on = (VIEW === 'settings' || VIEW === 'course') && data && data.setup;
+  sn.innerHTML = on ? data.setup.map(x => `<button class="nav sub${VIEW === 'course' && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><i style="background:${colorFor(x.code)}"></i>${esc(spaceCode(x.code))}</button>`).join('') : '';
+  if (VIEW === 'course') document.querySelector('.nav[data-view=settings]').classList.add('on');
 }
 
 // ---------- attendance ----------
@@ -1215,6 +1255,7 @@ document.addEventListener('click', e => {
     case 're-rm': RE.cats.splice(+t.dataset.k, 1); return renderRules();
     case 're-add': RE.cats.push({ name: '', type: '', weight: '', items: '', combine: t.dataset.k === 'extra' ? 'extra → final grade' : 'average', drop: '', map: '', until: '', opt: {} }); renderRules(); $('drawer').scrollTop = $('drawer').scrollHeight; return;
     case 're-save': return saveRules();
+    case 're-revert': RE = reFrom(RE.code); return renderAll();
     case 'upcoming': return openUpcoming();
     case 'calchip': return toggleCal(t.dataset.cal);
     case 'add': return startAdd();
