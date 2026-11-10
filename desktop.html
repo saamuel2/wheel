@@ -50,7 +50,7 @@
   .nav.on { background: var(--fill); color: var(--tint); }
   .side .grow { flex: 1; }
   .sync { display: none !important; }
-  .nav[data-view=settings] svg { transition: color .3s; } .side.busy .nav[data-view=settings] svg { animation: gearspin 1.2s linear infinite; } .side.off .nav[data-view=settings] svg { color: var(--red); }
+  .nav[data-view=settings] svg { transition: color .3s; } .side.busy .nav[data-view=settings] svg { animation: gearspin 2.4s linear infinite; } .side.off .nav[data-view=settings] svg { color: var(--red); }
   @keyframes gearspin { to { transform: rotate(360deg); } } @media (prefers-reduced-motion: reduce) { .side.busy .nav[data-view=settings] svg { animation-duration: 4s; } }
   .sync i { width: 7px; height: 7px; border-radius: 50%; background: #30D158; }
   .sync.off i { background: var(--red); } .sync.busy i { background: #FFD60A; }
@@ -326,7 +326,6 @@
 <div class="app">
   <nav class="side" id="side">
     <div class="brand"><img src="favicon-desktop.svg" alt="" width="22" height="22">tracker</div>
-    <button class="addbtn" data-act="add"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>add assignment</button>
     <button class="nav" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard</button>
     <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet</button>
     <button class="nav" data-view="grades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades</button>
@@ -355,7 +354,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.28 (11/09 11:50pm)';
+const BUILD = 'd1.29 (11/09 11:45pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
