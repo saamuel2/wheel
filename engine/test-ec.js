@@ -11,3 +11,4 @@ check('final grade as entered', v([{ abbr: 'EC', name: 'ec', kind: 'flat' }], [i
 check('category +5', v([{ abbr: 'EC', name: 'ec', kind: 'catbonus', to: ['HW'], cap: 5 }], [it('EC', 'ec1', 8)]), 80);
 check('items next exam', v([{ abbr: 'EC', name: 'ec', kind: 'bonus', to: ['EX'] }], [it('EC', 'ec1', 10, '2026-09-01')]), 82.5);
 check('extra items', v([{ abbr: 'EC', name: 'ec', kind: 'extraitems', to: ['HW'] }], [it('EC', 'q', 100)]), 0.5 * (270 / 2) + 35);
+check('items lowest exam', v([{ abbr: 'EC', name: 'ec', kind: 'bonus', to: ['EX'], pick: 'lowest' }], [it('EX', 'e2', 90), it('EC', 'ec1', 5, '2026-12-01')]), 0.5 * 85 + 0.5 * (75 + 90) / 2);

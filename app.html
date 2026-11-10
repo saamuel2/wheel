@@ -790,7 +790,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.60 (11/10 9:00am)';
+    const BUILD = 'm2.61 (11/10 4:10pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -1180,7 +1180,7 @@
     let RE = null, rsT = null;
     const RLET = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'];
     const COMBINE = ['average', 'points', 'each own share', 'attendance', 'extra → final grade', 'extra → category', 'extra → items', 'extra → extra items'];
-    const OPTS = { 'extra → final grade': ['up to'], 'extra → category': ['to', 'up to'], 'extra → items': ['to', 'up to'], 'extra → extra items': ['to'], attendance: ['free absences', 'per absence'] };
+    const OPTS = { 'extra → final grade': ['up to'], 'extra → category': ['to', 'up to'], 'extra → items': ['to', 'which', 'up to'], 'extra → extra items': ['to'], attendance: ['free absences', 'per absence'] };
     const optsFor = comb => OPTS[comb] || ['replaced by'];
     const kvParse = t => { const o = {}; String(t || '').split(';').forEach(p => { const m = p.match(/^\s*([^:]+):\s*(.*)$/); if (m) o[m[1].trim().toLowerCase()] = m[2].trim(); }); return o; };
     const kvJoin = o => Object.keys(o).filter(k => String(o[k]).trim() !== '').map(k => k + ': ' + String(o[k]).trim()).join('; ');
@@ -1188,7 +1188,7 @@
     const cutJoin = o => RLET.filter(L => String(o[L]).trim() !== '').map(L => L + ' ' + String(o[L]).trim()).join(', ');
     function reState() {   // what gets saved: head with cutoffs + other folded back in
       const head = Object.assign({}, RE.head); head.cutoffs = cutJoin(RE.cut);
-      return { cfg: RE.cfg, head, cats: RE.cats.map(c => { const o = Object.assign({}, c.opt); const keep = optsFor(c.combine); Object.keys(o).forEach(k => { if (['to', 'up to', 'replaced by', 'free absences', 'per absence'].includes(k) && !keep.includes(k)) delete o[k]; });
+      return { cfg: RE.cfg, head, cats: RE.cats.map(c => { const o = Object.assign({}, c.opt); const keep = optsFor(c.combine); Object.keys(o).forEach(k => { if (['to', 'which', 'up to', 'replaced by', 'free absences', 'per absence'].includes(k) && !keep.includes(k)) delete o[k]; });
         return { name: c.name, type: c.type, weight: c.weight, items: c.items, combine: c.combine, drop: c.drop, map: c.map, until: c.until, other: kvJoin(o) }; }) };
     }
     function openRules(code) {
@@ -1233,7 +1233,7 @@
           fr('name', inp(q('name'), c.name)) + fr('type', inp(q('type'), c.type, '', 'up')) + fr('combine by', sel(q('combine'), c.combine, COMBINE)) +
           (extra ? '' : fr('weight', inp(q('weight'), c.weight, 'decimal')) + fr('items', inp(q('items'), c.items, 'numeric')) + fr('drop lowest', inp(q('drop'), c.drop, 'numeric')) +
             fr('score map', inp(q('map'), c.map)) + fr('until graded', inp(q('until'), c.until, 'decimal'))) +
-          optsFor(c.combine).map(o => fr(o, inp(`opt.${k}.${o}`, c.opt[o], /up to|absence/.test(o) ? 'decimal' : ''))).join('') +
+          optsFor(c.combine).map(o => fr(o, o === 'which' ? sel(`opt.${k}.which`, c.opt.which || 'next', ['next', 'lowest']) : inp(`opt.${k}.${o}`, c.opt[o], /up to|absence/.test(o) ? 'decimal' : ''))).join('') +
           `<button class="lrow rm" data-rrm="${k}">remove</button></div>`; }).join('');
       $('r-body').innerHTML = `<div class="group rprev" id="r-prev"></div><div class="rerr" id="r-err" style="display:none"></div>
         <div class="grp">basics</div><div class="group">${fr('name', inp('cfg.name', R.cfg.name))}${fr('credit hours', inp('cfg.credits', R.cfg.credits, 'decimal'))}${fr('course code', `<span class="tg" style="margin-left:auto">${esc(R.code)}</span>`)}</div>

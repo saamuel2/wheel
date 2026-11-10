@@ -117,6 +117,7 @@ function rulesFromSheet_(courses, categories) {
     if (num_(row[11]) != null) c.free = num_(row[11]);
     if (num_(row[12]) != null) c.per = num_(row[12]);
     var rep = clean_(row[13]); if (rep) c.replace = { from: rep };
+    if (/^low/i.test(clean_(row[14]))) c.pick = 'lowest';
     if (c.kind === 'bonus' && !c.to) c.kind = 'extra';
     r.categories.push(c);
   });
@@ -242,7 +243,7 @@ function tablesFromBlocks_(blocks) {
     b.cats.forEach(function (c) {
       var o = kv_(c.other);
       cats.push([b.code, c.name, c.type, c.weight, c.items, c.drop, c.combine || 'average', c.map, o['to'] || '', o['up to'] || '', c.until,
-        o['free absences'] || '', o['per absence'] || '', o['replaced by'] || '']);
+        o['free absences'] || '', o['per absence'] || '', o['replaced by'] || '', o['which'] || '']);
     });
   });
   return { courses: courses, cats: cats };

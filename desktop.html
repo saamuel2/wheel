@@ -371,7 +371,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.46 (11/10 9:00am)';
+const BUILD = 'd1.47 (11/10 4:10pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -1071,7 +1071,7 @@ function closeDrawer() {
 let RE = null;
 const RL = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'];
 const COMBINE = ['average', 'points', 'each own share', 'attendance', 'extra → final grade', 'extra → category', 'extra → items', 'extra → extra items'];
-const OPTS = { 'extra → final grade': ['up to'], 'extra → category': ['to', 'up to'], 'extra → items': ['to', 'up to'], 'extra → extra items': ['to'], attendance: ['free absences', 'per absence'] };
+const OPTS = { 'extra → final grade': ['up to'], 'extra → category': ['to', 'up to'], 'extra → items': ['to', 'which', 'up to'], 'extra → extra items': ['to'], attendance: ['free absences', 'per absence'] };
 const optsFor = comb => OPTS[comb] || ['replaced by'];
 const kvParse = t => { const o = {}; String(t || '').split(';').forEach(p => { const m = p.match(/^\s*([^:]+):\s*(.*)$/); if (m) o[m[1].trim().toLowerCase()] = m[2].trim(); }); return o; };
 const kvJoin = o => Object.keys(o).filter(k => String(o[k]).trim() !== '').map(k => k + ': ' + String(o[k]).trim()).join('; ');
@@ -1080,7 +1080,7 @@ const cutJoin = o => RL.filter(L => String(o[L]).trim() !== '').map(L => L + ' '
 function reState() {
   const head = Object.assign({}, RE.head); head.cutoffs = cutJoin(RE.cut);
   return { cfg: RE.cfg, head, cats: RE.cats.map(c => { const o = Object.assign({}, c.opt), keep = optsFor(c.combine);
-    Object.keys(o).forEach(k => { if (['to', 'up to', 'replaced by', 'free absences', 'per absence'].includes(k) && !keep.includes(k)) delete o[k]; });
+    Object.keys(o).forEach(k => { if (['to', 'which', 'up to', 'replaced by', 'free absences', 'per absence'].includes(k) && !keep.includes(k)) delete o[k]; });
     return { name: c.name, type: c.type, weight: c.weight, items: c.items, combine: c.combine, drop: c.drop, map: c.map, until: c.until, other: kvJoin(o) }; }) };
 }
 // a course is its own page under settings: sidebar lists the courses beneath settings while you're in there
@@ -1139,7 +1139,7 @@ function renderCourse(v) {
   const inp = (path, cur, cls) => `<input class="txt${cls ? ' ' + cls : ''}" data-re="${esc(path)}" data-k="${esc(path)}" value="${esc(cur == null ? '' : cur)}" autocomplete="off" spellcheck="false">`;
   const f = (label, ctl) => `<label class="ref"><span>${label}</span>${ctl}</label>`;
   const rows = R.cats.map((c, k) => { const q = x => `cat.${k}.${x}`, extra = /^extra/.test(c.combine);
-    const opts = optsFor(c.combine).map(o => `<label class="opt"><span>${o}</span>${inp(`opt.${k}.${o}`, c.opt[o], o === 'to' ? 'w2' : 'w1')}</label>`).join('');
+    const opts = optsFor(c.combine).map(o => `<label class="opt"><span>${o}</span>${o === 'which' ? sel(`opt.${k}.which`, c.opt.which || 'next', ['next', 'lowest']) : inp(`opt.${k}.${o}`, c.opt[o], o === 'to' ? 'w2' : 'w1')}</label>`).join('');
     return `<tr class="${extra ? 'ec' : ''}"><td>${inp(q('name'), c.name, 'nm')}</td><td class="n sc" data-sc="${k}">–</td><td class="n sc" data-gr="${k}">–</td><td>${inp(q('type'), c.type, 'up w1')}</td>
       <td>${extra ? '' : inp(q('weight'), c.weight, 'w1 num')}</td><td>${extra ? '' : inp(q('items'), c.items, 'w1 num')}</td><td>${sel(q('combine'), c.combine, COMBINE)}</td>
       <td>${extra ? '' : inp(q('drop'), c.drop, 'w1 num')}</td><td>${extra ? '' : inp(q('map'), c.map, 'map')}</td><td>${extra ? '' : inp(q('until'), c.until, 'w1 num')}</td>

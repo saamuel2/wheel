@@ -25,6 +25,7 @@
  *     assume: 100,                    // ungraded items count as this
  *     cap,                            // extra/flat: most it adds · bonus: most per target item
  *     to: ['EX','FI'],                // bonus: added to the target item due on/after the bonus (by due date)
+ *     pick: 'lowest',                 // bonus: added to the lowest graded target item instead
  *     free: 3, per: 20                // attendance: free absences, % lost per absence after that
  *   }]
  * }
@@ -94,6 +95,14 @@ var Engine = (function () {
     cats.filter(function (c) { return c.kind === 'bonus'; }).forEach(function (b) {
       var targets = [];
       (b.rule.to || []).forEach(function (a) { var t = byAbbr[norm(a)]; if (t) targets = targets.concat(t.items); });
+      var bump = function (t, add) { t.p = { earned: t.p.earned != null ? t.p.earned + add : null, possible: t.p.possible, pct: t.p.pct + (t.p.possible ? 100 * add / t.p.possible : add), graded: true }; b.notes.push('+' + fmt(add) + ' on ' + t.name); };
+      if (b.rule.pick === 'lowest') {   // everything earned goes onto the lowest graded target item
+        var all = b.graded.reduce(function (s, x) { return s + x.p.pct; }, 0), done = targets.filter(function (t) { return t.p.graded && !t.p.assumed; });
+        if (isNum(b.rule.cap)) all = Math.min(all, b.rule.cap);
+        if (!all) return;
+        if (!done.length) { b.notes.push(fmt(all) + ' waiting for a graded ' + (b.rule.to || []).join('/')); return; }
+        bump(done.reduce(function (a, c) { return c.p.pct < a.p.pct ? c : a; }), all); return;
+      }
       targets.sort(function (x, y) { return x.due < y.due ? -1 : x.due > y.due ? 1 : 0; });
       var prev = '';
       targets.forEach(function (t) {
@@ -102,7 +111,7 @@ var Engine = (function () {
         prev = t.due;
         if (isNum(b.rule.cap)) add = Math.min(add, b.rule.cap);
         if (!add) return;
-        if (t.p.graded) { t.p = { earned: t.p.earned != null ? t.p.earned + add : null, possible: t.p.possible, pct: t.p.pct + (t.p.possible ? 100 * add / t.p.possible : add), graded: true }; b.notes.push('+' + fmt(add) + ' on ' + t.name); }
+        if (t.p.graded) bump(t, add);
         else b.notes.push(fmt(add) + ' waiting for ' + t.name);
       });
     });
@@ -363,6 +372,7 @@ function rulesFromSheet_(courses, categories) {
     if (num_(row[11]) != null) c.free = num_(row[11]);
     if (num_(row[12]) != null) c.per = num_(row[12]);
     var rep = clean_(row[13]); if (rep) c.replace = { from: rep };
+    if (/^low/i.test(clean_(row[14]))) c.pick = 'lowest';
     if (c.kind === 'bonus' && !c.to) c.kind = 'extra';
     r.categories.push(c);
   });
@@ -488,7 +498,7 @@ function tablesFromBlocks_(blocks) {
     b.cats.forEach(function (c) {
       var o = kv_(c.other);
       cats.push([b.code, c.name, c.type, c.weight, c.items, c.drop, c.combine || 'average', c.map, o['to'] || '', o['up to'] || '', c.until,
-        o['free absences'] || '', o['per absence'] || '', o['replaced by'] || '']);
+        o['free absences'] || '', o['per absence'] || '', o['replaced by'] || '', o['which'] || '']);
     });
   });
   return { courses: courses, cats: cats };
