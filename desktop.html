@@ -364,7 +364,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.37 (11/10 12:55am)';
+const BUILD = 'd1.38 (11/10 1:00am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -1354,7 +1354,9 @@ document.addEventListener('click', e => {
     case 'calchip': return toggleCal(t.dataset.cal);
     case 'gs': SF.gs = !SF.gs; saveSF(); $('v-sheet').innerHTML = ''; return renderAll();
     case 'add': if (VIEW === 'sheet' && SF.gs) { SF.gs = false; saveSF(); $('v-sheet').innerHTML = ''; } return startAdd();
-    case 'sf': STAY.clear(); TEST = {}; SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll();
+    case 'sf': STAY.clear(); TEST = {}; SF.f = t.dataset.f; SF.sort = 'due'; SF.dir = 1; saveSF();
+      if (SF.gs) post({ action: 'sheet_sort', mode: SF.f }).catch(() => toast('couldn’t sort the sheet'));   // embed: sort the real sheet the same way
+      return renderAll();
     case 'scls': { STAY.clear(); const c = t.dataset.c, i = SF.cls.indexOf(c); if (i > -1) SF.cls.splice(i, 1); else SF.cls.push(c); SF.sort = 'due'; SF.dir = 1; saveSF(); return renderAll(); }
     case 'insert': return startAdd(+t.dataset.i);
     case 'draft-ok': return saveDraft(+t.dataset.draft);

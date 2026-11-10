@@ -87,6 +87,7 @@ function write_(parse) {
       case 'note_add': return out_(noteAdd_(ss, b));
       case 'note_done': return out_(noteDone_(ss, b));
       case 'claude_ask': return out_(claudeAsk_(ss, b));
+      case 'sheet_sort': return out_(sheetSort_(ss, b));
       case 'task_add':  return out_(taskAdd_(b));
       case 'task_done': return out_(taskDone_(b));
       case 'course_save': return out_(courseSave_(ss, b));
@@ -321,6 +322,46 @@ function noteDone_(ss, b) {
   if (!n) return { ok: true, missing: true };
   sh.getRange(n.row, 4).setValue(true);
   return { ok: true };
+}
+
+// ---------- sorting the Assignments tab from the app (same orders as the K2/K3/K4 checkboxes in the sheet's Sorting.gs) ----------
+// mode: upcoming (open first, from J18 on) · grade (done but ungraded first) · week (from J18 on) · done (done first) · all (by date)
+function sheetSort_(ss, b) {
+  var sh = ss.getSheetByName('Assignments'), start = 3, last = sh.getLastRow(); if (last < start) return { ok: true };
+  var data = sh.getRange(start, 1, last - start + 1, 7).getValues(), n = -1;
+  for (var i = 0; i < data.length; i++) {
+    if (/Last/.test(String(data[i][1])) || /Last/.test(String(data[i][2]))) break;
+    if (data[i].some(function (v) { return v !== '' && v !== null; })) n = i;
+  }
+  if (n < 0) return { ok: true };
+  var rows = data.slice(0, n + 1), range = sh.getRange(start, 1, n + 1, 7);
+  var ref = sortDate_(sh.getRange(18, 10).getValue()).getTime(), mode = String(b.mode || 'upcoming');
+  var cmp = function (a, c) {
+    var d = sortDate_(a[1]).getTime() - sortDate_(c[1]).getTime(); if (d) return d;
+    var x = String(a[3] || '').trim().toLowerCase().localeCompare(String(c[3] || '').trim().toLowerCase()); if (x) return x;
+    return String(a[4] || '').trim().toLowerCase().localeCompare(String(c[4] || '').trim().toLowerCase());
+  };
+  var byRef = function (arr) { var aft = [], bef = []; arr.forEach(function (r) { (sortDate_(r[1]).getTime() >= ref ? aft : bef).push(r); }); return aft.sort(cmp).concat(bef.sort(cmp)); };
+  var split = function (test) { var y = [], no = []; rows.forEach(function (r) { (test(r) ? y : no).push(r); }); return [y, no]; };
+  var out;
+  if (mode === 'grade') { var g = split(function (r) { return r[0] === true && (r[5] === '' || r[5] == null); }); out = g[0].sort(cmp).concat(g[1].sort(cmp)); }
+  else if (mode === 'week') out = byRef(rows);
+  else if (mode === 'done') { var dn = split(function (r) { return r[0] === true; }); out = dn[0].sort(cmp).concat(dn[1].sort(cmp)); }
+  else if (mode === 'all') out = rows.slice().sort(cmp);
+  else { var up = split(function (r) { return r[0] !== true; }); out = byRef(up[0]).concat(byRef(up[1])); }
+  range.setValues(out);
+  // column C: bold italic for big items (PR/EX/ES/FI/GP), italic for quizzes — same as the sheet's own sorts
+  var w = [], st = [];
+  out.forEach(function (r) { var t = String(r[4] || '').toUpperCase(), big = /PR|EX|ES|FI|GP/.test(t); w.push([big ? 'bold' : 'normal']); st.push([big || /QZ/.test(t) ? 'italic' : 'normal']); });
+  var cc = range.offset(0, 2, out.length, 1); cc.setFontFamily('Arial'); cc.setFontWeights(w); cc.setFontStyles(st);
+  return { ok: true, rows: out.length };
+}
+function sortDate_(v) {
+  if (!v) return new Date(0); if (v instanceof Date) return v;
+  var s = String(v).trim(), d = new Date(s); if (!isNaN(d.getTime())) return d;
+  var m = s.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+  if (m) { var y = m[3] ? parseInt(m[3], 10) : new Date().getFullYear(); if (y < 100) y += 2000; return new Date(y, parseInt(m[1], 10) - 1, parseInt(m[2], 10)); }
+  return new Date(0);
 }
 
 // asking Claude to work through the open notes: Notes!F1:G2 hold the request and the last run.
