@@ -252,7 +252,7 @@
   .regrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 12px; }
   .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 12px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
   .recat { margin-bottom: 12px; } .rehd { display: flex; gap: 8px; margin-bottom: 12px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
-  .swheel { width: 120px; height: 120px; margin: 0 auto 22px; display: block; flex: none; } .swheel .sw-arc { transition: stroke-dasharray .65s cubic-bezier(.22,.8,.3,1), opacity .2s; }
+  .swheel { width: 100%; height: auto; aspect-ratio: 1; padding: 0 6px; margin: 0 0 22px; display: block; flex: none; } .swheel .sw-arc { transition: stroke-dasharray .65s cubic-bezier(.22,.8,.3,1), opacity .2s; }
   @media (prefers-reduced-motion: reduce) { .swheel .sw-arc { transition: none; } }
   .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 5px 12px 5px 46px; font-size: 13px; gap: 8px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
   .cgrid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; } @media (max-width: 1100px) { .cgrid { grid-template-columns: 1fr; } }
@@ -365,7 +365,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.31 (11/10 12:15am)';
+const BUILD = 'd1.32 (11/10 12:20am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -624,6 +624,7 @@ let SLOT = store.get('desk-slot', 'budget'), slotEdit = false, raAll = false, td
 function go(v, fade) {
   if (v !== 'sheet') TEST = {};
   if (v === 'extra' || v === 'tasks') v = 'dash';   // the tasks page is gone; RA tasks + to-do live on the dashboard
+  if (v !== VIEW) spinWheel2(14);
   VIEW = v; store.set('desk-view', v);
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
   document.querySelectorAll('.view').forEach(s => { s.classList.toggle('on', s.id === 'v-' + v); s.classList.toggle('fade', fade !== false && s.id === 'v-' + v); });
@@ -1136,23 +1137,41 @@ function saveRules() {
       R.saving = false; R.orig = JSON.stringify(st); if (RE === R) rulesPreview(); toast('saved ' + spaceCode(R.code)); load(true); })
     .catch(err => { R.saving = false; R.err = String(err.message || err); rulesPreview(); });
 }
-// the sidebar wheel: this week's rings, no numbers or labels; rings move when something is checked off
+// wheel2 (sidebar): always this week's rings, no numbers or labels; rings grow when something is checked off and spin when you scroll or change pages
 function sideWheel() {
   const el = $('swheel'); if (!el) return;
   const A = (data && data.assignments) || [], ws = weekStart(Date.now()), we = addDays(ws, 7), wk = A.filter(a => a.t >= ws && a.t < we), cs = wheelCourses(wk);
   el.hidden = !cs.length; if (!cs.length) return;
-  const R = 48, IN = 12, GAP = 1.6, th = (R - IN) / cs.length, w = Math.max(th - GAP, 1.5);
+  const R = 49, IN = 7, GAP = 1.3, th = (R - IN) / cs.length, w = Math.max(th - GAP, 1.5);
   const rings = cs.map((c, i) => { const mine = wk.filter(a => a.c === c), rad = R - i * th - th / 2; return { c, rad, col: colorFor(c), p: mine.filter(a => a.d).length / mine.length, C: 2 * Math.PI * rad }; });
   const geo = rings.map(g => g.c + g.rad.toFixed(2)).join(',') + '|' + w.toFixed(2);
   if (el.dataset.geo !== geo) {
     el.dataset.geo = geo;
     el.innerHTML = rings.map((g, i) => `<circle cx="50" cy="50" r="${g.rad.toFixed(2)}" fill="none" stroke="var(--track)" stroke-width="${w.toFixed(2)}"/>` +
-      `<circle class="sw-arc" data-i="${i}" cx="50" cy="50" r="${g.rad.toFixed(2)}" fill="none" stroke="${g.col}" stroke-width="${w.toFixed(2)}" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="0 ${g.C.toFixed(2)}"/>`).join('');
+      `<g class="sw-rot" data-i="${i}" transform="rotate(${(SPIN.ang[i] || 0).toFixed(2)} 50 50)"><circle class="sw-arc" data-i="${i}" cx="50" cy="50" r="${g.rad.toFixed(2)}" fill="none" stroke="${g.col}" stroke-width="${w.toFixed(2)}" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="0 ${g.C.toFixed(2)}"/></g>`).join('');
     void el.getBoundingClientRect();
   }
   rings.forEach((g, i) => { const a = el.querySelector(`.sw-arc[data-i="${i}"]`); if (!a) return;
     const len = g.p >= .999 ? g.C : g.p * g.C; a.style.opacity = g.p > .001 ? 1 : 0; a.setAttribute('stroke-dasharray', `${len.toFixed(2)} ${(g.C + 1).toFixed(2)}`); });
 }
+// each ring has its own speed and direction; scrolling feeds them momentum, which then eases off
+const SPIN = { ang: [], vel: 0, raf: 0, speeds: [1, -1.6, 1.3, -0.8, 1.9, -1.2, 0.7, -2.1, 1.5, -1] };
+function spinWheel2(kick) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  SPIN.vel = Math.max(-40, Math.min(40, SPIN.vel + kick));
+  if (SPIN.raf) return;
+  let last = performance.now();
+  const step = now => {
+    const dt = Math.min((now - last) / 16.7, 3); last = now;
+    const rots = document.querySelectorAll('#swheel .sw-rot');
+    rots.forEach((r, i) => { const a = (SPIN.ang[i] || 0) + SPIN.vel * SPIN.speeds[i % SPIN.speeds.length] * dt; SPIN.ang[i] = a % 360; r.setAttribute('transform', `rotate(${SPIN.ang[i].toFixed(2)} 50 50)`); });
+    SPIN.vel *= Math.pow(.93, dt);
+    if (Math.abs(SPIN.vel) > .02) SPIN.raf = requestAnimationFrame(step); else { SPIN.vel = 0; SPIN.raf = 0; }
+  };
+  SPIN.raf = requestAnimationFrame(step);
+}
+(() => { let y = 0; const m = $('main'); if (!m) return; y = m.scrollTop;
+  m.addEventListener('scroll', () => { const d = m.scrollTop - y; y = m.scrollTop; if (Math.abs(d) < 200) spinWheel2(d * .06); }, { passive: true }); })();
 function subnav() {
   const sn = $('subnav'); if (!sn) return;
   const on = (VIEW === 'settings' || VIEW === 'course') && data && data.setup;
