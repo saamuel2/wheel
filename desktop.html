@@ -199,9 +199,9 @@
 
   /* grades */
   .ccards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; margin-bottom: 20px; }
-  .cc { background: var(--card); border-radius: 14px; padding: 16px; border: 0; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+  .cc { background: var(--card); border-radius: 14px; padding: 16px 20px; border: 0; text-align: left; display: flex; flex-direction: column; gap: 8px; }
   .cc:hover { box-shadow: inset 0 0 0 2px var(--c); }
-  .cc .top { display: flex; align-items: baseline; gap: 8px; } .cc .code { font-weight: 700; color: var(--c); } .cc .nmx { color: var(--sub); font-size: 13px; }
+  .cc .top { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--sub); } .cc .code { font-weight: 700; color: var(--c); } .cc .nmx { color: var(--sub); }
   .cc .pf { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--sub); background: var(--fill); padding: 2px 8px; border-radius: 6px; }
   .donut { position: relative; width: 150px; height: 150px; margin: 8px auto; }
   .donut svg { width: 100%; height: 100%; }
@@ -252,6 +252,8 @@
   .regrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 12px; }
   .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 12px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
   .recat { margin-bottom: 12px; } .rehd { display: flex; gap: 8px; margin-bottom: 12px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
+  .swheel { width: 120px; height: 120px; margin: 0 auto 22px; display: block; flex: none; } .swheel .sw-arc { transition: stroke-dasharray .65s cubic-bezier(.22,.8,.3,1), opacity .2s; }
+  @media (prefers-reduced-motion: reduce) { .swheel .sw-arc { transition: none; } }
   .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 5px 12px 5px 46px; font-size: 13px; gap: 8px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; }
   .cgrid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; } @media (max-width: 1100px) { .cgrid { grid-template-columns: 1fr; } }
   .recut.r12 { grid-template-columns: repeat(12, minmax(44px, 1fr)); } @media (max-width: 1000px) { .recut.r12 { grid-template-columns: repeat(6, 1fr); } }
@@ -332,13 +334,14 @@
 <div class="app">
   <nav class="side" id="side">
     <div class="brand"><img src="favicon-desktop.svg" alt="" width="22" height="22">tracker</div>
+    <svg class="swheel" id="swheel" viewBox="0 0 100 100" aria-hidden="true"></svg>
     <button class="nav" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard</button>
     <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet</button>
     <button class="nav" data-view="grades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades</button>
     <button class="nav" data-view="att"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z"/></svg>attendance</button>
-    <div class="grow"></div>
     <button class="nav" data-view="settings"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.06-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7 7 0 0 0-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.47.47 0 0 0-.47.41l-.36 2.54a7.4 7.4 0 0 0-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.73 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.04.3-.08.63-.08.94s.02.64.06.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>settings</button>
     <div class="subnav" id="subnav"></div>
+    <div class="grow"></div>
     <div class="sync" id="sync" hidden><i></i><span></span></div>
   </nav>
 
@@ -362,7 +365,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.30 (11/10 12:20am)';
+const BUILD = 'd1.31 (11/10 12:15am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -628,7 +631,7 @@ function go(v, fade) {
 }
 function renderAll() {
   if (!DEMO && !KEY && VIEW !== 'settings') { $('v-' + VIEW).innerHTML = connectHtml(); return; }
-  subnav();
+  subnav(); try { sideWheel(); } catch (x) {}
   const fn = { dash: renderDash, sheet: renderSheet, grades: renderGrades, att: renderAtt, settings: renderSettings, course: renderCourse }[VIEW];
   const v = $('v-' + VIEW);
   if (VIEW === 'course' && !COURSE) VIEW = 'settings';
@@ -953,13 +956,20 @@ function renderSheet(v) {
 }
 // ---------- grades ----------
 const OPS = [1, .8, .62, .48, .38, .3, .24, .2];
+// a filled arc from angle a0 to a1 (radians, clockwise from 12 o'clock) ending in the wheel's chevron tip
+function tipArc(rad, w, a0, a1, col, op) {
+  const r1 = rad - w / 2, r2 = rad + w / 2, span = a1 - a0, tc = a0 + Math.max(span - Math.min(.41 * w / rad, span * .6), 0), big = tc - a0 > Math.PI ? 1 : 0;
+  const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
+  return `<path d="M${P(r2, a0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(rad, a1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, a0)}Z" fill="${col}"${op != null ? ` fill-opacity="${op}"` : ''}/>`;
+}
 function donutSvg(c, col) {
   const cats = (c.cats || []).filter(k => k.share > 0), R = 76, Cc = 2 * Math.PI * R; let off = 0, h = '';
   cats.forEach((k, i) => {
     const len = k.share * Cc, seg = Math.max(len - 3, 1), fill = k.poss ? Math.min(k.graded / k.poss, 1) : 0;
     const ring = (d, stroke, op) => `<circle cx="100" cy="100" r="${R}" fill="none" stroke="${stroke}" stroke-width="22" stroke-dasharray="${d} ${Cc - d}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"${op != null ? ` stroke-opacity="${op}"` : ''}/>`;
     h += ring(seg, 'var(--dtrack)');
-    if (fill > 0) h += ring(seg * fill, col, OPS[i % OPS.length]);
+    if (fill >= .999) h += ring(seg, col, OPS[i % OPS.length]);
+    else if (fill > 0) h += tipArc(R, 22, off / R, (off + seg * fill) / R, col, OPS[i % OPS.length]);
     off += len;
   });
   return `<svg viewBox="0 0 200 200">${h}</svg>`;
@@ -1125,6 +1135,23 @@ function saveRules() {
       if (x) { x.head = st.head; x.cats = st.cats; if (x.cfg) { x.cfg.name = R.cfg.name; x.cfg.credits = R.cfg.credits; } }
       R.saving = false; R.orig = JSON.stringify(st); if (RE === R) rulesPreview(); toast('saved ' + spaceCode(R.code)); load(true); })
     .catch(err => { R.saving = false; R.err = String(err.message || err); rulesPreview(); });
+}
+// the sidebar wheel: this week's rings, no numbers or labels; rings move when something is checked off
+function sideWheel() {
+  const el = $('swheel'); if (!el) return;
+  const A = (data && data.assignments) || [], ws = weekStart(Date.now()), we = addDays(ws, 7), wk = A.filter(a => a.t >= ws && a.t < we), cs = wheelCourses(wk);
+  el.hidden = !cs.length; if (!cs.length) return;
+  const R = 48, IN = 12, GAP = 1.6, th = (R - IN) / cs.length, w = Math.max(th - GAP, 1.5);
+  const rings = cs.map((c, i) => { const mine = wk.filter(a => a.c === c), rad = R - i * th - th / 2; return { c, rad, col: colorFor(c), p: mine.filter(a => a.d).length / mine.length, C: 2 * Math.PI * rad }; });
+  const geo = rings.map(g => g.c + g.rad.toFixed(2)).join(',') + '|' + w.toFixed(2);
+  if (el.dataset.geo !== geo) {
+    el.dataset.geo = geo;
+    el.innerHTML = rings.map((g, i) => `<circle cx="50" cy="50" r="${g.rad.toFixed(2)}" fill="none" stroke="var(--track)" stroke-width="${w.toFixed(2)}"/>` +
+      `<circle class="sw-arc" data-i="${i}" cx="50" cy="50" r="${g.rad.toFixed(2)}" fill="none" stroke="${g.col}" stroke-width="${w.toFixed(2)}" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="0 ${g.C.toFixed(2)}"/>`).join('');
+    void el.getBoundingClientRect();
+  }
+  rings.forEach((g, i) => { const a = el.querySelector(`.sw-arc[data-i="${i}"]`); if (!a) return;
+    const len = g.p >= .999 ? g.C : g.p * g.C; a.style.opacity = g.p > .001 ? 1 : 0; a.setAttribute('stroke-dasharray', `${len.toFixed(2)} ${(g.C + 1).toFixed(2)}`); });
 }
 function subnav() {
   const sn = $('subnav'); if (!sn) return;
