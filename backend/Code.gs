@@ -349,6 +349,8 @@ function sheetSort_(ss, b) {
   else if (mode === 'done') { var dn = split(function (r) { return r[0] === true; }); out = dn[0].sort(cmp).concat(dn[1].sort(cmp)); }
   else if (mode === 'all') out = rows.slice().sort(cmp);
   else { var up = split(function (r) { return r[0] !== true; }); out = byRef(up[0]).concat(byRef(up[1])); }
+  var blank = function (r) { return String(r[2] || '').trim() === '' && !(r[1] instanceof Date) && String(r[1] || '').trim() === ''; };
+  out = out.filter(function (r) { return !blank(r); }).concat(out.filter(blank));   // empty rows always go last
   range.setValues(out);
   // column C: bold italic for big items (PR/EX/ES/FI/GP), italic for quizzes — same as the sheet's own sorts
   var w = [], st = [];
