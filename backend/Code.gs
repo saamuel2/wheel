@@ -205,6 +205,7 @@ function writeFields_(sh, r, f, ss) {
 
 function editRow_(ss, b) {
   var sh = ss.getSheetByName('Assignments'), r = locate_(sh, Number(b.row), b.match);
+  if (r < 0 && b.alt) r = locate_(sh, Number(b.row), b.alt);   // a retried rename whose first try already landed
   if (r < 0) return { ok: false, error: 'assignment not found' };
   writeFields_(sh, r, b.fields || {}, ss);
   return { ok: true, row: r };
@@ -220,6 +221,10 @@ function deleteRow_(ss, b) {
 function addRow_(ss, b) {
   var sh = ss.getSheetByName('Assignments'), r = lastContentRow_(sh) + 1, f = splitFrac_(b.fields || {});
   if (!f.name || !f.className || !f.due) return { ok: false, error: 'missing fields' };
+  if (b.retry && r > 3) {   // the phone retries through dead spots: if an earlier try already wrote this row, don't add it twice
+    var have = sh.getRange(3, 2, r - 3, 3).getValues();
+    for (var i = have.length - 1; i >= 0; i--) if (str_(have[i][1]) === str_(f.name) && str_(have[i][2]) === str_(f.className) && cellYmd_(have[i][0], ss) === f.due) return { ok: true, row: i + 3, dup: true };
+  }
   if (r > sh.getMaxRows()) sh.insertRowsAfter(sh.getMaxRows(), r - sh.getMaxRows() + 20);
   // one write for the whole row (the Assignments tab is a table, which is picky about cell-by-cell edits)
   var row = [!!f.done, ymdToCell_(f.due, ss), f.name, f.className, f.type || '', cellVal_(f.grade), cellVal_(f.outOf)], why = [];

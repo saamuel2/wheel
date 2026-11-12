@@ -790,7 +790,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.61 (11/10 4:10pm)';
+    const BUILD = 'm2.62 (11/12 12:25pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -871,9 +871,11 @@
       if (same(prev, g)) { show(prev); return; }
       const k = kOf(a); a.g = g; gradeHold.add(k); setOv(k, snapOf(a), { g: g }); localGrades(appData); saveCache(); show(g); renderGrades(); try { renderDash(); } catch (e) {}
       if (DEMO) return;
-      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g } }) })
-        .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); })
-        .catch(() => { a.g = prev; setOv(k, snapOf(a), { g: prev }); localGrades(appData); saveCache(); renderGrades(); if (input.isConnected) show(prev); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3000); });
+      post({ token: TOKEN, action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g } })
+        .catch(() => { a.g = prev; setOv(k, snapOf(a), { g: prev }); localGrades(appData); saveCache(); renderGrades(); if (input.isConnected) show(prev);
+          showFail('couldn’t save', () => { const cur = (appData.assignments || []).find(x => kOf(x) === k); if (!cur) return;
+            const live = Array.from(document.querySelectorAll('.gr-row')).find(r => r.dataset.r === String(cur.r) && r.dataset.n === cur.n && r.dataset.c === cur.c);
+            setGrade(cur, g, live ? live.querySelector('.gin') : input); }); });
     }
     function renderTasks() {
       const hasG = !!(appData && appData.assignments && appData.assignments.some(a => a.g !== undefined));
@@ -901,7 +903,23 @@
         : '<div class="empty">' + ({done:'nothing done yet', grade:'everything is graded', week:'nothing due this week'}[filter] || 'all caught up') + '</div>';
     }
 
-    function showUndo(msg, withBtn) { $('undo-msg').textContent = msg; $('undo-btn').style.display = withBtn ? '' : 'none'; $('undo').classList.add('show'); }
+    let again = null, failT = null;
+    function showUndo(msg, withBtn) { again = null; clearTimeout(failT); $('undo-msg').textContent = msg; $('undo-btn').textContent = 'undo'; $('undo-btn').style.display = withBtn ? '' : 'none'; $('undo').classList.add('show'); }
+    // a save that gave up: the toast offers to send the exact same change again
+    function showFail(msg, fn) { showUndo(msg, true); again = fn; $('undo-btn').textContent = 'try again'; failT = setTimeout(() => { if (again === fn) { again = null; hideUndo(); } }, 7000); }
+    // Saves keep trying through dead spots (elevators, stairwells) for up to ~75 s, jumping ahead when the connection comes back.
+    // Only a missing / garbled reply is retried; a real "no" from the sheet is not.
+    const RETRY_MS = [1000, 2000, 3500, 5000, 8000, 12000, 15000];
+    function post(body, retryBody) {
+      const start = Date.now(); let n = 0;
+      const once = b => { const ac = typeof AbortController === 'function' ? new AbortController() : null, to = ac && setTimeout(() => ac.abort(), 15000);
+        return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(b), signal: ac ? ac.signal : undefined })
+          .then(r => r.json()).finally(() => clearTimeout(to)); };
+      const wait = ms => new Promise(res => { let t; const go = () => { clearTimeout(t); window.removeEventListener('online', go); res(); }; t = setTimeout(go, ms); window.addEventListener('online', go); });
+      const attempt = () => once(n && retryBody ? retryBody : body).then(j => { if (!j || !j.ok) throw Object.assign(new Error((j && j.error) || 'save failed'), { final: true }); return j; },
+        err => { if (Date.now() - start > 75000) throw err; const ms = RETRY_MS[Math.min(n, RETRY_MS.length - 1)]; n++; return wait(ms).then(attempt); });
+      return attempt();
+    }
     function hideUndo() { $('undo').classList.remove('show'); }
     function release() { hold = false; renderTasks(); renderDash(); }
 
@@ -954,10 +972,10 @@
       clearTimeout(p.timer);
       if (pending === p) { pending = null; hideUndo(); }
       if (DEMO) return;
-      fetch(API, { method: 'POST', body: JSON.stringify({ token: TOKEN, action: p.to ? 'done' : 'undone', row: p.a.r, n: p.a.n, c: p.a.c }),
-        headers: { 'Content-Type': 'text/plain' }, redirect: 'follow' })
-        .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); })
-        .catch(() => { const cur = appData.assignments.find(x => kOf(x) === kOf(p.a)) || p.a; cur.d = !p.to; setOv(kOf(cur), snapOf(cur), { d: !p.to }); saveCache(); release(); drawWheel(false); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3000); });
+      post({ token: TOKEN, action: p.to ? 'done' : 'undone', row: p.a.r, n: p.a.n, c: p.a.c })
+        .catch(() => { const cur = appData.assignments.find(x => kOf(x) === kOf(p.a)) || p.a; cur.d = !p.to; setOv(kOf(cur), snapOf(cur), { d: !p.to }); saveCache(); release(); drawWheel(false);
+          showFail('couldn’t save', () => { const c2 = appData.assignments.find(x => kOf(x) === kOf(cur)); if (!c2) return;
+            c2.d = p.to; setOv(kOf(c2), snapOf(c2), { d: p.to }); saveCache(); release(); drawWheel(false); commit({ a: c2, to: p.to }); }); });
     }
 
     // --- Dashboard side tiles: animated weather + next event ---
@@ -1110,7 +1128,7 @@
 
     $('seg').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; gradeHold.clear(); renderTasks(); } });
     document.addEventListener('click', e => { const b = e.target.closest('.task .chk'); if (b) toggle(b.closest('.task')); });
-    $('undo-btn').addEventListener('click', undo);
+    $('undo-btn').addEventListener('click', () => { if (again) { const fn = again; again = null; clearTimeout(failT); hideUndo(); fn(); } else undo(); });
     const addIss = () => { const inp = $('iss-in'), t = inp ? inp.value.trim() : ''; if (!t) return; ISS.push({ x: t, t: Date.now() }); saveISS(); ISSDRAFT = ''; try { localStorage.removeItem('wheel-issdraft'); } catch (e) {} inp.value = ''; inp.blur(); renderSettings(); syncIss(); };
     $('settings-card').addEventListener('input', e => { if (e.target.id === 'iss-in') { ISSDRAFT = e.target.value; try { localStorage.setItem('wheel-issdraft', ISSDRAFT); } catch (x) {} } });
     $('settings-card').addEventListener('click', e => {
@@ -1516,20 +1534,26 @@
       if (pending) commit(pending);
       const g = $('f-grade').value.trim(), gn = g === '' ? null : (isNaN(Number(g)) ? g : Number(g));
       const vals = { n: $('f-name').value.trim(), c: $('f-class').value, y: $('f-type').value.trim().toUpperCase(), t: toMs($('f-due').value), d: $('f-done').checked, g: gn };
-      const a = editing, snap = a ? Object.assign({}, a) : null; let item = a;
+      closeSheet(); applySheet(editing, vals, $('f-due').value, gn);
+    }
+    function applySheet(a, vals, due, gn) {
+      if (a && !appData.assignments.includes(a)) return;
+      const snap = a ? Object.assign({}, a) : null; let item = a;
       const k0 = a ? kOf(a) : null;
       if (a) { Object.assign(a, vals); setOv(k0, snapOf(snap), vals); } else { item = Object.assign({ r: Math.max(2, ...appData.assignments.map(x => x.r)) + 1 }, vals); appData.assignments.push(item); setOv(kOf(item), snapOf(item), {}, true); }
       saveCache();
-      closeSheet(); renderTasks(); renderDash(); drawWheel(false);
+      renderTasks(); renderDash(); drawWheel(false);
       showUndo(a ? 'saved' : 'added', false); setTimeout(hideUndo, 1800);
       if (DEMO) return;
-      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: a ? 'edit' : 'add', row: a ? snap.r : null, match: snap ? { n: snap.n, c: snap.c } : null,
-        fields: { done: vals.d, due: $('f-due').value, name: vals.n, className: vals.c, type: vals.y, grade: gn == null ? '' : gn } }) })
-        .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); if (!a && j.row) item.r = j.row; })
+      const body = { token: TOKEN, action: a ? 'edit' : 'add', row: a ? snap.r : null, match: snap ? { n: snap.n, c: snap.c } : null,
+        fields: { done: vals.d, due: due, name: vals.n, className: vals.c, type: vals.y, grade: gn == null ? '' : gn } };
+      // a retry tells the sheet to look for its own earlier try first (renamed row / already-added row), so nothing lands twice
+      post(body, Object.assign({}, body, a ? { alt: { n: vals.n, c: vals.c } } : { retry: true }))
+        .then(j => { if (!a && j.row) item.r = j.row; })
         .catch(() => {
-          if (a) { Object.keys(a).forEach(k => delete a[k]); Object.assign(a, snap); delete OV[k0]; } else { appData.assignments.splice(appData.assignments.indexOf(item), 1); delete OV[kOf(item)]; }
+          if (a) { Object.keys(a).forEach(k => delete a[k]); Object.assign(a, snap); delete OV[k0]; } else { const i = appData.assignments.indexOf(item); if (i >= 0) appData.assignments.splice(i, 1); delete OV[kOf(item)]; }
           saveCache();
-          renderTasks(); renderDash(); drawWheel(false); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3500);
+          renderTasks(); renderDash(); drawWheel(false); showFail('couldn’t save', () => applySheet(a, vals, due, gn));
         });
     }
     $('fab').addEventListener('click', () => $('topbar').dataset.v === 'view-attendance' ? openAbs(null) : openSheet(null));
@@ -1580,24 +1604,23 @@
     }
     function postAbs(op, code, ds) {
       if (DEMO) return Promise.resolve();
-      return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: op === 'add' ? 'absence_add' : 'absence_remove', className: code, date: ds }) })
-        .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('save failed'); });
+      return post({ token: TOKEN, action: op === 'add' ? 'absence_add' : 'absence_remove', className: code, date: ds });
     }
     const csOpen = () => $('csheet').classList.contains('show') && $('c-title').textContent.indexOf(attCode) === 0 && attCode;
-    function failAbs(fn) { fn(); renderAtt(); showUndo('couldn’t save — try again', false); setTimeout(hideUndo, 3500); }
+    function failAbs(fn, retry) { fn(); renderAtt(); showFail('couldn’t save', retry); }
     function addAbs(code, ds) {
       const a = appData.attendance.find(x => x.code === code), t = toMs(ds);
       if (!a) return;
       if (a.dates.includes(t)) { showUndo('already logged', false); setTimeout(hideUndo, 1800); return; }
       a.dates.push(t); renderAtt(); showUndo('absence added', false); setTimeout(hideUndo, 1800);
       if (csOpen() === code) openAtt(code);
-      postAbs('add', code, ds).catch(() => failAbs(() => { a.dates.splice(a.dates.indexOf(t), 1); if (csOpen() === code) openAtt(code); }));
+      postAbs('add', code, ds).catch(() => failAbs(() => { const i = a.dates.indexOf(t); if (i >= 0) a.dates.splice(i, 1); if (csOpen() === code) openAtt(code); }, () => addAbs(code, ds)));
     }
     function removeAbs(code, t) {
       const a = appData.attendance.find(x => x.code === code); if (!a) return;
-      a.dates.splice(a.dates.indexOf(t), 1); renderAtt(); openAtt(code);
+      const i = a.dates.indexOf(t); if (i < 0) return; a.dates.splice(i, 1); renderAtt(); if (csOpen() === code) openAtt(code);
       showUndo('absence removed', false); setTimeout(hideUndo, 1800);
-      postAbs('remove', code, toStr(t)).catch(() => failAbs(() => { a.dates.push(t); if (csOpen() === code) openAtt(code); }));
+      postAbs('remove', code, toStr(t)).catch(() => failAbs(() => { a.dates.push(t); if (csOpen() === code) openAtt(code); }, () => removeAbs(code, t)));
     }
     let asT = null;
     function updAdate() { const v = $('a-date').value; $('a-date-txt').textContent = v ? dueTxt(toMs(v)) : ''; }
