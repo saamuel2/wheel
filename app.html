@@ -559,7 +559,8 @@
 
     // --- WHEEL LOGIC (Migrated from combo.html) ---
     const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
-    const TOKEN = 'e0f91ee8386a7bbb5b69';
+    // the connection key lives on this device only (typed once in settings); it is never written into the app's code
+    let TOKEN = (() => { try { return localStorage.getItem('wheel-key') || ''; } catch (e) { return ''; } })();
     let appData = null;
     const VOPTS = [['weather', 'weather'], ['budget', 'food budget'], ['completion', 'completion']];
     let SLOT2 = 'weather'; try { const v = localStorage.getItem('wheel-slot'); if (VOPTS.some(o => o[0] === v)) SLOT2 = v; } catch (e) {}   // the "variable" tile: weather, food budget or completion
@@ -700,7 +701,7 @@
           if (silent && appData) return;
           document.getElementById('wheel-frac').textContent = 'error';
           const errBox = document.getElementById('error-msg');
-          errBox.textContent = "Failed to connect to Google Sheets.";
+          errBox.textContent = !TOKEN || /bad token/.test(String(err && err.message)) ? 'wrong connection key' : 'couldn’t reach the sheet';
           errBox.style.display = 'block';
         });
     }
@@ -1123,6 +1124,7 @@
       const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ${IC.r}</span></button>`).join('') + '</div>' : '';
       $('settings-card').innerHTML = th + cs + wg + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
+        (DEMO ? '' : '<div class="task srow iss-row"><span style="flex:none;margin-right:12px">connection key</span><input class="sin iss-in" id="key-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc; text-align: right" value="' + esc(TOKEN) + '"><button class="iss-add" id="key-save">save</button></div>') +
         '</div>';
     }
 
@@ -1133,6 +1135,7 @@
     $('settings-card').addEventListener('input', e => { if (e.target.id === 'iss-in') { ISSDRAFT = e.target.value; try { localStorage.setItem('wheel-issdraft', ISSDRAFT); } catch (x) {} } });
     $('settings-card').addEventListener('click', e => {
       if (e.target.closest('#iss-add')) addIss();
+      if (e.target.closest('#key-save')) { const v = ($('key-in').value || '').trim(); TOKEN = v; try { localStorage.setItem('wheel-key', v); } catch (x) {} const b = $('key-save'); b.textContent = 'saved'; setTimeout(() => { if (b.isConnected) b.textContent = 'save'; }, 1200); fetchData(false, true); }
       if (e.target.closest('#ask-claude')) askClaude(false); if (e.target.closest('#ask-cancel')) askClaude(true);
       const rm = e.target.closest('[data-rmi]'); if (rm) { const it = ISS.splice(+rm.dataset.rmi, 1)[0]; saveISS(); renderSettings(); if (it && it.s) resolveIss(it); }
       if (e.target.closest('#iss-copy')) { const txt = ISS.map(i => '• ' + i.x).join('\n'); try { navigator.clipboard.writeText(txt); } catch (x) {} const b = $('iss-copy'); b.textContent = 'copied'; setTimeout(() => { if (b.isConnected) b.textContent = 'copy list'; }, 1200); }
