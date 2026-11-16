@@ -302,6 +302,7 @@
   .toast { position: fixed; left: calc(50% + 108px); bottom: 26px; transform: translate(-50%, 20px); background: var(--card2); color: var(--text); padding: 12px 16px 12px 20px; border-radius: 14px;
     box-shadow: 0 8px 30px rgba(0,0,0,.35); display: flex; gap: 12px; align-items: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .3s var(--spring); z-index: 60; font-weight: 600; }
   .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  #v-sheet .grid.b .cell, #v-sheet .grid.b .dtin, #v-sheet .grid.b .chk { scroll-margin-top: 190px; scroll-margin-bottom: 60px; }
   .tgf { display: flex; align-items: center; gap: 8px; } .tgf #tg-n { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .tgf i { font-style: normal; color: var(--sub); }
   .tgf .txt { width: 64px; height: 30px; padding: 0 8px; text-align: center; font-weight: 600; } .tgf .txt.bad { box-shadow: inset 0 0 0 1.5px var(--red); }
   .connect { max-width: 520px; margin: 12vh auto; }
@@ -373,7 +374,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.48 (11/16 3:10pm)';
+const BUILD = 'd1.49 (11/16 3:30pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -1472,6 +1473,62 @@ document.addEventListener('change', e => {
   if (t.dataset.gr) { GR[t.dataset.gr] = t.type === 'checkbox' ? t.checked : t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
   if (t.dataset.f && t.closest('tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i); if (a) saveCell(a, t.dataset.f, t.value, t); }
 });
+// ---------- the sheet grid moves like google sheets ----------
+// arrows / tab / enter move between cells (each move saves the cell you left); typing replaces a cell; F2 or a click edits inside it;
+// esc puts back what was there. Inside an edited cell, left/right move the caret instead.
+const GRIDCELL = '.chk, .dtin, input.cell:not(.dpick), select.cell';
+let GNAV = { k: null, mode: 'nav', col: null }, lastInput = 'key';
+document.addEventListener('mousedown', () => { lastInput = 'mouse'; }, true);
+document.addEventListener('focusin', e => {
+  const t = e.target; if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL)) return;
+  const k = t.dataset.k || t.closest('tr.row').dataset.i + (t.className || '');
+  if (GNAV.k === k) return;
+  GNAV = { k, mode: lastInput === 'mouse' ? 'edit' : 'nav', col: GNAV.col };
+  if (GNAV.mode === 'nav' && t.select && t.tagName === 'INPUT') setTimeout(() => { try { if (document.activeElement === t) t.select(); } catch (x) {} }, 0);
+});
+function gridCells(tr) { return Array.from(tr.querySelectorAll(GRIDCELL)).filter(el => el.offsetParent !== null); }
+function gridRows() { return Array.from(document.querySelectorAll('#v-sheet .grid.b tr.row')); }
+function gridMove(t, dr, dc, wrap) {
+  const tr = t.closest('tr.row'), rows = gridRows(), ri = rows.indexOf(tr), cells = gridCells(tr), ci = cells.indexOf(t);
+  let r = ri, c = ci + dc;
+  if (dc && (c < 0 || c >= cells.length)) { if (!wrap) return false; r += c < 0 ? -1 : 1; c = c < 0 ? Infinity : 0; }
+  r += dr; if (r < 0 || r >= rows.length) return false;
+  return gridFocus(rows[r], c);
+}
+// leave the current cell first (that saves it, and the grid may redraw), then find the target row again and focus its cell
+function gridFocus(tr, c) {
+  const di = tr.dataset.i, ae = document.activeElement; if (ae && ae.blur) ae.blur();
+  const row = document.querySelector(`#v-sheet .grid.b tr.row[data-i="${di}"]`) || tr; const tc = gridCells(row); if (!tc.length) return false;
+  const el = tc[Math.max(0, Math.min(c === Infinity ? tc.length - 1 : c, tc.length - 1))];
+  lastInput = 'key'; GNAV.k = null; el.focus(); if (el.tagName === 'INPUT' && el.select) el.select(); return true;
+}
+document.addEventListener('keydown', e => {
+  const t = e.target; if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL) || e.metaKey || e.ctrlKey || e.altKey) return;
+  lastInput = 'key';
+  const isText = t.tagName === 'INPUT', edit = GNAV.mode === 'edit';
+  const atStart = isText && t.selectionStart === 0 && t.selectionEnd === 0, atEnd = isText && t.selectionStart === t.value.length && t.selectionEnd === t.value.length;
+  const done = () => { e.preventDefault(); e.stopImmediatePropagation(); };
+  const ci = () => gridCells(t.closest('tr.row')).indexOf(t);
+  switch (e.key) {
+    case 'ArrowDown': case 'ArrowUp': done(); GNAV.col = null; gridMove(t, e.key === 'ArrowDown' ? 1 : -1, 0); return;
+    case 'ArrowLeft': case 'ArrowRight': {
+      if (isText && edit && !(e.key === 'ArrowLeft' ? atStart : atEnd)) return;   // editing inside: the caret moves
+      done(); GNAV.col = null; gridMove(t, 0, e.key === 'ArrowRight' ? 1 : -1, false); return; }
+    case 'Tab': done(); if (GNAV.col == null) GNAV.col = ci(); gridMove(t, 0, e.shiftKey ? -1 : 1, true); return;
+    case 'Enter': {
+      if (t.classList.contains('chk')) return;   // enter on the checkbox still ticks it
+      done(); const col = GNAV.col; GNAV.col = null;
+      const tr = t.closest('tr.row'), rows = gridRows(), r = rows.indexOf(tr) + (e.shiftKey ? -1 : 1);
+      if (r < 0 || r >= rows.length) { t.blur(); return; }
+      gridFocus(rows[r], col != null ? col : ci()); if (col != null) GNAV.col = null; return; }
+    case 'Escape':   // put back what was there and stay on the cell
+      done(); GNAV.mode = 'nav';
+      if (isText) { if (t.value !== t.defaultValue) t.value = t.defaultValue; t.classList.remove('bad'); t.select(); }
+      else if (t.tagName === 'SELECT') { const o = Array.from(t.options).find(x => x.defaultSelected); if (o) o.selected = true; }
+      return;
+    case 'F2': if (isText) { done(); GNAV.mode = 'edit'; const n = t.value.length; t.setSelectionRange(n, n); } return;
+  }
+}, true);
 document.addEventListener('keydown', e => {
   const t = e.target, typing = /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName) && !(t.closest('.drawer') && !t.closest('.on'));
   if (e.key === 'Escape' && t.dataset && t.dataset.draft) { DRAFTS = DRAFTS.filter(d => d.id !== +t.dataset.draft); t.blur(); renderAll(); return; }
