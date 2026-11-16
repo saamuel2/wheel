@@ -302,6 +302,8 @@
   .toast { position: fixed; left: calc(50% + 108px); bottom: 26px; transform: translate(-50%, 20px); background: var(--card2); color: var(--text); padding: 12px 16px 12px 20px; border-radius: 14px;
     box-shadow: 0 8px 30px rgba(0,0,0,.35); display: flex; gap: 12px; align-items: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .3s var(--spring); z-index: 60; font-weight: 600; }
   .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .tgf { display: flex; align-items: center; gap: 8px; } .tgf #tg-n { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .tgf i { font-style: normal; color: var(--sub); }
+  .tgf .txt { width: 64px; height: 30px; padding: 0 8px; text-align: center; font-weight: 600; } .tgf .txt.bad { box-shadow: inset 0 0 0 1.5px var(--red); }
   .connect { max-width: 520px; margin: 12vh auto; }
 
   @media (max-width: 1240px) { .glance { grid-template-columns: 260px 1fr 1fr; grid-auto-rows: auto; } .glance > * { min-height: 260px; } .tri { grid-template-columns: 1fr 1fr; } }
@@ -364,14 +366,14 @@
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer"></aside>
-<div class="toast" id="toast"><span id="toast-msg"></span><button class="link" id="toast-btn">undo</button></div>
+<div class="toast" id="toast"><span id="toast-msg"></span><span class="tgf" id="tgf" hidden><span id="tg-n"></span><input class="txt" id="tg-g" data-k="tg-g" autocomplete="off" aria-label="grade"><i>/</i><input class="txt" id="tg-o" data-k="tg-o" autocomplete="off" aria-label="out of"></span><button class="link" id="toast-btn">undo</button><button class="link" id="toast-grade" hidden>grade</button></div>
 
 <script src="engine.js"></script>
 <script src="sheetrules.js"></script>
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.47 (11/10 4:10pm)';
+const BUILD = 'd1.48 (11/16 3:10pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -563,8 +565,37 @@ const gradeOf = code => { const L = live(); return L && L.courses.find(c => c.co
 
 // ===================== actions =====================
 let toastT = null, undoFn = null;
-function toast(msg, undo) { $('toast-msg').textContent = msg; $('toast-btn').style.display = undo ? '' : 'none'; undoFn = undo || null; $('toast').classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $('toast').classList.remove('on'), undo ? 4000 : 2600); }
-$('toast-btn').onclick = () => { if (undoFn) undoFn(); $('toast').classList.remove('on'); };
+function toast(msg, undo, gradeA) {
+  TG = gradeA && gradable(gradeA) ? { a: gradeA } : null;
+  $('toast-msg').textContent = msg; $('toast-msg').hidden = false; $('tgf').hidden = true; $('toast-btn').style.display = undo ? '' : 'none'; undoFn = undo || null;
+  $('toast-grade').hidden = !TG; $('toast-grade').textContent = 'grade';
+  $('toast').classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => $('toast').classList.remove('on'), TG ? 6000 : undo ? 4000 : 2600);
+}
+// "marked done · undo · grade": grade turns the toast into grade / out of / save for that assignment
+let TG = null;
+const gradable = a => { const c = gradeOf(a.c); return !!(c && (c.cats || []).some(k => String(k.abbr).toLowerCase() === String(a.y || '').toLowerCase())); };
+function openToastGrade() {
+  if (!TG) return; const a = TG.a; clearTimeout(toastT); TG.open = true;
+  $('toast-msg').hidden = true; $('toast-btn').style.display = 'none'; $('tgf').hidden = false; $('tg-n').textContent = a.n;
+  $('tg-g').value = a.g == null || a.g === '' ? '' : fmtG(a.g); $('tg-o').value = a.o == null ? '' : a.o; $('toast-grade').textContent = 'save';
+  setTimeout(() => { $('tg-g').focus(); $('tg-g').select(); }, 20);
+}
+function closeToast() { TG = null; $('toast').classList.remove('on'); }
+function saveToastGrade() {
+  if (!TG) return; const a = TG.a, gv = $('tg-g').value.trim(), ov = $('tg-o').value.trim();
+  if (gv !== '' && !/^-?[\d.]+(\s*\/\s*[\d.]+|\s*%)?$/.test(gv)) { $('tg-g').classList.add('bad'); return; }
+  if (ov !== '' && isNaN(Number(ov))) { $('tg-o').classList.add('bad'); return; }
+  const g = gv === '' ? '' : isNaN(Number(gv)) ? gv : Number(gv), o = ov === '' ? null : Number(ov);
+  closeToast(); if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  if (same(a.g, g) && same(a.o, o)) return;
+  const prev = Object.assign({}, a), match = { n: a.n, c: a.c };
+  a.g = g; a.o = o; setOv(prev, { g, o }); changed();
+  post({ action: 'edit', row: a.r, match, fields: { grade: g, outOf: o == null ? '' : o } })
+    .catch(() => { Object.assign(a, prev); setOv(prev, { g: prev.g, o: prev.o }); changed(); toast('couldn’t save the grade'); });
+}
+$('toast-btn').onclick = () => { if (undoFn) undoFn(); closeToast(); };
+$('toast-grade').onclick = () => { if (TG && TG.open) saveToastGrade(); else openToastGrade(); };
+['tg-g', 'tg-o'].forEach(id => $(id).addEventListener('keydown', e => { $(id).classList.remove('bad'); if (e.key === 'Enter') { e.preventDefault(); saveToastGrade(); } if (e.key === 'Escape') closeToast(); }));
 const byIdx = i => data && data.assignments[+i];
 function changed() { LIVE = null; renderAll(); }
 
@@ -582,7 +613,7 @@ function toggleDone(a) {
   let undone = false;
   const t = setTimeout(() => { if (undone) return;
     post({ action: to ? 'done' : 'undone', row: a.r, n: a.n, c: a.c }).catch(() => { a.d = !to; setOv(a, { d: !to }); changed(); toast('couldn’t save — try again'); }); }, 2500);
-  toast(to ? 'marked done' : 'marked not done', () => { undone = true; clearTimeout(t); a.d = !to; setOv(a, { d: !to }); changed(); });
+  toast(to ? 'marked done' : 'marked not done', () => { undone = true; clearTimeout(t); a.d = !to; setOv(a, { d: !to }); changed(); }, to ? a : null);
 }
 // one cell of an assignment, edited in place: n name · t due · c class · y type · g grade · o out of
 const FIELD = { n: 'name', t: 'due', c: 'className', y: 'type', g: 'grade', o: 'outOf' };

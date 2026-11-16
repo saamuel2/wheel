@@ -140,6 +140,10 @@
     opacity: 0; transform: translateY(10px) scale(.98); pointer-events: none; transition: opacity .25s, transform .35s var(--spring); }
   .undo.show { opacity: 1; transform: none; pointer-events: auto; }
   .undo button { border: 0; background: none; color: var(--tint); font-size: 15px; font-weight: 600; padding: 12px 16px; font-family: inherit; }
+  .undo #undo-msg { flex: 1; } .undo #ug-btn + #undo-btn { padding-left: 4px; } .undo.ugon { bottom: max(92px, calc(var(--kb, 0px) + 12px)); z-index: 1300; }
+  .ugf { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; } .ugf b { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ugf input { max-width: 64px !important; } .ugf i { font-style: normal; color: var(--sub); }
+  .ugf input { width: 0; flex: 1; max-width: 90px; height: 34px; border: 0; outline: 0; border-radius: 10px; background: rgba(118,118,128,.24); color: inherit; font: inherit; font-size: 17px; text-align: center; -webkit-appearance: none; }
+  .undo.bad { animation: ugshake .35s; } @keyframes ugshake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
   .content { scrollbar-width: none; } .content::-webkit-scrollbar { display: none; }
   .week-header { margin-bottom: 16px; }
   .hero { display: flex; gap: 12px; align-items: stretch; margin-bottom: 12px; }
@@ -528,7 +532,7 @@
   <div class="topbar" id="topbar"><span id="tb-title">dashboard</span></div>
   <button class="fab" id="fab" aria-label="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
 
-  <div class="undo" id="undo"><span id="undo-msg"></span><button id="undo-btn">undo</button></div>
+  <div class="undo" id="undo"><span id="undo-msg"></span><span class="ugf" id="ugf" hidden><b id="ug-n"></b><input id="ug-g" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="grade"><i>/</i><input id="ug-o" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="out of"></span><button id="ug-btn" hidden>grade</button><button id="undo-btn">undo</button></div>
 
   <div class="nav-bar" id="nav-bar">
     <div class="nav-indicator" id="nav-indicator"></div>
@@ -791,7 +795,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.62 (11/12 12:25pm)';
+    const BUILD = 'm2.63 (11/16 3:10pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -862,12 +866,13 @@
     function gradeRowHtml(a) {
       const col = colorFor(a.c), has = a.g != null && a.g !== '', parts = [a.y ? esc(a.y) : '', dayLabel(a.t)].filter(Boolean);
       return `<div class="task gr-row" data-r="${a.r}" data-n="${esc(a.n)}" data-c="${esc(a.c)}"><div class="tmain"><div class="tname">${esc(a.n)}</div><div class="tsub"><b style="color:${col}">${esc(a.c)}</b>${parts.map(x => ' · ' + x).join('')}</div></div>` +
-        `<input class="gin" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="–" value="${has ? fmtG(a.g) : ''}"><button class="g100${has && Number(a.g) === 100 ? ' on' : ''}" aria-label="mark 100">${TICK}</button></div>`;
+        `<input class="gin" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="–" value="${has ? fmtG(a.g) : ''}"><button class="g100${has && Number(a.g) === fullOf(a) ? ' on' : ''}" aria-label="full marks">${TICK}</button></div>`;
     }
+    const fullOf = a => (a.o != null && a.o !== '' && Number(a.o) > 0) ? Number(a.o) : 100;   // the check fills the out-of points, or 100
     function rowOf(el) { const row = el.closest('.task'); return row && appData ? appData.assignments.find(x => String(x.r) === row.dataset.r && x.n === row.dataset.n && x.c === row.dataset.c) : null; }
     function setGrade(a, raw, input) {
       const t = String(raw).trim(), prev = a.g == null ? '' : a.g; let g = t === '' ? '' : Number(t);
-      const show = v => { input.value = v === '' || v == null ? '' : fmtG(v); input.nextElementSibling.classList.toggle('on', v !== '' && v != null && Number(v) === 100); };
+      const show = v => { input.value = v === '' || v == null ? '' : fmtG(v); input.nextElementSibling.classList.toggle('on', v !== '' && v != null && Number(v) === fullOf(a)); };
       if (t !== '' && isNaN(g)) { show(prev); return; }
       if (same(prev, g)) { show(prev); return; }
       const k = kOf(a); a.g = g; gradeHold.add(k); setOv(k, snapOf(a), { g: g }); localGrades(appData); saveCache(); show(g); renderGrades(); try { renderDash(); } catch (e) {}
@@ -905,7 +910,7 @@
     }
 
     let again = null, failT = null;
-    function showUndo(msg, withBtn) { again = null; clearTimeout(failT); $('undo-msg').textContent = msg; $('undo-btn').textContent = 'undo'; $('undo-btn').style.display = withBtn ? '' : 'none'; $('undo').classList.add('show'); }
+    function showUndo(msg, withBtn) { again = null; clearTimeout(failT); UG = null; $('ug-btn').hidden = true; $('ugf').hidden = true; $('undo-msg').hidden = false; $('undo').classList.remove('ugon'); $('undo-msg').textContent = msg; $('undo-btn').textContent = 'undo'; $('undo-btn').style.display = withBtn ? '' : 'none'; $('undo').classList.add('show'); }
     // a save that gave up: the toast offers to send the exact same change again
     function showFail(msg, fn) { showUndo(msg, true); again = fn; $('undo-btn').textContent = 'try again'; failT = setTimeout(() => { if (again === fn) { again = null; hideUndo(); } }, 7000); }
     // Saves keep trying through dead spots (elevators, stairwells) for up to ~75 s, jumping ahead when the connection comes back.
@@ -922,6 +927,28 @@
       return attempt();
     }
     function hideUndo() { $('undo').classList.remove('show'); }
+    // "marked done · undo · grade": grade turns the popup into grade / out of / save for that assignment
+    let UG = null, ugT = null;
+    const gradable = a => { const c = appData && appData.grades && (appData.grades.courses || []).find(x => x.code === a.c); return !!(c && (c.cats || []).some(k => String(k.abbr).toLowerCase() === String(a.y || '').toLowerCase())); };
+    function offerGrade(a) { if (!gradable(a)) return; UG = { a }; $('ug-btn').textContent = 'grade'; $('ug-btn').hidden = false; }
+    function openGradeForm() {
+      if (!UG) return; const a = UG.a; clearTimeout(ugT); if (pending) { clearTimeout(pending.timer); pending.timer = setTimeout(() => commit(pending), 60000); }
+      $('undo-msg').hidden = true; $('undo-btn').style.display = 'none'; $('ugf').hidden = false; $('undo').classList.add('ugon');
+      $('ug-n').textContent = a.n; $('ug-g').value = a.g == null || a.g === '' ? '' : fmtG(a.g); $('ug-o').value = a.o == null ? '' : a.o; $('ug-btn').textContent = 'save'; UG.open = true;
+      setTimeout(() => { $('ug-g').focus(); $('ug-g').select(); }, 30);
+    }
+    function saveGradeForm() {
+      if (!UG) return; const a = UG.a, gv = $('ug-g').value.trim(), ov = $('ug-o').value.trim();
+      if ((gv !== '' && isNaN(Number(gv))) || (ov !== '' && isNaN(Number(ov)))) { $('undo').classList.add('bad'); setTimeout(() => $('undo').classList.remove('bad'), 400); return; }
+      const g = gv === '' ? '' : Number(gv), o = ov === '' ? null : Number(ov), prev = { g: a.g, o: a.o }, k = kOf(a);
+      UG = null; if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      if (pending && pending.a === a) commit(pending); else hideUndo();
+      if (same(prev.g, g) && same(prev.o, o)) return;
+      a.g = g; a.o = o; gradeHold.add(k); setOv(k, snapOf(a), { g: g, o: o }); localGrades(appData); saveCache(); renderGrades(); renderTasks(); try { renderDash(); } catch (e) {}
+      if (DEMO) return;
+      post({ token: TOKEN, action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g, outOf: o == null ? '' : o } })
+        .catch(() => { a.g = prev.g; a.o = prev.o; setOv(k, snapOf(a), { g: prev.g, o: prev.o }); localGrades(appData); saveCache(); renderGrades(); renderTasks(); showUndo('couldn’t save the grade', false); setTimeout(hideUndo, 2600); });
+    }
     function release() { hold = false; renderTasks(); renderDash(); }
 
     // Tap a circle to check OR uncheck. Rows that leave the current list collapse away; 4-second undo, then the save is sent.
@@ -935,8 +962,8 @@
       el.classList.toggle('done', to); const ck = el.querySelector('.chk'); if (ck && to) { ck.classList.remove('ckpop'); void ck.offsetWidth; ck.classList.add('ckpop'); }
       if (leaves) setTimeout(() => el.classList.add('out'), 280);
       setTimeout(release, leaves ? 720 : 450);
-      const p = { a: a, to: to, timer: setTimeout(() => commit(p), 3000) };
-      pending = p; showUndo(to ? 'marked done' : 'marked not done', true);
+      const p = { a: a, to: to, timer: setTimeout(() => commit(p), to && gradable(a) ? 6000 : 3000) };
+      pending = p; showUndo(to ? 'marked done' : 'marked not done', true); if (to) offerGrade(a);
     }
     // hold a row in the sheet tab to delete it
     function deleteAssignment(a) {
@@ -1130,6 +1157,8 @@
 
     $('seg').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; gradeHold.clear(); renderTasks(); } });
     document.addEventListener('click', e => { const b = e.target.closest('.task .chk'); if (b) toggle(b.closest('.task')); });
+    $('ug-btn').addEventListener('click', () => { if (UG && UG.open) saveGradeForm(); else openGradeForm(); });
+    ['ug-g', 'ug-o'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveGradeForm(); } if (e.key === 'Escape') { UG = null; if (pending) commit(pending); else hideUndo(); } }));
     $('undo-btn').addEventListener('click', () => { if (again) { const fn = again; again = null; clearTimeout(failT); hideUndo(); fn(); } else undo(); });
     const addIss = () => { const inp = $('iss-in'), t = inp ? inp.value.trim() : ''; if (!t) return; ISS.push({ x: t, t: Date.now() }); saveISS(); ISSDRAFT = ''; try { localStorage.removeItem('wheel-issdraft'); } catch (e) {} inp.value = ''; inp.blur(); renderSettings(); syncIss(); };
     $('settings-card').addEventListener('input', e => { if (e.target.id === 'iss-in') { ISSDRAFT = e.target.value; try { localStorage.setItem('wheel-issdraft', ISSDRAFT); } catch (x) {} } });
@@ -1564,7 +1593,7 @@
     ['f-name', 'f-class', 'f-due'].forEach(id => { $(id).addEventListener('input', formOk); $(id).addEventListener('change', formOk); });
     $('f-due').addEventListener('input', updDue); $('f-due').addEventListener('change', updDue);
     $('task-list').addEventListener('change', e => { const i = e.target.closest('.gin'); if (!i) return; const a = rowOf(i); if (a) setGrade(a, i.value, i); });
-    $('task-list').addEventListener('click', e => { const b = e.target.closest('.g100'); if (!b) return; const a = rowOf(b), i = b.previousElementSibling; if (a && i) { i.value = '100'; setGrade(a, '100', i); } });
+    $('task-list').addEventListener('click', e => { const b = e.target.closest('.g100'); if (!b) return; const a = rowOf(b), i = b.previousElementSibling; if (a && i) { const f = String(fullOf(a)); i.value = f; setGrade(a, f, i); } });
     $('task-list').addEventListener('click', e => {
       if (e.target.closest('.chk, .gin, .g100')) return;
       const row = e.target.closest('.task'); if (!row || !appData) return;
