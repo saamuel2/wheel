@@ -303,6 +303,8 @@
     box-shadow: 0 8px 30px rgba(0,0,0,.35); display: flex; gap: 12px; align-items: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .3s var(--spring); z-index: 60; font-weight: 600; }
   .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   #v-sheet .grid.b .cell, #v-sheet .grid.b .dtin, #v-sheet .grid.b .chk { scroll-margin-top: 190px; scroll-margin-bottom: 60px; }
+  #v-sheet .grid td.gsel { background: color-mix(in srgb, var(--tint) 16%, transparent) !important; box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--tint) 45%, transparent); }
+  .tgf[hidden], #toast-grade[hidden] { display: none !important; }
   .tgf { display: flex; align-items: center; gap: 8px; } .tgf #tg-n { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .tgf i { font-style: normal; color: var(--sub); }
   .tgf .txt { width: 64px; height: 30px; padding: 0 8px; text-align: center; font-weight: 600; } .tgf .txt.bad { box-shadow: inset 0 0 0 1.5px var(--red); }
   .connect { max-width: 520px; margin: 12vh auto; }
@@ -374,7 +376,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.49 (11/16 3:30pm)';
+const BUILD = 'd1.50 (11/16 7:45pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -629,10 +631,32 @@ function saveCell(a, f, raw, el) {
   if (same(a[f], val)) return;
   const prev = Object.assign({}, a), match = { n: a.n, c: a.c };
   a[f] = val; setOv(prev, { [f]: val }); el.classList.remove('bad'); el.classList.add('saving');
+  histPush({ r: a.r, n: a.n, c: a.c, f, from: prev[f], to: val });
   post({ action: 'edit', row: a.r, match, fields: { [FIELD[f]]: f === 't' ? ymd(val) : f === 'o' ? (val == null ? '' : val) : val } })
     .then(() => { el.classList.remove('saving'); })
     .catch(() => { Object.assign(a, prev); setOv(prev, { [f]: prev[f] }); changed(); toast('couldn’t save — try again'); });
   changed();
+}
+// sheet undo / redo (ctrl/cmd+z, ctrl/cmd+shift+z or ctrl+y): one step per cell edit, one step for a whole paste
+const HIST = { undo: [], redo: [], group: null, replaying: false };
+function histPush(e) {
+  if (HIST.replaying) return;
+  if (HIST.group) { HIST.group.push(e); return; }
+  HIST.undo.push([e]); if (HIST.undo.length > 100) HIST.undo.shift(); HIST.redo = [];
+}
+const NOEL = { classList: { add() {}, remove() {} }, value: '' };
+function cellRaw(f, v) { return f === 't' ? (v == null ? '' : ymd(v)) : v == null ? '' : String(v); }
+function histApply(dir) {
+  const from = dir === 'undo' ? HIST.undo : HIST.redo, to = dir === 'undo' ? HIST.redo : HIST.undo, g = from.pop(); if (!g) { toast('nothing to ' + dir); return; }
+  HIST.replaying = true;
+  try {
+    (dir === 'undo' ? g.slice().reverse() : g).forEach(e => {
+      const A = data.assignments, cur = A.find(x => x.r === e.r && x.n === e.n && x.c === e.c) || A.find(x => x.r === e.r); if (!cur) return;
+      const target = dir === 'undo' ? e.from : e.to; saveCell(cur, e.f, cellRaw(e.f, target), NOEL);
+      if (e.f === 'n') e.n = cur.n; if (e.f === 'c') e.c = cur.c;
+    });
+  } finally { HIST.replaying = false; }
+  to.push(g); toast(dir === 'undo' ? 'undone' : 'redone');
 }
 let lastAdd = store.get('desk-lastadd', { c: '', y: '', due: '' }), justAdded = null;
 // new rows: "add assignment" opens a fresh one at the top every time; the + at a row's left edge opens one right under it
@@ -1502,8 +1526,75 @@ function gridFocus(tr, c) {
   const el = tc[Math.max(0, Math.min(c === Infinity ? tc.length - 1 : c, tc.length - 1))];
   lastInput = 'key'; GNAV.k = null; el.focus(); if (el.tagName === 'INPUT' && el.select) el.select(); return true;
 }
+// a block of cells: shift+arrows or shift+click from the current cell; copy gives tab-separated text (pastes into google sheets),
+// paste of tab-separated text (from google sheets, excel, or here) fills cells starting at the current one
+let SEL = null;   // { a: [rowDi, col], b: [rowDi, col] }
+function selRect() {
+  if (!SEL) return null; const rows = gridRows().map(r => r.dataset.i), ra = rows.indexOf(SEL.a[0]), rb = rows.indexOf(SEL.b[0]); if (ra < 0 || rb < 0) return null;
+  return { r0: Math.min(ra, rb), r1: Math.max(ra, rb), c0: Math.min(SEL.a[1], SEL.b[1]), c1: Math.max(SEL.a[1], SEL.b[1]) };
+}
+function paintSel() {
+  document.querySelectorAll('#v-sheet td.gsel').forEach(td => td.classList.remove('gsel'));
+  const R = selRect(); if (!R || (R.r0 === R.r1 && R.c0 === R.c1)) return;
+  gridRows().slice(R.r0, R.r1 + 1).forEach(tr => gridCells(tr).slice(R.c0, R.c1 + 1).forEach(el => { const td = el.closest('td'); if (td) td.classList.add('gsel'); }));
+}
+function clearSel() { if (SEL) { SEL = null; paintSel(); } }
+function cellText(el) { return el.classList.contains('chk') ? (el.classList.contains('on') ? 'TRUE' : 'FALSE') : el.value; }
+function cellField(el) { return el.classList.contains('dtin') ? 't' : el.dataset.f; }
+function writeCell(el, text) {
+  const tr = el.closest('tr.row'), a = tr && byIdx(tr.dataset.i); if (!a) return;
+  text = String(text == null ? '' : text).trim();
+  if (el.classList.contains('chk')) { const want = /^(true|1|x|yes|✓)$/i.test(text); if (!!a.d !== want) toggleDone(a); return; }
+  const f = cellField(el); if (!f) return;
+  if (f === 't') { const y = text ? parseDateText(text) : ''; if (y) saveCell(a, 't', y, NOEL); return; }
+  if (f === 'c') { const ok = courseList().some(c => c.code === text) || text === ''; if (ok) saveCell(a, 'c', text, NOEL); return; }
+  saveCell(a, f, text, NOEL);
+}
+document.addEventListener('copy', e => {
+  const t = document.activeElement; const R = selRect(); if (!R || !t || !t.closest || !t.closest('#v-sheet tr.row') || (R.r0 === R.r1 && R.c0 === R.c1)) return;
+  const tsv = gridRows().slice(R.r0, R.r1 + 1).map(tr => gridCells(tr).slice(R.c0, R.c1 + 1).map(cellText).join('\t')).join('\n');
+  e.clipboardData.setData('text/plain', tsv); e.preventDefault(); toast('copied ' + ((R.r1 - R.r0 + 1) * (R.c1 - R.c0 + 1)) + ' cells');
+});
+document.addEventListener('paste', e => {
+  const t = e.target; if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL)) return;
+  const txt = (e.clipboardData && e.clipboardData.getData('text/plain')) || ''; if (!/[\t\n]/.test(txt.replace(/\n$/, ''))) return;   // a single value pastes normally
+  e.preventDefault();
+  const lines = txt.replace(/\r/g, '').replace(/\n$/, '').split('\n').map(l => l.split('\t'));
+  const rows = gridRows(), tr0 = t.closest('tr.row'), r0 = rows.indexOf(tr0), c0 = gridCells(tr0).indexOf(t);
+  const targets = []; lines.forEach((cols, i) => { const tr = rows[r0 + i]; if (!tr) return; const cells = gridCells(tr); cols.forEach((v, j) => { const el = cells[c0 + j]; if (el) targets.push([el, v]); }); });
+  if (t.blur) t.blur();
+  HIST.group = []; try { targets.forEach(([el, v]) => writeCell(el, v)); } finally { const g = HIST.group; HIST.group = null; if (g.length) { HIST.undo.push(g); HIST.redo = []; } }
+  toast('pasted ' + targets.length + ' cells');
+});
+document.addEventListener('mousedown', e => {
+  const t = e.target.closest && e.target.closest(GRIDCELL); const cur = document.activeElement;
+  if (t && e.shiftKey && t.closest('#v-sheet tr.row') && cur && cur.closest && cur.closest('#v-sheet tr.row') && cur.matches(GRIDCELL)) {
+    e.preventDefault(); const tr0 = cur.closest('tr.row'), tr1 = t.closest('tr.row');
+    SEL = { a: SEL ? SEL.a : [tr0.dataset.i, gridCells(tr0).indexOf(cur)], b: [tr1.dataset.i, gridCells(tr1).indexOf(t)] }; paintSel(); return;
+  }
+  if (t || !(e.target.closest && e.target.closest('.toast'))) clearSel();
+}, true);
 document.addEventListener('keydown', e => {
-  const t = e.target; if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL) || e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target; if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL)) return;
+  const mod = e.metaKey || e.ctrlKey;
+  if (mod && !e.altKey && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) {
+    const dirty = t.tagName === 'INPUT' && t.value !== t.defaultValue; if (dirty) return;   // undo typing inside the cell first, like sheets
+    e.preventDefault(); e.stopImmediatePropagation(); histApply(e.key === 'y' || e.shiftKey ? 'redo' : 'undo'); return;
+  }
+  if (e.shiftKey && !mod && /^Arrow/.test(e.key) && !(GNAV.mode === 'edit' && t.tagName === 'INPUT' && /Left|Right/.test(e.key))) {
+    e.preventDefault(); e.stopImmediatePropagation(); const tr = t.closest('tr.row'), rows = gridRows();
+    if (!SEL) SEL = { a: [tr.dataset.i, gridCells(tr).indexOf(t)], b: [tr.dataset.i, gridCells(tr).indexOf(t)] };
+    const ri = rows.findIndex(r => r.dataset.i === SEL.b[0]), maxc = gridCells(tr).length - 1;
+    let r = ri + (e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0), c = SEL.b[1] + (e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0);
+    r = Math.max(0, Math.min(rows.length - 1, r)); c = Math.max(0, Math.min(maxc, c)); SEL.b = [rows[r].dataset.i, c]; paintSel();
+    const el = gridCells(rows[r])[c]; if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' }); return;
+  }
+  if (mod && (e.key === 'c' || e.key === 'x' || e.key === 'v')) return;   // copy / paste events above
+  if ((e.key === 'Delete' || e.key === 'Backspace') && !mod) { const R = selRect(); if (R && !(R.r0 === R.r1 && R.c0 === R.c1)) {
+    e.preventDefault(); e.stopImmediatePropagation(); const cells = []; gridRows().slice(R.r0, R.r1 + 1).forEach(tr => gridCells(tr).slice(R.c0, R.c1 + 1).forEach(el => { if (!el.classList.contains('chk') && cellField(el) !== 'n' && cellField(el) !== 't') cells.push(el); }));
+    HIST.group = []; try { cells.forEach(el => writeCell(el, '')); } finally { const g = HIST.group; HIST.group = null; if (g.length) { HIST.undo.push(g); HIST.redo = []; } } clearSel(); return; } }
+  if (!e.shiftKey || !/^Arrow/.test(e.key)) { if (SEL && !['Shift', 'Meta', 'Control', 'Alt'].includes(e.key)) clearSel(); }
+  if (mod || e.altKey) return;
   lastInput = 'key';
   const isText = t.tagName === 'INPUT', edit = GNAV.mode === 'edit';
   const atStart = isText && t.selectionStart === 0 && t.selectionEnd === 0, atEnd = isText && t.selectionStart === t.value.length && t.selectionEnd === t.value.length;

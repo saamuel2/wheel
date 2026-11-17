@@ -141,7 +141,7 @@
   .undo.show { opacity: 1; transform: none; pointer-events: auto; }
   .undo button { border: 0; background: none; color: var(--tint); font-size: 15px; font-weight: 600; padding: 12px 16px; font-family: inherit; }
   .undo #undo-msg { flex: 1; } .undo #ug-btn + #undo-btn { padding-left: 4px; } .undo.ugon { bottom: max(92px, calc(var(--kb, 0px) + 12px)); z-index: 1300; }
-  .ugf { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; } .ugf b { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ugf input { max-width: 64px !important; } .ugf i { font-style: normal; color: var(--sub); }
+  .ugf[hidden], #ug-btn[hidden] { display: none !important; } .ugf { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; } .ugf b { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ugf input { max-width: 64px !important; } .ugf i { font-style: normal; color: var(--sub); }
   .ugf input { width: 0; flex: 1; max-width: 90px; height: 34px; border: 0; outline: 0; border-radius: 10px; background: rgba(118,118,128,.24); color: inherit; font: inherit; font-size: 17px; text-align: center; -webkit-appearance: none; }
   .undo.bad { animation: ugshake .35s; } @keyframes ugshake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
   .content { scrollbar-width: none; } .content::-webkit-scrollbar { display: none; }
@@ -795,7 +795,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.63 (11/16 3:10pm)';
+    const BUILD = 'm2.64 (11/16 7:45pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
