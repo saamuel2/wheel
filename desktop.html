@@ -376,7 +376,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.50 (11/16 7:45pm)';
+const BUILD = 'd1.51 (11/18 6:25pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -620,19 +620,28 @@ function toggleDone(a) {
 }
 // one cell of an assignment, edited in place: n name · t due · c class · y type · g grade · o out of
 const FIELD = { n: 'name', t: 'due', c: 'className', y: 'type', g: 'grade', o: 'outOf' };
+// plain arithmetic only (numbers, + - * / ( ) and %); anything else (cell references) is left for the sheet to work out
+function calcFormula(v) {
+  const e = String(v).replace(/^\s*=/, '').replace(/(\d+(?:\.\d+)?)%/g, '($1/100)');
+  if (!/^[\d\s.+\-*/()]+$/.test(e)) return null;
+  try { const n = Function('"use strict";return (' + e + ')')(); return typeof n === 'number' && isFinite(n) ? Math.round(n * 1e6) / 1e6 : null; } catch (x) { return null; }
+}
 function saveCell(a, f, raw, el) {
   let v = String(raw).trim();
   if (f === 'g' && testing()) { delete TEST[kOf(a)]; STAY.add(kOf(a)); }
   if (f === 'y') v = v.toUpperCase();
   if (f === 'n' && !v) { el.value = a.n; return; }
   if (f === 'o' && v !== '' && isNaN(Number(v))) { el.classList.add('bad'); return; }
-  if (f === 'g' && v !== '' && !/^-?[\d.]+(\s*\/\s*[\d.]+|\s*%)?$/.test(v)) { el.classList.add('bad'); return; }
-  let val = f === 't' ? (v ? fromYmd(v) : a.t) : f === 'o' ? (v === '' ? null : Number(v)) : f === 'g' ? (v === '' ? '' : isNaN(Number(v)) ? v : Number(v)) : v;
-  if (same(a[f], val)) return;
+  const fx = f === 'g' && /^=/.test(v);   // a formula, e.g. =0.985*(52/351): the sheet keeps the formula, the app shows its result
+  if (fx && v === a.gf) return;
+  if (f === 'g' && !fx && v !== '' && !/^-?[\d.]+(\s*\/\s*[\d.]+|\s*%)?$/.test(v)) { el.classList.add('bad'); return; }
+  if (fx && !/^=[\d\s.+\-*/()%A-Za-z:$!,]+$/.test(v)) { el.classList.add('bad'); return; }
+  let val = f === 't' ? (v ? fromYmd(v) : a.t) : f === 'o' ? (v === '' ? null : Number(v)) : f === 'g' ? (fx ? (calcFormula(v) ?? v) : v === '' ? '' : isNaN(Number(v)) ? v : Number(v)) : v;
+  if (!fx && same(a[f], val) && !(f === 'g' && a.gf)) return;
   const prev = Object.assign({}, a), match = { n: a.n, c: a.c };
-  a[f] = val; setOv(prev, { [f]: val }); el.classList.remove('bad'); el.classList.add('saving');
-  histPush({ r: a.r, n: a.n, c: a.c, f, from: prev[f], to: val });
-  post({ action: 'edit', row: a.r, match, fields: { [FIELD[f]]: f === 't' ? ymd(val) : f === 'o' ? (val == null ? '' : val) : val } })
+  a[f] = val; if (f === 'g') a.gf = fx ? v : undefined; setOv(prev, { [f]: val }); el.classList.remove('bad'); el.classList.add('saving');
+  histPush({ r: a.r, n: a.n, c: a.c, f, from: f === 'g' && prev.gf ? prev.gf : prev[f], to: fx ? v : val });
+  post({ action: 'edit', row: a.r, match, fields: { [FIELD[f]]: fx ? v : f === 't' ? ymd(val) : f === 'o' ? (val == null ? '' : val) : val } })
     .then(() => { el.classList.remove('saving'); })
     .catch(() => { Object.assign(a, prev); setOv(prev, { [f]: prev[f] }); changed(); toast('couldn’t save — try again'); });
   changed();
@@ -1326,7 +1335,7 @@ function renderSettings(v) {
       ${prow('countdown', cdSum, 'cd')}
       ${prow('variable', vName(SLOT), 'var')}</div>
     <div class="card"><div class="ct">feedback</div>${notesList().map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')}
-      <div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div>${notesList().length ? askRow() : ''}</div>
+      <div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div></div>
     <div class="card"><div class="ct">app info</div>
       <div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
@@ -1503,8 +1512,13 @@ document.addEventListener('change', e => {
 const GRIDCELL = '.chk, .dtin, input.cell:not(.dpick), select.cell';
 let GNAV = { k: null, mode: 'nav', col: null }, lastInput = 'key';
 document.addEventListener('mousedown', () => { lastInput = 'mouse'; }, true);
+document.addEventListener('focusout', e => {   // leaving an untouched formula cell shows its result again
+  const t = e.target; if (!(t.dataset && t.dataset.f === 'g' && t.closest && t.closest('#v-sheet tr.row'))) return; const a = byIdx(t.closest('tr.row').dataset.i);
+  if (a && a.gf && t.value === a.gf) setTimeout(() => { if (document.activeElement !== t && t.isConnected) { t.value = fmtG(a.g); t.defaultValue = t.value; } }, 0);
+});
 document.addEventListener('focusin', e => {
-  const t = e.target; if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL)) return;
+  const t = e.target; if (t.dataset && t.dataset.f === 'g' && t.closest && t.closest('#v-sheet tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i); if (a && a.gf && t.value !== a.gf) { t.value = a.gf; t.defaultValue = a.gf; } }
+  if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL)) return;
   const k = t.dataset.k || t.closest('tr.row').dataset.i + (t.className || '');
   if (GNAV.k === k) return;
   GNAV = { k, mode: lastInput === 'mouse' ? 'edit' : 'nav', col: GNAV.col };

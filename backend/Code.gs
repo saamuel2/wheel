@@ -121,14 +121,14 @@ var OUT_COL = 7;    // column G
 function readAssignments_(ss) {
   var sh = ss.getSheetByName('Assignments'), last = sh.getLastRow(), list = [];
   if (last < 3) return list;
-  var v = sh.getRange(3, 1, last - 2, OUT_COL).getValues();
+  var v = sh.getRange(3, 1, last - 2, OUT_COL).getValues(), fx = sh.getRange(3, 6, last - 2, 1).getFormulas();
   for (var i = 0; i < v.length; i++) {
     var name = str_(v[i][2]);
     if (!name || name.indexOf('────') > -1) continue;
     var dy = cellYmd_(v[i][1], ss); if (!dy) continue;
     var g = v[i][5];
     list.push({ r: i + 3, n: name, c: str_(v[i][3]), y: str_(v[i][4]), t: ymdToMs_(dy), d: v[i][0] === true,
-      g: numv_(g) != null ? g : (str_(g) === '' ? '' : str_(g)), o: numv_(v[i][OUT_COL - 1]) });
+      g: numv_(g) != null ? g : (str_(g) === '' ? '' : str_(g)), o: numv_(v[i][OUT_COL - 1]), gf: fx[i][0] || undefined });   // gf: the grade's formula, when it has one
   }
   return list;
 }
@@ -181,11 +181,13 @@ function setDone_(ss, b, val) {
 
 // "7/8" in the grade box means 7 out of 8: split it so Sheets never reads it as a date (Jul 8)
 function splitFrac_(f) {
-  if (!f || f.grade == null) return f;
+  if (!f || f.grade == null || isFormula_(f.grade)) return f;
   var m = String(f.grade).trim().match(/^(-?\d*\.?\d+)\s*\/\s*(\d*\.?\d+)$/);
   if (m && Number(m[2]) > 0) { f.grade = Number(m[1]); f.outOf = Number(m[2]); }
   return f;
 }
+// a grade typed as a formula ("=0.985*(52/351)") goes into the sheet as a formula, so the sheet computes it
+function isFormula_(g) { return typeof g === 'string' && /^\s*=/.test(g); }
 function cellVal_(g) {   // keep "43/50" and "86%" as typed; plain numbers as numbers
   if (g === '' || g == null) return '';
   var s = String(g).trim();
@@ -199,7 +201,7 @@ function writeFields_(sh, r, f, ss) {
   if (f.name !== undefined) sh.getRange(r, 3).setValue(f.name);
   if (f.className !== undefined) sh.getRange(r, 4).setValue(f.className);
   if (f.type !== undefined) sh.getRange(r, 5).setValue(f.type);
-  if (f.grade !== undefined) { var g = cellVal_(f.grade), cell = sh.getRange(r, 6); if (g === '') cell.clearContent(); else cell.setValue(g); }
+  if (f.grade !== undefined) { var g = cellVal_(f.grade), cell = sh.getRange(r, 6); if (g === '') cell.clearContent(); else if (isFormula_(g)) cell.setFormula(String(g).trim()); else cell.setValue(g); }
   if (f.outOf !== undefined) { var o = cellVal_(f.outOf), oc = sh.getRange(r, OUT_COL); if (o === '') oc.clearContent(); else oc.setValue(o); }
 }
 
