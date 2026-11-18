@@ -376,7 +376,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.51 (11/18 6:25pm)';
+const BUILD = 'd1.52 (11/18 6:30pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -580,7 +580,7 @@ const gradable = a => { const c = gradeOf(a.c); return !!(c && (c.cats || []).so
 function openToastGrade() {
   if (!TG) return; const a = TG.a; clearTimeout(toastT); TG.open = true;
   $('toast-msg').hidden = true; $('toast-btn').style.display = 'none'; $('tgf').hidden = false; $('tg-n').textContent = a.n;
-  $('tg-g').value = a.g == null || a.g === '' ? '' : fmtG(a.g); $('tg-o').value = a.o == null ? '' : a.o; $('toast-grade').textContent = 'save';
+  $('tg-g').value = a.g == null || a.g === '' ? '' : String(a.g); $('tg-o').value = a.o == null ? '' : a.o; $('toast-grade').textContent = 'save';
   setTimeout(() => { $('tg-g').focus(); $('tg-g').select(); }, 20);
 }
 function closeToast() { TG = null; $('toast').classList.remove('on'); }
@@ -1514,10 +1514,13 @@ let GNAV = { k: null, mode: 'nav', col: null }, lastInput = 'key';
 document.addEventListener('mousedown', () => { lastInput = 'mouse'; }, true);
 document.addEventListener('focusout', e => {   // leaving an untouched formula cell shows its result again
   const t = e.target; if (!(t.dataset && t.dataset.f === 'g' && t.closest && t.closest('#v-sheet tr.row'))) return; const a = byIdx(t.closest('tr.row').dataset.i);
-  if (a && a.gf && t.value === a.gf) setTimeout(() => { if (document.activeElement !== t && t.isConnected) { t.value = fmtG(a.g); t.defaultValue = t.value; } }, 0);
+  const full = a ? (a.gf || (a.g == null || a.g === '' ? '' : String(a.g))) : null;
+  if (a && t.value === full) setTimeout(() => { if (document.activeElement !== t && t.isConnected) { t.value = fmtG(a.g); t.defaultValue = t.value; } }, 0);
 });
 document.addEventListener('focusin', e => {
-  const t = e.target; if (t.dataset && t.dataset.f === 'g' && t.closest && t.closest('#v-sheet tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i); if (a && a.gf && t.value !== a.gf) { t.value = a.gf; t.defaultValue = a.gf; } }
+  const t = e.target; if (t.dataset && t.dataset.f === 'g' && t.closest && t.closest('#v-sheet tr.row')) { const a = byIdx(t.closest('tr.row').dataset.i);
+    const full = a ? (a.gf || (a.g == null || a.g === '' ? '' : String(a.g))) : null;   // editing shows the formula, or every decimal
+    if (full != null && t.value !== full && !(TEST && TEST[kOf(a)] != null)) { t.value = full; t.defaultValue = full; if (lastInput !== 'mouse') t.select(); } }
   if (!t.closest || !t.closest('#v-sheet tr.row') || !t.matches(GRIDCELL)) return;
   const k = t.dataset.k || t.closest('tr.row').dataset.i + (t.className || '');
   if (GNAV.k === k) return;

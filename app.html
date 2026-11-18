@@ -795,7 +795,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.65 (11/18 6:35pm)';
+    const BUILD = 'm2.66 (11/18 6:30pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -934,7 +934,7 @@
     function openGradeForm() {
       if (!UG) return; const a = UG.a; clearTimeout(ugT); if (pending) { clearTimeout(pending.timer); pending.timer = setTimeout(() => commit(pending), 60000); }
       $('undo-msg').hidden = true; $('undo-btn').style.display = 'none'; $('ugf').hidden = false; $('undo').classList.add('ugon');
-      $('ug-n').textContent = a.n; $('ug-g').value = a.g == null || a.g === '' ? '' : fmtG(a.g); $('ug-o').value = a.o == null ? '' : a.o; $('ug-btn').textContent = 'save'; UG.open = true;
+      $('ug-n').textContent = a.n; $('ug-g').value = a.g == null || a.g === '' ? '' : String(a.g); $('ug-o').value = a.o == null ? '' : a.o; $('ug-btn').textContent = 'save'; UG.open = true;
       setTimeout(() => { $('ug-g').focus(); $('ug-g').select(); }, 30);
     }
     function saveGradeForm() {
@@ -1593,6 +1593,7 @@
     ['f-name', 'f-class', 'f-due'].forEach(id => { $(id).addEventListener('input', formOk); $(id).addEventListener('change', formOk); });
     $('f-due').addEventListener('input', updDue); $('f-due').addEventListener('change', updDue);
     $('task-list').addEventListener('change', e => { const i = e.target.closest('.gin'); if (!i) return; const a = rowOf(i); if (a) setGrade(a, i.value, i); });
+    $('task-list').addEventListener('focusin', e => { const i = e.target.closest && e.target.closest('.gin'); if (!i) return; const a = rowOf(i); if (a && a.g != null && a.g !== '' && i.value !== String(a.g)) i.value = String(a.g); });   // editing shows every decimal
     $('task-list').addEventListener('click', e => { const b = e.target.closest('.g100'); if (!b) return; const a = rowOf(b), i = b.previousElementSibling; if (a && i) { const f = String(fullOf(a)); i.value = f; setGrade(a, f, i); } });
     $('task-list').addEventListener('click', e => {
       if (e.target.closest('.chk, .gin, .g100')) return;
