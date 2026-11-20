@@ -129,6 +129,8 @@
   .tsub { font-size: 13px; line-height: 18px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tsub b { font-weight: 600; }
   .tg { color: var(--sub); font-size: 17px; font-variant-numeric: tabular-nums; }
+  .aplus { flex: none; width: 30px; height: 30px; margin: 0 var(--s2) 0 var(--s3); border-radius: 50%; border: 0; padding: 0; display: flex; align-items: center; justify-content: center; background: rgba(118,118,128,.2); color: var(--tint); touch-action: manipulation; transition: transform var(--dur-fast) var(--ease); }
+  .aplus:active { transform: scale(.88); } .aplus svg { width: 15px; height: 15px; }
   .srow { padding-left: 16px; justify-content: space-between; }
   .lrow { position: relative; display: flex; align-items: center; width: 100%; text-align: left; background: none; border: 0; color: var(--tint); font-family: inherit; font-size: 17px; font-weight: 400; line-height: 22px; text-decoration: none; padding: 0 16px; min-height: 52px; -webkit-appearance: none; appearance: none; }
   .lrow:active { background: #2C2C2E; }
@@ -794,8 +796,8 @@
     document.getElementById('btn-next').addEventListener('click', (e) => { e.preventDefault(); weekOffset++; drawWheel(true); });
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
-    const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.66 (11/18 6:30pm)';
+    const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
+    const BUILD = 'm2.67 (11/20 5:41am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -1619,7 +1621,7 @@
       if (!at) { box.innerHTML = '<div class="empty">' + (appData ? 'attendance isn’t connected yet' : 'loading…') + '</div>'; return; }
       const nm = {}; ((appData.grades && appData.grades.courses) || []).forEach(c => nm[c.code] = cname(c));
       box.innerHTML = '<div class="group">' + at.map(a => `<div class="task pad" data-ac="${esc(a.code)}"><div class="tmain"><div class="tname"><b style="color:${colorFor(a.code)}">${esc(a.code)}</b> ${esc(nm[a.code] || '')}</div>` +
-        `<div class="tsub">${esc(a.rule || '')}</div></div><span class="tg">${a.dates.length}</span>${CHEV}</div>`).join('') + '</div>';
+        `<div class="tsub">${esc(a.rule || '')}</div></div><button class="aplus" data-q="${esc(a.code)}" aria-label="add absence today">${IC.p}</button><span class="tg">${a.dates.length}</span>${CHEV}</div>`).join('') + '</div>';
     }
     let attCode = null;
     function openAtt(code) {
@@ -1641,11 +1643,11 @@
     }
     const csOpen = () => $('csheet').classList.contains('show') && $('c-title').textContent.indexOf(attCode) === 0 && attCode;
     function failAbs(fn, retry) { fn(); renderAtt(); showFail('couldn’t save', retry); }
-    function addAbs(code, ds) {
+    function addAbs(code, ds, quiet) {
       const a = appData.attendance.find(x => x.code === code), t = toMs(ds);
       if (!a) return;
       if (a.dates.includes(t)) { showUndo('already logged', false); setTimeout(hideUndo, 1800); return; }
-      a.dates.push(t); renderAtt(); showUndo('absence added', false); setTimeout(hideUndo, 1800);
+      a.dates.push(t); renderAtt(); if (!quiet) { showUndo('absence added', false); setTimeout(hideUndo, 1800); }
       if (csOpen() === code) openAtt(code);
       postAbs('add', code, ds).catch(() => failAbs(() => { const i = a.dates.indexOf(t); if (i >= 0) a.dates.splice(i, 1); if (csOpen() === code) openAtt(code); }, () => addAbs(code, ds)));
     }
@@ -1670,7 +1672,14 @@
       if (!$('csheet').classList.contains('show')) $('scrim').classList.remove('show');
       asT = setTimeout(() => { $('asheet').style.display = 'none'; $('scrim').style.zIndex = ''; if (!$('scrim').classList.contains('show')) $('scrim').style.display = 'none'; }, 460);
     }
-    $('att-box').addEventListener('click', e => { const r = e.target.closest('[data-ac]'); if (r) openAtt(r.dataset.ac); });
+    // one tap on a row's plus logs today's absence for that class; the toast offers undo
+    function quickAbs(code) {
+      const a = appData.attendance.find(x => x.code === code), ds = toStr(Date.now()), t = toMs(ds);
+      if (!a) return; if (a.dates.includes(t)) { showUndo('already logged today', false); setTimeout(hideUndo, 1800); return; }
+      addAbs(code, ds, true); const fn = () => removeAbs(code, t);
+      showUndo(code + ' absence added', true); again = fn; failT = setTimeout(() => { if (again === fn) { again = null; hideUndo(); } }, 4000);
+    }
+    $('att-box').addEventListener('click', e => { const q = e.target.closest('.aplus'); if (q) { e.stopPropagation(); quickAbs(q.dataset.q); return; } const r = e.target.closest('[data-ac]'); if (r) openAtt(r.dataset.ac); });
     $('c-body').addEventListener('click', e => {
       const b = e.target.closest('.rm'); if (b) { removeAbs(attCode, Number(b.dataset.t)); return; }
       if (e.target.closest('#a-add-here')) openAbs(attCode);
