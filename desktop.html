@@ -301,7 +301,7 @@
   .sxq { display: flex; align-items: center; gap: 8px; background: var(--fill); border-radius: 8px; padding: 0 10px; height: 34px; color: var(--sub); }
   .sxq:focus-within { box-shadow: 0 0 0 2px var(--tint); } .sxq input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--text); font: inherit; font-size: 14px; }
   .sxq input::-webkit-search-cancel-button { filter: grayscale(1); opacity: .6; }
-  .sxme { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+  .sxme { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
   .sxme .av { width: 44px; height: 44px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 600; color: #fff; text-transform: uppercase;
     background: linear-gradient(145deg, color-mix(in srgb, var(--tint) 70%, #fff), var(--tint)); }
   .sxme .who { display: grid; gap: 2px; min-width: 0; } .sxme .who b { font-size: 15px; } .sxme .who span { font-size: 12px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -311,11 +311,13 @@
   .sxnav .badge { margin-left: auto; font-size: 11px; font-weight: 700; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--fill); display: flex; align-items: center; justify-content: center; }
   .sxnav button.on .badge { background: rgba(255,255,255,.25); }
   .set .row > span.stile:first-child, .sxh .stile { flex: none; }
-  .stile { width: 24px; height: 24px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+  .stile { width: 24px; height: 24px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; }
   .sxpane { max-width: none; gap: 0; } .sxh { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; margin: 4px 0 18px; } .sxh .stile { width: 30px; height: 30px; border-radius: 8px; }
   .sxh .stile svg { width: 18px; height: 18px; }
   .sgl { font-size: 12px; font-weight: 600; color: var(--sub); margin: 0 0 6px 4px; } .sgrp { padding: 4px 16px; margin-bottom: 22px; } .sgrp .row { min-height: 40px; } .sgrp .prow { padding-left: 0; padding-right: 0; }
   .sgrp .prow .stile { width: 22px; height: 22px; } .sgrp .grow { flex: 1; } .sxnone { padding: 8px 4px; } .sxact { display: flex; justify-content: flex-end; margin-top: -10px; }
+  .sxsub { padding-left: 42px !important; font-size: 13px !important; } .sxsub i { width: 9px; height: 9px; border-radius: 50%; flex: none; } .sxsub.on { background: var(--fill) !important; color: inherit !important; font-weight: 600; }
+  .sx.wide { grid-template-columns: 240px minmax(0, 1fr); } .rehd2 { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; } .rehd2 .sxh { margin: 0; } .rehd2 .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -325,7 +327,9 @@
   .thv .tc b { position: absolute; left: 10%; top: 25%; width: 34%; height: 18%; border-radius: 3px; }
   .thm:hover .thv { box-shadow: inset 0 0 0 .5px rgba(128,128,128,.45), 0 0 0 2px var(--fill); } .thm.on .thv { box-shadow: 0 0 0 2.5px var(--tint); }
   .thl { font-size: 12px; color: var(--sub); } .thm.on .thl { color: var(--text); font-weight: 600; }
-  .accs { display: flex; gap: 9px; } .acc { width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2); }
+  .accs { display: flex; gap: 9px; align-items: center; } .accsep { width: .5px; height: 16px; background: var(--sep); margin: 0 2px; }
+  .acc.any { position: relative; background: conic-gradient(from 90deg, #f55, #fb4, #ee5, #5d7, #4bf, #85f, #e5c, #f55); cursor: pointer; } .acc.any.on { background: radial-gradient(var(--acc) 0 45%, transparent 47%), conic-gradient(from 90deg, #f55, #fb4, #ee5, #5d7, #4bf, #85f, #e5c, #f55); }
+  .acc.any input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: 0; padding: 0; } .acc { width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2); }
   .acc.on { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px currentColor; color: var(--sub); }
   .keys { display: flex; gap: 4px; align-items: center; color: var(--sub); font-size: 12px; }
   kbd { font: inherit; font-size: 12px; font-weight: 600; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 5px; background: var(--fill); color: var(--text); display: inline-flex; align-items: center; justify-content: center; box-shadow: inset 0 -1px 0 rgba(0,0,0,.18); }
@@ -364,9 +368,8 @@
   html.m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card) { transition: transform .28s var(--ease), box-shadow .28s var(--ease); }
   html.m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(0,0,0,.16); }
   html[data-theme=light].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover, html[data-theme=elegant].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { box-shadow: 0 5px 14px rgba(24,40,40,.1); }
-  .side { position: relative; } .navpill { position: absolute; left: 12px; right: 12px; top: 0; height: 0; border-radius: 8px; background: var(--fill); opacity: 0; pointer-events: none; z-index: 0;
+  .side { position: relative; }
     transition: transform .38s var(--ease), height .38s var(--ease), opacity .2s; } .side > .nav, .subnav .nav { position: relative; z-index: 1; }
-  html.m-pill .navpill { opacity: 1; } html.m-pill .side .nav:hover, html.m-pill .side .nav.on { background: transparent; }
   html.m-ring .wheel svg [data-ri] { transition: opacity .22s var(--ease); } html.m-ring .wheel svg.rf [data-ri] { opacity: .28; } html.m-ring .wheel svg.rf [data-ri].hot { opacity: 1; }
   .chk { position: relative; } .burst { position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--c, var(--tint)); pointer-events: none; animation: burst .6s cubic-bezier(.2,.8,.3,1) forwards; }
   @keyframes burst { from { transform: scale(.7); opacity: .9; } to { transform: scale(2.6); opacity: 0; border-width: .5px; } }
@@ -433,7 +436,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.63 (11/22 4:45pm)';
+const BUILD = 'd1.64 (11/22 4:40pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -501,7 +504,7 @@ const spaceCode = c => String(c || '').replace(/\s+/g, '').toLowerCase();
 // ===================== data =====================
 const CBP = {};   // completion bar heights last shown, so a change grows from there
 // motion settings: one switch for everything, one per effect; each effect is a class on <html>
-const MOTION_LIST = [['lift', 'cards lift'], ['pill', 'sidebar pill'], ['ring', 'wheel ring focus'], ['squish', 'press squish'], ['burst', 'check burst'], ['count', 'numbers count up'],
+const MOTION_LIST = [['lift', 'cards lift'], ['ring', 'wheel ring focus'], ['squish', 'press squish'], ['burst', 'check burst'], ['count', 'numbers count up'],
   ['page', 'page transitions'], ['donut', 'donuts draw in'], ['confetti', '100% week confetti'], ['row', 'sheet row hover']];
 const MO = Object.assign({ all: true }, Object.fromEntries(MOTION_LIST.map(m => [m[0], true])), store.get('desk-motion', {}));
 const mo = k => MO.all && MO[k];
@@ -1341,7 +1344,7 @@ function renderCourse(v) {
       <td>${extra ? '' : inp(q('weight'), c.weight, 'w1 num')}</td><td>${extra ? '' : inp(q('items'), c.items, 'w1 num')}</td><td>${sel(q('combine'), c.combine, COMBINE)}</td>
       <td>${extra ? '' : inp(q('drop'), c.drop, 'w1 num')}</td><td>${extra ? '' : inp(q('map'), c.map, 'map')}</td><td>${extra ? '' : inp(q('until'), c.until, 'w1 num')}</td>
       <td><div class="opts">${opts}</div></td><td><button class="iconbtn x" data-act="re-rm" data-k="${k}" aria-label="remove">${IC.x}</button></td></tr>`; }).join('');
-  v.innerHTML = `<div class="head"><h1 style="color:${col}">${esc(spaceCode(R.code))}</h1><span class="muted" style="font-size:17px">${esc(R.cfg.name || '')}</span>
+  v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="sx wide"><div class="sxside">${setSideHtml()}</div><div class="sxpane"><div class="rehd2"><h2 class="sxh" style="color:${col}">${esc(spaceCode(R.code))}</h2><span class="muted" style="font-size:15px">${esc(R.cfg.name || '')}</span>
       <div class="tools"><span id="re-err" class="reerr"></span><button class="btn" id="re-revert" data-act="re-revert" hidden>revert</button><button class="btn tint" id="re-save" data-act="re-save" disabled>save</button></div></div>
     <div class="kv re-prev" id="re-prev"></div>
     <div class="cgrid">
@@ -1352,7 +1355,7 @@ function renderCourse(v) {
     <div class="card sec"><div class="ct">cutoffs</div><div class="recut r12">${RL.map(L => f(L, inp('cut.' + L, R.cut[L]))).join('')}</div></div>
     <div class="card sec"><div class="ct">categories</div><div class="tscroll"><table class="cats ctab"><thead><tr><th>category</th><th class="n">score</th><th class="n">graded</th><th>type</th><th>weight</th><th>items</th><th>combine by</th><th>drop</th><th>score map</th><th>until graded</th><th>options</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
       <div class="readd"><button class="btn" data-act="re-add" data-k="cat">${IC.plus} category</button><button class="btn" data-act="re-add" data-k="extra">${IC.plus} extra credit</button></div></div>
-    <div class="card sec"><div class="ct">how it’s calculated</div><ol class="trace" id="re-trace"></ol></div>`;
+    <div class="card sec"><div class="ct">how it’s calculated</div><ol class="trace" id="re-trace"></ol></div></div></div>`;
   rulesPreview();
 }
 function saveRules() {
@@ -1434,7 +1437,7 @@ function growBars() {
 }
 function subnav() {
   const sn = $('subnav'); if (!sn) return;
-  const on = VIEW === 'course' && data && data.setup;   // only while you're editing a course; the settings page itself keeps the sidebar as is
+  const on = false;   // courses are listed inside settings now
   sn.innerHTML = on ? data.setup.map(x => `<button class="nav sub${VIEW === 'course' && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><i style="background:${colorFor(x.code)}"></i>${esc(spaceCode(x.code))}</button>`).join('') : '';
   if (VIEW === 'course') document.querySelector('.nav[data-view=settings]').classList.add('on');
 }
@@ -1463,14 +1466,16 @@ const SI = {   // section icons, same line style as the rest
   about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
   search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'
 };
-const SECS = [['appearance', 'appearance', '#5E5CE6'], ['motion', 'motion', '#FF9F0A'], ['widgets', 'widgets', '#30B0C7'], ['courses', 'courses', '#34C759'],
-  ['feedback', 'feedback', '#FF375F'], ['shortcuts', 'keyboard shortcuts', '#8E8E93'], ['about', 'about', '#636366']];
+const SECS = [['appearance', 'appearance', '#c2c7f8'], ['motion', 'motion', '#fbe0a3'], ['widgets', 'widgets', '#91e3d6'], ['courses', 'courses', '#b2e2b6'],
+  ['feedback', 'feedback', '#f6b8c9'], ['shortcuts', 'keyboard shortcuts', '#9ed2f6'], ['about', 'about', '#e4b39b']];   // course colors, toned per theme like the courses are
+const themed = c => (TMAP[THEME] && TMAP[THEME][c]) || c;
+const inkOn = c => { const n = parseInt(c.slice(1), 16), l = (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; return l > .62 ? 'rgba(0,0,0,.72)' : '#fff'; };
 const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
-const stile = k => { const x = SECS.find(y => y[0] === k); return `<span class="stile" style="background:${x ? x[2] : '#8E8E93'}">${sicon(k)}</span>`; };
+const stile = k => { const x = SECS.find(y => y[0] === k), c = themed(x ? x[2] : '#A6A6B1'); return `<span class="stile" style="background:${c};color:${inkOn(c)}">${sicon(k)}</span>`; };
 let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false;
 if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
 // accent: the tint color, on top of whichever theme is on
-const ACCENTS = [['', 'theme'], ['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'], ['#D2587E', 'pink'], ['#8B6FD6', 'purple']];
+const ACCENTS = [['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'], ['#D2587E', 'pink'], ['#8B6FD6', 'purple']];
 let ACC = store.get('desk-accent', '');
 function applyAccent() { const h = document.documentElement; if (ACC) h.style.setProperty('--tint', ACC); else h.style.removeProperty('--tint'); }
 applyAccent();
@@ -1485,7 +1490,7 @@ const SHORTCUTS = [['anywhere', [[kb('1'), '–', kb('5')], 'switch pages'], [[k
     [[kb('F2')], 'edit inside a cell'], [[kb('esc')], 'put back what was there'], [[kb('mod', 'c'), kb('mod', 'v')], 'copy and paste cells']]];
 // one flat list of every setting, for search
 function settingsIndex() {
-  const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['motion', 'motion'], ['motion', 'customize motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
+  const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['motion', 'motion'], ['motion', 'all motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
     [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
     ((data && data.setup) || []).map(x => ['courses', spaceCode(x.code) + ' ' + (x.cfg ? x.cfg.name : '')]),
     SHORTCUTS.flatMap(([, ...rows]) => rows.map(r => ['shortcuts', r[1]])));
@@ -1505,10 +1510,11 @@ function setPaneHtml() {
   if (SSEC === 'appearance') {
     h = grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
         <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`) +
-      grp('', `<div class="row"><span>accent color</span><div class="accs">${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c || 'conic-gradient(#3B82F6, #3FA66B, #E08A3C, #D2587E, #8B6FD6, #3B82F6)'}"></button>`).join('')}</div></div>`);
+      grp('', `<div class="row"><span>accent color</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
+        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div>`);
   } else if (SSEC === 'motion') {
-    h = grp('', `<div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div><button class="row prow" data-act="mox"><span>customize</span><span class="chev${MOX ? ' dn' : ''}">${IC.r}</span></button>`) +
-      (MOX ? grp('effects', MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')) : '');
+    h = grp('', `<div class="row"><span>all motion</span>${sw('data-mo="all"', MO.all)}</div>`) +
+      grp('effects', MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join(''));
   } else if (SSEC === 'widgets') {
     const cl = calList();
     h = grp('greeting', popBody('greet')) + (cl.length > 1 ? grp('calendars', popBody('cal')) : '') + grp('countdown', popBody('cd')) + grp('variable', popBody('var'));
@@ -1529,16 +1535,17 @@ function setPaneHtml() {
   }
   return `<h2 class="sxh">${stile(SSEC)}${name}</h2>` + h;
 }
+function setSideHtml() {
+  const cs = (data && data.setup) || [], cr = cs.reduce((t, x) => t + (x.cfg && +x.cfg.credits || 0), 0), nm = String(GR.name || '').trim(), inCourse = VIEW === 'course';
+  const cur = k => !SQ.trim() && (inCourse ? k === 'courses' && false : SSEC === k);
+  return `<label class="sxq">${sicon('search', 14)}<input id="set-q" type="search" autocomplete="off" spellcheck="false" aria-label="search settings" value="${esc(SQ)}"></label>
+      <div class="card sxme"><span class="av">${nm ? esc(nm[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(nm || '–')}</b><span>${semLabel()}${cs.length ? ' · ' + cs.length + ' courses' + (cr ? ' · ' + cr + ' cr' : '') : ''}</span></span></div>
+      <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${cur(k) ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>` +
+        (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><i style="background:${colorFor(x.code)}"></i><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
+}
 function renderSettings(v) {
-  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && ae.tagName === 'INPUT' && !/checkbox|date/.test(ae.type) && v.innerHTML) return;
-  const cs = (data && data.setup) || [], cr = cs.reduce((s, x) => s + (x.cfg && +x.cfg.credits || 0), 0), nm = String(GR.name || '').trim();
-  v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="sx">
-    <div class="sxside">
-      <label class="sxq">${sicon('search', 14)}<input id="set-q" type="search" autocomplete="off" spellcheck="false" aria-label="search settings" value="${esc(SQ)}"></label>
-      <button class="card sxme" data-act="setsec" data-s="widgets"><span class="av">${nm ? esc(nm[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(nm || '–')}</b><span>${semLabel()}${cs.length ? ' · ' + cs.length + ' courses' + (cr ? ' · ' + cr + ' cr' : '') : ''}</span></span></button>
-      <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${!SQ.trim() && SSEC === k ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>`).join('')}</div>
-    </div>
-    <div class="sxpane set" id="sxpane">${setPaneHtml()}</div></div>`;
+  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && ae.tagName === 'INPUT' && !/checkbox|date|color/.test(ae.type) && v.innerHTML) return;
+  v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="sx"><div class="sxside">${setSideHtml()}</div><div class="sxpane set" id="sxpane">${setPaneHtml()}</div></div>`;
 }
 // feedback: one list with the phone, kept on the sheet's Notes tab
 let NOTE_NEW = [], NOTE_RM = new Set();
@@ -1618,7 +1625,7 @@ document.addEventListener('click', e => {
     case 'close': return closeDrawer();
     case 'pop': return openPop(t.dataset.p, t);
     case 'popdone': return closePop();
-    case 'setsec': SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; MOX = MOX || false; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); renderAll(); $('main').scrollTop = 0; return;
+    case 'setsec': SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
     case 'accent': ACC = t.dataset.c || ''; store.set('desk-accent', ACC); applyAccent(); return renderAll();
     case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
@@ -1682,6 +1689,8 @@ document.addEventListener('input', e => {
   if (e.target.dataset && e.target.dataset.re && RE) { setRe(e.target.dataset.re, e.target.value); return; }
   const t = e.target;
   if (t.id === 'sq') { SF.q = t.value; saveSF(); renderAll(); return; }
+  if (t.id === 'acc-any') { ACC = t.value; applyAccent(); return; }
+  if (t.id === 'set-q' && VIEW === 'course') { SQ = t.value; go('settings', false); const q = $('set-q'); if (q) { q.focus(); q.setSelectionRange(SQ.length, SQ.length); } return; }
   if (t.id === 'set-q') { SQ = t.value; const p = $('sxpane'); if (p) p.innerHTML = setPaneHtml(); document.querySelectorAll('.sxnav button').forEach(b => b.classList.toggle('on', !SQ.trim() && b.dataset.s === SSEC)); return; }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; return; }
   if (t.dataset.gr === 'name') { GR.name = t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
@@ -1697,6 +1706,7 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
+  if (t.id === 'acc-any') { ACC = t.value; store.set('desk-accent', ACC); applyAccent(); renderAll(); return; }
   if (t.dataset && t.dataset.mo) { MO[t.dataset.mo] = t.checked; store.set('desk-motion', MO); applyMotion(); if (t.dataset.mo === 'all') renderAll(); return; }
   if (t.dataset && t.dataset.dtin !== undefined) {
     const dp = t.parentNode.querySelector('input[type=date]'), y = parseDateText(t.value);
@@ -1921,16 +1931,7 @@ function demoData() {
   if (r && Date.now() - r.t < 60000) { VIEW = r.v; go(VIEW, false); setTimeout(() => { $('main').scrollTop = r.s; }, 0); }
   else go(VIEW);
 })();
-// sidebar pill: follows the hovered item, rests on the current page
-function placePill(el) {
-  const pill = $('navpill'), side = $('side'); if (!pill || !side) return;
-  el = el || side.querySelector('.nav.sub.on') || side.querySelector('.nav.on'); if (!el) { pill.style.height = '0px'; return; }
-  pill.style.transform = `translateY(${el.offsetTop}px)`; pill.style.height = el.offsetHeight + 'px';
-  pill.style.left = el.offsetLeft + 'px'; pill.style.right = 'auto'; pill.style.width = el.offsetWidth + 'px';
-}
-(() => { const side = $('side'); if (!side) return; const pill = document.createElement('div'); pill.className = 'navpill'; pill.id = 'navpill'; side.prepend(pill);
-  side.addEventListener('mouseover', e => { const n = e.target.closest('.nav'); if (n && mo('pill')) placePill(n); });
-  side.addEventListener('mouseleave', () => placePill()); addEventListener('resize', () => placePill()); setTimeout(() => placePill(), 50); })();
+function placePill() {}   // the sidebar pill is gone
 // wheel ring focus: hovering a ring brings it forward
 document.addEventListener('mouseover', e => {
   const sv = e.target.closest && e.target.closest('.wheel svg'); document.querySelectorAll('.wheel svg.rf').forEach(x => { if (x !== sv) x.classList.remove('rf'); });
