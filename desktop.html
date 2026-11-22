@@ -305,6 +305,7 @@
   .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   #v-sheet .grid.b .cell, #v-sheet .grid.b .dtin, #v-sheet .grid.b .chk { scroll-margin-top: 190px; scroll-margin-bottom: 60px; }
   #v-sheet .grid td.gsel { background: color-mix(in srgb, var(--tint) 16%, transparent) !important; box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--tint) 45%, transparent); }
+  .gcard { cursor: pointer; } .gcard:not(.hid) .glist button { cursor: pointer; }
   .tgf[hidden], #toast-grade[hidden] { display: none !important; }
   .tgf { display: flex; align-items: center; gap: 8px; } .tgf #tg-n { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .tgf i { font-style: normal; color: var(--sub); }
   .tgf .txt { width: 64px; height: 30px; padding: 0 8px; text-align: center; font-weight: 600; } .tgf .txt.bad { box-shadow: inset 0 0 0 1.5px var(--red); }
@@ -323,8 +324,8 @@
   html.m-squish :is(.btn, .iconbtn, .fchip, .cchip, .seg button, .link, .chk, .nav, .prow, .delbtn, .chip):active { transform: scale(.94); } html.m-squish .cc:active { transform: scale(.98); }
   html.m-squish .chk { transition: transform .14s var(--ease); }
   html.m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card) { transition: transform .28s var(--ease), box-shadow .28s var(--ease); }
-  html.m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
-  html[data-theme=light].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover, html[data-theme=elegant].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { box-shadow: 0 10px 26px rgba(24,40,40,.14); }
+  html.m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(0,0,0,.16); }
+  html[data-theme=light].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover, html[data-theme=elegant].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { box-shadow: 0 5px 14px rgba(24,40,40,.1); }
   .side { position: relative; } .navpill { position: absolute; left: 12px; right: 12px; top: 0; height: 0; border-radius: 8px; background: var(--fill); opacity: 0; pointer-events: none; z-index: 0;
     transition: transform .38s var(--ease), height .38s var(--ease), opacity .2s; } .side > .nav, .subnav .nav { position: relative; z-index: 1; }
   html.m-pill .navpill { opacity: 1; } html.m-pill .side .nav:hover, html.m-pill .side .nav.on { background: transparent; }
@@ -394,7 +395,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.56 (11/22 2:20pm)';
+const BUILD = 'd1.57 (11/22 2:30pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -473,6 +474,7 @@ function motionRows() {
   return `<div class="row"><span>all motion</span>${sw('all', MO.all)}</div>` + MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(k, MO[k])}</div>`).join('');
 }
 // numbers that tick to their new value: cnt(key, value, decimals) marks the spot; countUp() runs after each render
+const WKP = {};   // each week's last-shown completion, so confetti fires only on the step to 100%
 const CNT = {}; let COUNT0 = false;   // COUNT0: numbers on a page you just opened count up from 0
 function cnt(key, v, dec) { if (v == null || isNaN(v)) return '–'; return `<span class="cnt" data-ck="${esc(key)}" data-cv="${v}" data-cd="${dec}">${fmtN(v, dec)}</span>`; }
 function fmtN(v, dec) { return dec === 2 ? f2(v) : Number(v).toFixed(dec); }
@@ -679,8 +681,7 @@ function deleteAssignment(a) {
 function toggleDone(a) {
   const to = !a.d; a.d = to; if (VIEW === 'sheet') STAY.add(kOf(a)); setOv(a, { d: to }); changed();
   if (to) { const i = data.assignments.indexOf(a); document.querySelectorAll(`[data-i="${i}"] .chk, .chk[data-i="${i}"]`).forEach(c => { c.classList.add('ckpop');
-      if (mo('burst')) { const b = document.createElement('span'); b.className = 'burst'; b.style.setProperty('--c', colorFor(a.c)); c.appendChild(b); setTimeout(() => b.remove(), 650); } });
-    const ws = weekStart(Date.now()); if (a.t >= ws && a.t < addDays(ws, 7) && weekAllDone()) setTimeout(confetti, 250); }
+      if (mo('burst')) { const b = document.createElement('span'); b.className = 'burst'; b.style.setProperty('--c', colorFor(a.c)); c.appendChild(b); setTimeout(() => b.remove(), 650); } }); }
   let undone = false;
   const t = setTimeout(() => { if (undone) return;
     post({ action: to ? 'done' : 'undone', row: a.r, n: a.n, c: a.c }).catch(() => { a.d = !to; setOv(a, { d: !to }); changed(); toast('couldn’t save — try again'); }); }, 2500);
@@ -844,6 +845,7 @@ function chipHtml(a, showDay) {
 function renderDash(v) {
   const A = data.assignments, ws = addDays(weekStart(Date.now()), weekOff * 7), we = addDays(ws, 7), T = today();
   const wk = A.filter(a => a.t >= ws && a.t < we), done = wk.filter(a => a.d).length;
+  { const k = 'w' + ws, now = wk.length ? done / wk.length : 0; if (WKP[k] != null && WKP[k] < 1 && wk.length && now >= 1) setTimeout(confetti, 200); WKP[k] = now; }   // the week's wheel just hit 100%
   const late = A.filter(a => !a.d && a.t < T && !isExtra(a.c)).sort((x, y) => x.t - y.t);
   const rel = weekOff === 0 ? 'this week' : weekOff === -1 ? 'last week' : weekOff === 1 ? 'next week' : weekOff > 0 ? 'in ' + weekOff + ' weeks' : -weekOff + ' weeks ago';
   let days = '';
@@ -999,7 +1001,7 @@ function countdownHtml() {
 }
 function dashGradesHtml() {
   const L = live(); if (!L) return '<div class="card"><div class="ct">grades</div><div class="muted">not connected</div></div>';
-  return `<div class="card"><div class="ct">grades<span class="r"><button class="eyebtn" data-act="eye" aria-label="${showGrades ? 'hide grades' : 'show grades'}">${showGrades ? EYE_OPEN : EYE_SHUT}</button></span></div>
+  return `<div class="card gcard${showGrades ? '' : ' hid'}" data-act="eye-card"><div class="ct">grades<span class="r"><button class="eyebtn" data-act="eye" aria-label="${showGrades ? 'hide grades' : 'show grades'}">${showGrades ? EYE_OPEN : EYE_SHUT}</button></span></div>
     <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${colorFor(c.code)}">${esc(c.code)}</b><span class="nm">${esc(c.name)}</span><span class="g">${c.raw != null ? f2(c.raw) + ' (' + esc(c.letter || '–') + ')' : '–'}</span></button>`).join('')}</div></div>`;
 }
 const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted">· ${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
@@ -1501,7 +1503,8 @@ document.addEventListener('click', e => {
     case 'eye': showGrades = !showGrades; return renderAll();
     case 'cdedit': cdEdit = !cdEdit; return renderAll();
     case 'gpa': showGpa = !showGpa; return renderAll();
-    case 'course': if (VIEW === 'dash' && !showGrades) return; return openCourse(t.dataset.code);
+    case 'course': if (VIEW === 'dash' && !showGrades) { showGrades = true; return renderAll(); } return openCourse(t.dataset.code);
+    case 'eye-card': showGrades = !showGrades; return renderAll();
     case 'close': return closeDrawer();
     case 'pop': return openPop(t.dataset.p, t);
     case 'popdone': return closePop();
