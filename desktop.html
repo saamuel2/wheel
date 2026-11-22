@@ -336,7 +336,7 @@
   html.m-row .grid.b tr.row td { transition: background-color .16s; } html.m-row .grid.b tr.row .delbtn { opacity: 0; transition: opacity .16s, color .14s, background-color .14s; }
   html.m-row .grid.b tr.row:hover .delbtn, html.m-row .grid.b tr.row .delbtn:focus { opacity: 1; }
   html:not(.m-row) .grid tr.row:hover td { background: inherit; }
-  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 200; }
+  .confetti { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 200; }
   .mo-sub { opacity: .45; } 
   .btn, .txt, .seg, .fchip, .cchip { border-radius: var(--r-ctl); } .card, .cc, .pop, .drawer .card { border-radius: var(--r-card); }
   .chk.ckpop { animation: chkpop .38s var(--ease); } @keyframes chkpop { 0% { transform: scale(.72); } 55% { transform: scale(1.15); } 100% { transform: scale(1); } }
@@ -395,7 +395,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.59 (11/22 2:45pm)';
+const BUILD = 'd1.60 (11/22 3:00pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -494,9 +494,11 @@ function confetti() {
   if (!mo('confetti')) return;
   const c = document.createElement('canvas'), d = devicePixelRatio || 1; c.className = 'confetti'; c.width = innerWidth * d; c.height = innerHeight * d; document.body.appendChild(c);
   const x = c.getContext('2d'); x.scale(d, d);
-  const w = document.querySelector('#v-dash .wheel'), r = w ? w.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 3, width: 0, height: 0 };
-  const ox = r.left + r.width / 2, oy = r.top + r.height / 2, cols = courseList().map(k => colorFor(k.code)).concat(['#FFD60A']);
-  const P = Array.from({ length: 110 }, (_, i) => { const a = Math.random() * Math.PI * 2, sp = 4 + Math.random() * 7; return { x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4, s: 4 + Math.random() * 5, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[i % cols.length] }; });
+  // burst out from the rim of the wheel you can see: the dashboard's if it's on screen, otherwise the sidebar's
+  const vis = el => { if (!el) return null; const r = el.getBoundingClientRect(); return r.width > 20 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth ? r : null; };
+  const r = vis(document.querySelector('#v-dash.on .wheel svg')) || vis($('swheel')) || { left: innerWidth / 2 - 60, top: innerHeight / 3 - 60, width: 120, height: 120 };
+  const ox = r.left + r.width / 2, oy = r.top + r.height / 2, rad = Math.min(r.width, r.height) / 2, cols = courseList().map(k => colorFor(k.code)).concat(['#FFD60A']);
+  const P = Array.from({ length: 120 }, (_, i) => { const a = Math.random() * Math.PI * 2, sp = 3 + Math.random() * 6; return { x: ox + Math.cos(a) * rad * .92, y: oy + Math.sin(a) * rad * .92, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 3, s: 4 + Math.random() * 5, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[i % cols.length] }; });
   const t0 = performance.now();
   const step = now => { const t = now - t0; x.clearRect(0, 0, innerWidth, innerHeight); x.globalAlpha = Math.max(0, 1 - Math.max(0, t - 900) / 700);
     P.forEach(p => { p.vy += .22; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); x.restore(); });
