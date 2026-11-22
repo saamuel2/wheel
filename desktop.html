@@ -156,6 +156,12 @@
   .chip { display: flex; gap: 8px; align-items: flex-start; padding: 8px 8px; border-radius: 8px; background: var(--card2); border-left: 3px solid var(--c); transition: opacity .2s; }
   .chip .tx { min-width: 0; flex: 1; } .chip .nm { font-size: 13px; font-weight: 600; line-height: 1.25; overflow-wrap: break-word; }
   .chip .mt { font-size: 11px; color: var(--sub); }
+  .chip[data-act=asg] { cursor: pointer; } .chip[data-act=asg]:hover { background: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { background: var(--fill); }
+  .chip.dragging { opacity: .35; } .day { transition: box-shadow .15s, background-color .15s; } .day.drop { box-shadow: inset 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--tint) 8%, var(--card)); }
+  body.dragon .chip { cursor: grabbing; }
+  .pop.asg { width: 330px; } .aefm .row { height: 40px; } .popset .txt.aenm { display: block; width: calc(100% - 32px); max-width: none; height: 34px; margin: 2px 16px 6px; font-size: 15px; font-weight: 600; }
+  .aefm select.txt, .aefm input[type=date] { width: 150px; } .aesm { width: 64px; text-align: center; } .aeg { display: flex; align-items: center; gap: 6px; } .aeg i { color: var(--sub); font-style: normal; }
+  .aeft { display: flex; justify-content: space-between; padding: 10px 16px 8px; } .aedel { color: var(--red); }
   .chip.done { padding: 4px 8px 4px 4px; opacity: .55; background: transparent; align-items: center; border-left-color: transparent; }
   .chip.done .nm { font-size: 12px; font-weight: 500; text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chip.done .mt { display: none; } .chip.done .chk { width: 14px; height: 14px; }
@@ -316,8 +322,14 @@
   .sxh .stile svg { width: 18px; height: 18px; }
   .sgl { font-size: 12px; font-weight: 600; color: var(--sub); margin: 0 0 6px 4px; } .sgrp { padding: 4px 16px; margin-bottom: 22px; } .sgrp .row { min-height: 40px; } .sgrp .prow { padding-left: 0; padding-right: 0; }
   .sgrp .prow .stile { width: 22px; height: 22px; } .sgrp .grow { flex: 1; } .sxnone { padding: 8px 4px; } .sxact { display: flex; justify-content: flex-end; margin-top: -10px; }
-  .sxsub { padding-left: 42px !important; font-size: 13px !important; } .sxsub i { width: 9px; height: 9px; border-radius: 50%; flex: none; } .sxsub.on { background: var(--fill) !important; color: inherit !important; font-weight: 600; }
+  .sxsub { } .sxsub.on { background: var(--fill) !important; color: inherit !important; font-weight: 600; }
   .sx.wide { grid-template-columns: 240px minmax(0, 1fr); } .rehd2 { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; } .rehd2 .sxh { margin: 0; } .rehd2 .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .scards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .scard { position: relative; display: grid; justify-items: start; gap: 2px; padding: 16px; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; overflow: hidden; transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast); }
+  .scard::before { content: ''; position: absolute; inset: 0 0 auto; height: 3px; background: var(--c); } .scard:hover { box-shadow: inset 0 0 0 1.5px var(--c); }
+  .scard .stile { width: 30px; height: 30px; border-radius: 8px; margin-bottom: 10px; } .scard .stile svg { width: 17px; height: 17px; }
+  .sccode { font-size: 17px; font-weight: 700; color: var(--c); } .scname { font-size: 14px; } .scmeta { font-size: 12px; color: var(--sub); margin-top: 6px; }
+  .scard .chev { position: absolute; right: 14px; top: 20px; color: var(--sub); }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -436,7 +448,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.64 (11/22 4:40pm)';
+const BUILD = 'd1.65 (11/22 4:45pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -884,7 +896,7 @@ function greet() {
 
 function chipHtml(a, showDay) {
   const col = colorFor(a.c), meta = [spaceCode(a.c), a.y, showDay ? dayLabel(a.t) : '', fmtG(a.g)].filter(Boolean).join(' · ');
-  return `<div class="chip${a.d ? ' done' : ''}" style="--c:${col}" data-i="${data.assignments.indexOf(a)}" title="${esc(a.n)}">` +
+  return `<div class="chip${a.d ? ' done' : ''}" style="--c:${col}" data-i="${data.assignments.indexOf(a)}" data-act="asg" draggable="true" title="${esc(a.n)}">` +
     `<button class="chk" data-act="done" aria-label="done">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${esc(meta)}</div></div></div>`;
 }
 
@@ -899,7 +911,7 @@ function renderDash(v) {
   for (let i = 0; i < 7; i++) {
     const d0 = addDays(ws, i), list = wk.filter(a => D0(a.t) === d0).sort((x, y) => (x.d - y.d) || String(x.c).localeCompare(y.c));
     const left = list.filter(a => !a.d).length;
-    days += `<div class="day${d0 === T ? ' today' : d0 < T ? ' past' : ''}"><div class="dh"><span class="dn">${DAYS[new Date(d0).getDay()]}</span><span class="dd">${md(d0)}</span>${list.length ? `<span class="dc">${left ? left + ' left' : 'done'}</span>` : ''}</div>` +
+    days += `<div class="day${d0 === T ? ' today' : d0 < T ? ' past' : ''}" data-day="${d0}"><div class="dh"><span class="dn">${DAYS[new Date(d0).getDay()]}</span><span class="dd">${md(d0)}</span>${list.length ? `<span class="dc">${left ? left + ' left' : 'done'}</span>` : ''}</div>` +
       list.map(a => chipHtml(a)).join('') + '</div>';
   }
   const wn = weekNo(ws);
@@ -1519,7 +1531,11 @@ function setPaneHtml() {
     const cl = calList();
     h = grp('greeting', popBody('greet')) + (cl.length > 1 ? grp('calendars', popBody('cal')) : '') + grp('countdown', popBody('cd')) + grp('variable', popBody('var'));
   } else if (SSEC === 'courses') {
-    h = data && data.setup ? grp('', data.setup.map(x => `<button class="row prow" data-act="rules" data-code="${esc(x.code)}"><i class="cdot" style="background:${colorFor(x.code)}"></i><span class="grow"><b style="color:${colorFor(x.code)}">${esc(spaceCode(x.code))}</b>&nbsp; ${esc(x.cfg ? x.cfg.name : '')}</span><span class="muted">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''}</span><span class="chev">${IC.r}</span></button>`).join('')) : grp('', '<div class="row"><span class="muted">not connected</span></div>');
+    h = data && data.setup ? `<div class="scards">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
+        return `<button class="card scard" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}"><span class="stile" style="background:${col};color:${inkOn(col)}">${sicon('courses')}</span>
+          <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
+          <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}</div>`
+      : grp('', '<div class="row"><span class="muted">not connected</span></div>');
   } else if (SSEC === 'feedback') {
     const ns = notesList();
     h = (ns.length ? grp('open notes', ns.map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')) : '') +
@@ -1541,7 +1557,7 @@ function setSideHtml() {
   return `<label class="sxq">${sicon('search', 14)}<input id="set-q" type="search" autocomplete="off" spellcheck="false" aria-label="search settings" value="${esc(SQ)}"></label>
       <div class="card sxme"><span class="av">${nm ? esc(nm[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(nm || '–')}</b><span>${semLabel()}${cs.length ? ' · ' + cs.length + ' courses' + (cr ? ' · ' + cr + ' cr' : '') : ''}</span></span></div>
       <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${cur(k) ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>` +
-        (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><i style="background:${colorFor(x.code)}"></i><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
+        (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><span class="stile" style="background:${colorFor(x.code)};color:${inkOn(colorFor(x.code))}">${sicon('courses')}</span><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
 }
 function renderSettings(v) {
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && ae.tagName === 'INPUT' && !/checkbox|date|color/.test(ae.type) && v.innerHTML) return;
@@ -1579,12 +1595,15 @@ function openPop(k, from) { POP = k; let w = $('popw'); if (!w) { w = document.c
   renderPop(); w.classList.add('on');
   // sit just under (or above, if there's no room) the row that opened it, right-aligned with it
   const pop = $('pop'), r = from ? from.getBoundingClientRect() : null;
-  if (r) { const W = pop.offsetWidth, H = pop.offsetHeight, below = r.bottom + 6 + H < innerHeight - 12, x = Math.max(12, Math.min(r.right - W, innerWidth - W - 12)), y = below ? r.bottom + 6 : Math.max(12, r.top - 6 - H);
+  if (r && k === 'asg') { const W = pop.offsetWidth, H = pop.offsetHeight, x = r.right + 10 + W < innerWidth - 12 ? r.right + 10 : Math.max(12, r.left - 10 - W), y = Math.max(12, Math.min(r.top - 8, innerHeight - H - 12));
+    pop.style.left = x + 'px'; pop.style.top = y + 'px'; pop.style.setProperty('--ox', '0px'); pop.style.setProperty('--oy', '0'); }
+  else if (r) { const W = pop.offsetWidth, H = pop.offsetHeight, below = r.bottom + 6 + H < innerHeight - 12, x = Math.max(12, Math.min(r.right - W, innerWidth - W - 12)), y = below ? r.bottom + 6 : Math.max(12, r.top - 6 - H);
     pop.style.left = x + 'px'; pop.style.top = y + 'px'; pop.style.setProperty('--ox', (r.right - x - 24) + 'px'); pop.style.setProperty('--oy', below ? '0' : '100%'); }
   else { pop.style.left = (innerWidth - pop.offsetWidth) / 2 + 'px'; pop.style.top = '18vh'; }
   pop.style.animation = 'none'; void pop.offsetWidth; pop.style.animation = ''; }
 function closePop() { POP = null; const w = $('popw'); if (w) w.classList.remove('on'); renderAll(); }
 function popBody(k) {
+  if (k === 'asg') return asgBody();
   const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
   return k === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
       <div class="row"><span>name</span><input class="txt" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div>`
@@ -1594,9 +1613,23 @@ function popBody(k) {
       (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
       (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
 }
+// assignment editor (dashboard): every field saves as you change it, same as the sheet
+let AEA = null;
+function asgCur() { const A = (data && data.assignments) || []; if (AEA && A.includes(AEA)) return AEA; const x = AEA && A.find(y => y.r === AEA.r); if (x) AEA = x; return x || null; }
+function asgBody() {
+  const a = asgCur(); if (!a) return '<div class="row"><span class="muted">–</span></div>';
+  const cs = courseList().map(c => c.code).concat(EXTRA);
+  return `<div class="aefm"><input class="txt aenm" data-ae="n" maxlength="120" autocomplete="off" spellcheck="false" value="${esc(a.n)}" aria-label="name">
+    <div class="row"><span>class</span><select class="txt" data-ae="c" style="color:${colorFor(a.c)};font-weight:700">${classOptions(a.c)}</select></div>
+    <div class="row"><span>type</span><input class="txt aesm" data-ae="y" maxlength="8" autocomplete="off" value="${esc(a.y || '')}" style="text-transform:uppercase"></div>
+    <div class="row"><span>due</span><input class="txt" type="date" data-ae="t" value="${a.t ? ymd(a.t) : ''}"></div>
+    <div class="row"><span>grade</span><span class="aeg"><input class="txt aesm" data-ae="g" autocomplete="off" value="${esc(a.gf || (a.g == null ? '' : String(a.g)))}" aria-label="grade"><i>/</i><input class="txt aesm" data-ae="o" autocomplete="off" value="${a.o == null ? '' : esc(String(a.o))}" aria-label="out of"></span></div>
+    <div class="row"><span>done</span><label class="sw"><input type="checkbox" data-ae="d"${a.d ? ' checked' : ''}><i></i></label></div>
+    <div class="aeft"><button class="btn aedel" data-act="ae-del">delete</button><button class="btn tint" data-act="popdone">done</button></div></div>`;
+}
 function renderPop() {
-  const box = $('pop'); if (!box || !POP) return; const body = popBody(POP);
-  box.innerHTML = `<div class="pophd"><span>${({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable' })[POP]}</span><button class="link" data-act="popdone">done</button></div><div class="set popset">${body}</div>`;
+  const box = $('pop'); if (!box || !POP) return; box.classList.toggle('asg', POP === 'asg'); const body = popBody(POP);
+  box.innerHTML = `<div class="pophd"><span>${(POP === 'asg' ? (a => a ? `<b style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}</b>` : '')(asgCur()) : ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable' })[POP])}</span>${POP === 'asg' ? '' : '<button class="link" data-act="popdone">done</button>'}</div><div class="set popset">${body}</div>`;
 }
 // ===================== events =====================
 function startAdd(after) {
@@ -1625,6 +1658,8 @@ document.addEventListener('click', e => {
     case 'close': return closeDrawer();
     case 'pop': return openPop(t.dataset.p, t);
     case 'popdone': return closePop();
+    case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; return openPop('asg', t); }
+    case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
     case 'setsec': SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
     case 'accent': ACC = t.dataset.c || ''; store.set('desk-accent', ACC); applyAccent(); return renderAll();
@@ -1716,6 +1751,10 @@ document.addEventListener('change', e => {
     t.value = dayLabel(fromYmd(y)); return;
   }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.value = t.value ? dayLabel(fromYmd(t.value)) : ''; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
+  if (t.dataset.ae) { const a = asgCur(); if (!a) return; const f = t.dataset.ae;
+    if (f === 'd') { if (!!a.d !== t.checked) toggleDone(a); }
+    else saveCell(a, f, t.value, t);
+    if (f === 'c' || f === 'd' || f === 't') renderPop(); return; }
   if (t.dataset.cal && t.type === 'checkbox') { toggleCal(t.dataset.cal); return; }
   if (t.dataset.cd) { CD[t.dataset.cd] = t.value; saveCD(); renderAll(); if (POP === 'cd') renderPop(); return; }
   if (t.dataset.slot) { SLOT = t.value; store.set('desk-slot', SLOT); slotEdit = false; renderAll(); return; }
@@ -1861,6 +1900,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && t.dataset && t.dataset.dtin !== undefined) { e.preventDefault(); const dr = t.closest('tr.draft'); t.blur(); if (dr) setTimeout(() => saveDraft(+dr.dataset.draftRow), 0); return; }
   if (e.key === 'Enter' && t.dataset && t.dataset.draft) { e.preventDefault(); saveDraft(+t.dataset.draft); return; }
   if (e.key === 'Enter' && (t.id === 'td-new' || t.id === 'td-due')) { e.preventDefault(); addTodo(); return; }
+  if (e.key === 'Enter' && t.dataset && t.dataset.ae) { e.preventDefault(); t.blur(); return; }
   if (e.key === 'Enter' && t.id === 'note-in') { e.preventDefault(); addNote(); return; }
   if (e.key === 'Enter' && t.classList && t.classList.contains('cell') && t.closest('tr.row')) { e.preventDefault(); t.blur(); return; }
   // ctrl/cmd+z (shift for redo) undoes the last change anywhere: a cell, a grade, a check-off
@@ -1932,6 +1972,15 @@ function demoData() {
   else go(VIEW);
 })();
 function placePill() {}   // the sidebar pill is gone
+// dashboard: drag an assignment onto another day to move its due date
+let DRAGGED = null;
+document.addEventListener('dragstart', e => { const c = e.target.closest && e.target.closest('.chip[data-i]'); if (!c) return; DRAGGED = byIdx(c.dataset.i); if (!DRAGGED) return;
+  e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', DRAGGED.n); } catch (x) {} setTimeout(() => c.classList.add('dragging'), 0); document.body.classList.add('dragon'); });
+document.addEventListener('dragover', e => { if (!DRAGGED) return; const d = e.target.closest && e.target.closest('.day[data-day]'); document.querySelectorAll('.day.drop').forEach(x => { if (x !== d) x.classList.remove('drop'); });
+  if (!d) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; d.classList.add('drop'); });
+document.addEventListener('drop', e => { const d = e.target.closest && e.target.closest('.day[data-day]'), a = DRAGGED; if (!d || !a) return; e.preventDefault();
+  const to = +d.dataset.day; if (D0(a.t) !== to) { const c = document.querySelector(`.chip[data-i="${data.assignments.indexOf(a)}"]`) || document.createElement('i'); saveCell(a, 't', ymd(to), c); } });
+document.addEventListener('dragend', () => { document.querySelectorAll('.day.drop, .chip.dragging').forEach(x => x.classList.remove('drop', 'dragging')); document.body.classList.remove('dragon'); setTimeout(() => { DRAGGED = null; }, 0); });
 // wheel ring focus: hovering a ring brings it forward
 document.addEventListener('mouseover', e => {
   const sv = e.target.closest && e.target.closest('.wheel svg'); document.querySelectorAll('.wheel svg.rf').forEach(x => { if (x !== sv) x.classList.remove('rf'); });
