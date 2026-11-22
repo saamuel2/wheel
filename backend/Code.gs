@@ -8,13 +8,37 @@
  */
 
 // ====== SETTINGS ======
-var SHEET_ID   = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
+var SHEET_ID   = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';   // fall 2026: used only when the home sheet can't be read
+var HOME_ID    = '19dC2hjuPzw-USwoIIA39WP76OMFTIDdsoyB9ACfRLpA';   // "assignments home": Semesters (every term) + GPA (finished courses)
 var CAL_ID     = 'sjstrimp@ncsu.edu';      // your main calendar (always included)
 // "next up" shows every calendar that's checked in Google Calendar's sidebar. To limit it, add a script property
 // CALENDARS with the calendar names to include, separated by commas.
 var TZ         = 'America/New_York';
 var EVENT_DAYS = 30;                       // how far ahead the calendar list looks
 // ======================
+
+// ---------- semesters (home sheet → Semesters: id · name · sheet id · first day · last day of classes · last exam day · status · gpa term) ----------
+function ymdOut_(v) { if (v instanceof Date) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd'); var s = str_(v); return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : ''; }
+function readTerms_() {
+  var cache = CacheService.getScriptCache(), hit = cache.get('terms_v1'); if (hit) return JSON.parse(hit);
+  var sh = SpreadsheetApp.openById(HOME_ID).getSheetByName('Semesters'), last = sh ? sh.getLastRow() : 0, out = [];
+  if (last >= 2) sh.getRange(2, 1, last - 1, 8).getValues().forEach(function (r) {
+    var id = str_(r[0]); if (!id) return;
+    out.push({ id: id, name: str_(r[1]) || id, sheet: str_(r[2]), start: ymdOut_(r[3]), ldoc: ymdOut_(r[4]), exams: ymdOut_(r[5]), status: str_(r[6]).toLowerCase(), gpaTerm: str_(r[7]) });
+  });
+  try { cache.put('terms_v1', JSON.stringify(out), 120); } catch (x) {}
+  return out;
+}
+// the term a request asks for (?term=f26), else the one marked current; terms without a sheet are history only
+function pickTerm_(id) {
+  var list = []; try { list = readTerms_(); } catch (err) { list = []; }
+  var t = null;
+  for (var i = 0; i < list.length; i++) if (id && list[i].id === id) t = list[i];
+  if (!t) for (var j = 0; j < list.length; j++) if (list[j].status === 'current') t = list[j];
+  if (!t) t = { id: '', name: '', sheet: SHEET_ID, status: 'current' };
+  return { list: list, term: t };
+}
+function termSheet_(t) { return SpreadsheetApp.openById(t.sheet || SHEET_ID); }
 
 function token_() { return PropertiesService.getScriptProperties().getProperty('TOKEN') || ''; }
 
@@ -48,7 +72,14 @@ function doGet(e) {
     return ContentService.createTextOutput(txt).setMimeType(ContentService.MimeType.JSON);
   }
   if (p.w) return write_(function () { return JSON.parse(p.w); });
-  var ss = SpreadsheetApp.openById(SHEET_ID), res = { v: 3 }, errors = {};
+  var pk = pickTerm_(p.term), res = { v: 3, terms: pk.list, term: pk.term.id }, errors = {};
+  if (pk.term.id && !pk.term.sheet) {   // a finished term kept only as GPA history: the report card comes from that
+    res.assignments = []; res.courses = []; res.historyOnly = true;
+    try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
+    try { res.todo = readTodo_(); } catch (err) { errors.todo = String(err); }
+    res.errors = errors; return out_(res);
+  }
+  var ss = termSheet_(pk.term);
   try { closeWeeks_(ss); } catch (err) { errors.weeks_close = String(err); }
   try { res.assignments = readAssignments_(ss); } catch (err) { return out_({ error: 'assignments: ' + err }); }
   try { res.courses = readCourseList_(ss); } catch (err) { res.courses = []; errors.courses = String(err); }
@@ -73,7 +104,9 @@ function write_(parse) {
     lock.waitLock(20000);
     var b = parse();
     if (!token_() || b.token !== token_()) return out_({ ok: false, error: 'bad token' });
-    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var tk = pickTerm_(b.term).term;
+    if (tk.id && !tk.sheet) return out_({ ok: false, error: 'this term has no sheet' });
+    var ss = termSheet_(tk);
     switch (b.action) {
       case 'done':   return out_(setDone_(ss, b, true));
       case 'undone': return out_(setDone_(ss, b, false));
@@ -389,8 +422,10 @@ function claudeAsk_(ss, b) {
 
 // ---------- GPA Tracker (finished terms, for "overall gpa"): GPA tab A Code · B Course · C Term · D Hours · E Grade · F Letter · G GPA ----------
 var GPA_TRACKER_ID = '17P2OQ84GTFRNtUm-UXUHRPWTA69SyYUkgVlFPdyA6Kc';
-function readGpaHistory_() {
-  var sh = SpreadsheetApp.openById(GPA_TRACKER_ID).getSheetByName('GPA'), last = sh.getLastRow(), out = [];
+function readGpaHistory_() {   // the home sheet's GPA tab (copied from the GPA Tracker 11/22/2026); the tracker is the fallback
+  var sh = null; try { sh = SpreadsheetApp.openById(HOME_ID).getSheetByName('GPA'); } catch (err) { sh = null; }
+  if (!sh) sh = SpreadsheetApp.openById(GPA_TRACKER_ID).getSheetByName('GPA');
+  var last = sh.getLastRow(), out = [];
   if (last < 2) return out;
   sh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {
     var code = str_(r[0]); if (!code || str_(r[2]) === '') return;

@@ -440,6 +440,9 @@
   html[data-theme=elegant] .nav-indicator { background: rgba(24,60,64,.1) !important; box-shadow: none !important; }
   html[data-theme=elegant] .nav-item { color: #183C40 !important; } html[data-theme=elegant] .nav-item.active { color: #2F6B4A !important; }
   html[data-theme=moody] .nav-bar { background: rgba(38,38,38,.22) !important; } html[data-theme=moody] .nav-item { color: #E6DCC8 !important; } html[data-theme=moody] .nav-item.active { color: #B2C894 !important; }
+  .termpill { position: fixed; top: max(8px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 1200; display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 18px; font-size: 13px; color: var(--sub);
+    background: color-mix(in srgb, var(--card) 88%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 4px 16px rgba(0,0,0,.18); white-space: nowrap; }
+  .termpill[hidden] { display: none; } .termpill b { color: var(--text); } .termpill button { border: 0; border-radius: 12px; padding: 4px 10px; background: var(--fill); color: var(--text); font: inherit; font-weight: 600; }
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
@@ -447,6 +450,7 @@
 <script src="changelog.js"></script>
 </head>
 <body>
+<div id="termpill" class="termpill" hidden></div>
 
   <div class="content" id="scroll-container">
     <!-- DASHBOARD VIEW -->
@@ -571,7 +575,7 @@
     let appData = null;
     const VOPTS = [['weather', 'weather'], ['budget', 'food budget'], ['completion', 'completion']];
     let SLOT2 = 'weather'; try { const v = localStorage.getItem('wheel-slot'); if (VOPTS.some(o => o[0] === v)) SLOT2 = v; } catch (e) {}   // the "variable" tile: weather, food budget or completion
-    let WPOP = null;
+    let WPOP = null, REPID = null;
     let weekOffset = 0;
     
     // Core parameters for SVG Drawing
@@ -693,7 +697,7 @@
       if (fetchP && Date.now() - fetchT0 < 25000) return fetchP;   // a request cut off when the phone slept never answers: start over after 25 s
       const me = fetchT0 = Date.now(); fetching = true;
       const ctl = typeof AbortController === 'function' ? new AbortController() : null; setTimeout(() => { if (ctl) ctl.abort(); }, 20000);
-      return fetchP = fetch(`${API}?token=${encodeURIComponent(TOKEN)}&_=${me}`, { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      return fetchP = fetch(`${API}?token=${encodeURIComponent(TOKEN)}${TERM ? '&term=' + encodeURIComponent(TERM) : ''}&_=${me}`, { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
         .then(res => res.json())
         .then(data => {
           if (me !== fetchT0) return; fetching = false; fetchP = null; const asap = fetchNow; fetchNow = false;
@@ -800,9 +804,11 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.69 (11/22 5:05pm)';
+    const BUILD = 'm2.70 (11/22 5:40pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
-    const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
+    let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
+    const termQ = () => (appData && appData.term) || TERM;
+    let SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
     const $ = id => document.getElementById(id);
     const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
@@ -821,12 +827,25 @@
         courses: ['bch351 biochem','bio240 anat+phys','bsc494 teaching','gn427 bioinformatics','gn521 molgen','pb421 plant phys','phi325 bioethics','e115 computing'],
         grades: GRADES,
         attendance: ATT.map(a => ({ code: a[0], rule: a[1], dates: a[2].map(toMs) })),
+        terms: [{ id: 'f25', name: 'fall 2025', sheet: '', status: 'finished', gpaTerm: 'F25' }, { id: 's26', name: 'spring 2026', sheet: '', status: 'finished', gpaTerm: 'S26' }, { id: 'f26', name: 'fall 2026', sheet: 'demo', status: 'current', gpaTerm: 'F26' }], term: 'f26',
+        history: [['CH 101', 'general chem i', 'F25', 4, 'A'], ['MA 141', 'calculus i', 'F25', 4, 'A-'], ['ENG 101', 'academic writing', 'F25', 4, 'A+'], ['CH 102', 'general chem ii', 'S26', 4, 'A'], ['MA 242', 'calculus ii', 'S26', 4, 'B+']].map(r => ({ code: r[0], name: r[1], term: r[2], hours: r[3], letter: r[4], gp: { 'A+': 4.333, A: 4, 'A-': 3.667, 'B+': 3.333 }[r[4]] })),
         assignments: SNAP.map(x => { const p = x[1].split('-'); return { r: x[0], n: x[2], c: x[3], y: x[4], t: new Date(p[0], p[1] - 1, p[2]).getTime(), d: !!x[5], g: x[6] }; })
       };
     }
     let wheelDone = false, wxLoaded = false;
+    function termsOf() { return (appData && appData.terms) || []; }
+    function termNow() { return termsOf().find(t => t.id === (appData && appData.term)) || null; }
+    function termCur() { return termsOf().find(t => t.status === 'current') || null; }
+    function termPill() { const el = $('termpill'); if (!el) return; const t = termNow(), c = termCur(), on = !!(t && c && t.id !== c.id); el.hidden = !on; if (on) el.innerHTML = `viewing <b>${esc(t.name)}</b><button id="term-back">back</button>`; }
+    function switchTerm(id) { const c = termCur(); TERM = c && c.id === id ? '' : id; try { localStorage.setItem('wheel-term', TERM); } catch (e) {}
+      if (DEMO) { appData.term = id; synced(); return; } fetchData(false, true); }
+    function termReport(t) {
+      const key = (t.gpaTerm || t.id).toUpperCase(), rows = ((appData && appData.history) || []).filter(h => String(h.term).toUpperCase() === key);
+      const g = rows.filter(r => r.hours > 0 && r.gp != null && r.gp !== ''), hrs = g.reduce((a, r) => a + r.hours, 0), pts = g.reduce((a, r) => a + r.gp * r.hours, 0);
+      return { rows, gpa: hrs ? pts / hrs : null, total: rows.reduce((a, r) => a + (r.hours > 0 ? r.hours : 0), 0) };
+    }
     function synced() {
-      lastSync = new Date(); setGreeting();
+      lastSync = new Date(); setGreeting(); try { const t = termNow(); if (t && t.start) { const p = t.start.split('-'), d = new Date(+p[0], p[1] - 1, +p[2]); d.setDate(d.getDate() - d.getDay()); SEM_START = d.getTime(); } termPill(); } catch (e) {}
       if (DEMO) { if (!WX) setDemoWx(wxi); EV = EV || demoEvents(); }
       else { if (appData.events) EV = appData.events; if (!wxLoaded) { wxLoaded = true; loadWx(); } }
       drawWheel(!wheelDone && !RESUME); wheelDone = true; syncIss();
@@ -882,7 +901,7 @@
       if (same(prev, g)) { show(prev); return; }
       const k = kOf(a); a.g = g; gradeHold.add(k); setOv(k, snapOf(a), { g: g }); localGrades(appData); saveCache(); show(g); renderGrades(); try { renderDash(); } catch (e) {}
       if (DEMO) return;
-      post({ token: TOKEN, action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g } })
+      post({ token: TOKEN, term: termQ(), action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g } })
         .catch(() => { a.g = prev; setOv(k, snapOf(a), { g: prev }); localGrades(appData); saveCache(); renderGrades(); if (input.isConnected) show(prev);
           showFail('couldn’t save', () => { const cur = (appData.assignments || []).find(x => kOf(x) === k); if (!cur) return;
             const live = Array.from(document.querySelectorAll('.gr-row')).find(r => r.dataset.r === String(cur.r) && r.dataset.n === cur.n && r.dataset.c === cur.c);
@@ -951,7 +970,7 @@
       if (same(prev.g, g) && same(prev.o, o)) return;
       a.g = g; a.o = o; gradeHold.add(k); setOv(k, snapOf(a), { g: g, o: o }); localGrades(appData); saveCache(); renderGrades(); renderTasks(); try { renderDash(); } catch (e) {}
       if (DEMO) return;
-      post({ token: TOKEN, action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g, outOf: o == null ? '' : o } })
+      post({ token: TOKEN, term: termQ(), action: 'edit', row: a.r, match: { n: a.n, c: a.c }, fields: { grade: g, outOf: o == null ? '' : o } })
         .catch(() => { a.g = prev.g; a.o = prev.o; setOv(k, snapOf(a), { g: prev.g, o: prev.o }); localGrades(appData); saveCache(); renderGrades(); renderTasks(); showUndo('couldn’t save the grade', false); setTimeout(hideUndo, 2600); });
     }
     function release() { hold = false; renderTasks(); renderDash(); }
@@ -977,7 +996,7 @@
       if (pending) commit(pending);
       DEL[k] = Date.now() + 90000; delete OV[k]; gradeHold.delete(k); appData.assignments.splice(i, 1); localGrades(appData); saveCache(); drawWheel(false); renderTasks(); renderGrades(); try { renderDash(); } catch (e) {}
       if (DEMO) return;
-      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'delete', row: a.r, match: { n: a.n, c: a.c } }) })
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, term: termQ(), action: 'delete', row: a.r, match: { n: a.n, c: a.c } }) })
         .then(r => r.json()).then(j => { if (!j || !j.ok) throw new Error('x'); setTimeout(() => fetchData(true), 1500); })
         .catch(() => { delete DEL[k]; appData.assignments.splice(Math.min(i, appData.assignments.length), 0, a); localGrades(appData); saveCache(); drawWheel(false); renderTasks(); renderGrades(); showUndo('couldn’t delete — try again', false); setTimeout(hideUndo, 3000); });
     }
@@ -1005,7 +1024,7 @@
       clearTimeout(p.timer);
       if (pending === p) { pending = null; hideUndo(); }
       if (DEMO) return;
-      post({ token: TOKEN, action: p.to ? 'done' : 'undone', row: p.a.r, n: p.a.n, c: p.a.c })
+      post({ token: TOKEN, term: termQ(), action: p.to ? 'done' : 'undone', row: p.a.r, n: p.a.n, c: p.a.c })
         .catch(() => { const cur = appData.assignments.find(x => kOf(x) === kOf(p.a)) || p.a; cur.d = !p.to; setOv(kOf(cur), snapOf(cur), { d: !p.to }); saveCache(); release(); drawWheel(false);
           showFail('couldn’t save', () => { const c2 = appData.assignments.find(x => kOf(x) === kOf(cur)); if (!c2) return;
             c2.d = p.to; setOv(kOf(c2), snapOf(c2), { d: p.to }); saveCache(); release(); drawWheel(false); commit({ a: c2, to: p.to }); }); });
@@ -1154,7 +1173,8 @@
         '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in"  autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
       const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ${IC.r}</span></button>`).join('') + '</div>' : '';
-      $('settings-card').innerHTML = th + cs + wg + iss + '<div class="grp">app info</div><div class="group">' + ((window.CHANGES || []).length ? prow('what’s new', window.CHANGES[0][0], 'new') : '') + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
+      const T = termsOf(), sem = T.length ? '<div class="grp">semesters</div><div class="group">' + T.slice().reverse().map(t => `<button class="lrow" data-term="${esc(t.id)}" style="color:var(--text)">${esc(t.name)}<span class="tg" style="margin-left:auto">${t.status === 'current' ? 'current' : t.status === 'finished' ? 'finished' : ''}${t.id === (appData && appData.term) ? ' ' + TICK : !t.sheet ? ' ' + IC.r : ''}</span></button>`).join('') + '</div>' : '';
+      $('settings-card').innerHTML = th + cs + sem + wg + iss + '<div class="grp">app info</div><div class="group">' + ((window.CHANGES || []).length ? prow('what’s new', window.CHANGES[0][0], 'new') : '') + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
         (DEMO ? '' : '<div class="task srow iss-row"><span style="flex:none;margin-right:12px">connection key</span><input class="sin iss-in" id="key-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc; text-align: right" value="' + esc(TOKEN) + '"><button class="iss-add" id="key-save">save</button></div>') +
         '</div>';
@@ -1175,6 +1195,7 @@
       if (e.target.closest('#iss-copy')) { const txt = ISS.map(i => '• ' + i.x).join('\n'); try { navigator.clipboard.writeText(txt); } catch (x) {} const b = $('iss-copy'); b.textContent = 'copied'; setTimeout(() => { if (b.isConnected) b.textContent = 'copy list'; }, 1200); }
     });
     $('settings-card').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'iss-in') { e.preventDefault(); addIss(); } });
+    $('settings-card').addEventListener('click', e => { const tb = e.target.closest('[data-term]'); if (tb) { const t = termsOf().find(x => x.id === tb.dataset.term); if (t && !t.sheet) { REPID = t.id; openWpop('rep'); } else if (t && t.id !== (appData && appData.term)) switchTerm(t.id); return; } });
     $('settings-card').addEventListener('click', e => { const b = e.target.closest('[data-theme-set]'); if (b) applyTheme(b.dataset.themeSet); const r = e.target.closest('[data-rules]'); if (r) openRules(r.dataset.rules); const w = e.target.closest('[data-wpop]'); if (w) openWpop(w.dataset.wpop); });
     $('settings-card').addEventListener('change', e => { if (e.target.dataset && e.target.dataset.slot2) setSlot2(e.target.checked ? 'budget' : 'weather'); });
 
@@ -1194,6 +1215,9 @@
     function renderWpop() {
       const row = (k, inner) => `<div class="task srow"><span>${k}</span>${inner}</div>`, opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
       $('w-title').textContent = ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', slot: 'variable', new: 'what’s new' })[WPOP] || '';
+      if (WPOP === 'rep') { const t = termsOf().find(x => x.id === REPID); $('w-title').textContent = t ? t.name : ''; if (!t) return; const R = termReport(t);
+        $('w-body').innerHTML = `<div class="group">${[['term gpa', R.gpa != null ? R.gpa.toFixed(3) : '–'], ['credits', R.total || '–'], ['courses', R.rows.length || '–']].map(([k, v]) => `<div class="task srow"><span>${k}</span><span class="tg" style="color:var(--text);font-weight:700">${v}</span></div>`).join('')}</div>` +
+          (R.rows.length ? '<div class="grp">courses</div><div class="group">' + R.rows.map(r => `<div class="task srow"><span><b style="color:${colorFor(r.code)};margin-right:8px">${esc(String(r.code).replace(/\s+/g, '').toLowerCase())}</b>${esc(r.name || '')}</span><span class="tg" style="color:var(--text);font-weight:700">${esc(r.letter || '–')}</span></div>`).join('') + '</div>' : ''); return; }
       if (WPOP === 'new') { $('w-body').innerHTML = (window.CHANGES || []).map(([d, xs]) => `<div class="grp">${esc(d)}</div><div class="group">` + xs.map(x => `<div class="task srow"><span style="white-space:normal">${esc(x)}</span></div>`).join('') + '</div>').join(''); return; }
       $('w-body').innerHTML = '<div class="group">' + (WPOP === 'greet' ? row('randomize', `<label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label>`) + row('name', `<input class="sin" type="text" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}">`)
         : WPOP === 'cal' ? calList().map(c => row(`<span style="display:flex;align-items:center"><i class="ci" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span>`, `<label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label>`)).join('')
@@ -1203,6 +1227,7 @@
           (CD.mode === 'custom' ? row('title', `<input class="sin" type="text" data-cd="title" maxlength="40" value="${esc(CD.title)}">`) + row('date', `<input class="sin" type="date" data-cd="date" value="${esc(CD.date)}">`) : '')) + '</div>';
     }
     $('w-done').addEventListener('click', closeWpop);
+    document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#term-back')) { const c = termCur(); if (c) switchTerm(c.id); } });
     $('w-body').addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (b) { setSlot2(b.dataset.pick); setTimeout(closeWpop, 180); } });
     $('w-body').addEventListener('change', e => {
       const t = e.target, d = t.dataset || {};
@@ -1314,7 +1339,7 @@
     $('r-cancel').addEventListener('click', closeRules);
     $('r-save').addEventListener('click', () => {
       if (!RE || RE.saving) return; const R = RE, st = reState(); R.saving = true; R.err = ''; rulesPreview();
-      const body = { token: TOKEN, action: 'course_save', code: R.code, cfg: st.cfg, head: st.head, cats: st.cats };
+      const body = { token: TOKEN, term: termQ(), action: 'course_save', code: R.code, cfg: st.cfg, head: st.head, cats: st.cats };
       const done = () => { const x = (appData.setup || []).find(y => y.code === R.code);
         if (x) { x.head = st.head; x.cats = st.cats; if (x.cfg) { x.cfg.name = R.cfg.name; x.cfg.credits = R.cfg.credits; } }
         if (RE === R) closeRules(); renderSettings(); showUndo('saved ' + R.code, false); setTimeout(hideUndo, 2600); if (!DEMO) fetchData(true); };
@@ -1463,7 +1488,7 @@
     const saveISS = () => { try { localStorage.setItem('wheel-issues', JSON.stringify(ISS)); } catch (e) {} };
     function syncIss() {
       if (DEMO) return;
-      ISS.filter(i => !i.s && !i.p).forEach(i => { i.p = 1; fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'note_add', text: i.x, ts: i.t }) })
+      ISS.filter(i => !i.s && !i.p).forEach(i => { i.p = 1; fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, term: termQ(), action: 'note_add', text: i.x, ts: i.t }) })
         .then(r => r.json()).then(j => { i.p = 0; if (j && j.ok) { i.s = 1; saveISS(); } }).catch(() => { i.p = 0; }); });
     }
     // the list is shared with the desktop through the sheet's Notes tab: server notes + any not sent yet; removing one resolves it there
@@ -1485,7 +1510,7 @@
     }
     function askClaude(cancel) {
       appData.claude = Object.assign({}, appData.claude, { asked: cancel ? null : Date.now() }); renderSettings(); if (DEMO) return;
-      const body = { token: TOKEN, action: 'claude_ask', cancel: !!cancel };
+      const body = { token: TOKEN, term: termQ(), action: 'claude_ask', cancel: !!cancel };
       fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(body) }).then(r => r.json())
         .catch(err => { if (err && err.name === 'SyntaxError') throw err; return fetch(API + '?token=' + encodeURIComponent(TOKEN) + '&w=' + encodeURIComponent(JSON.stringify(body))).then(r => r.json()); })
         .then(j => { if (!j || !j.ok) throw 0; appData.claude = j.claude; renderSettings(); })
@@ -1494,7 +1519,7 @@
     const dayShort = ms => new Date(ms).toLocaleDateString([], { weekday: 'short' }).toLowerCase();
     function resolveIss(it) {
       ISSRM.push(issKey(it)); saveRM(); if (DEMO) return;
-      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, action: 'note_done', text: it.x, ts: it.t }) }).catch(() => {});
+      fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify({ token: TOKEN, term: termQ(), action: 'note_done', text: it.x, ts: it.t }) }).catch(() => {});
     }
     const GR = { rand: false, name: 'sam' };
     try { Object.assign(GR, JSON.parse(localStorage.getItem('wheel-greet') || '{}')); } catch (e) {}
@@ -1584,7 +1609,7 @@
       renderTasks(); renderDash(); drawWheel(false);
       showUndo(a ? 'saved' : 'added', false); setTimeout(hideUndo, 1800);
       if (DEMO) return;
-      const body = { token: TOKEN, action: a ? 'edit' : 'add', row: a ? snap.r : null, match: snap ? { n: snap.n, c: snap.c } : null,
+      const body = { token: TOKEN, term: termQ(), action: a ? 'edit' : 'add', row: a ? snap.r : null, match: snap ? { n: snap.n, c: snap.c } : null,
         fields: { done: vals.d, due: due, name: vals.n, className: vals.c, type: vals.y, grade: gn == null ? '' : gn } };
       // a retry tells the sheet to look for its own earlier try first (renamed row / already-added row), so nothing lands twice
       post(body, Object.assign({}, body, a ? { alt: { n: vals.n, c: vals.c } } : { retry: true }))
@@ -1644,7 +1669,7 @@
     }
     function postAbs(op, code, ds) {
       if (DEMO) return Promise.resolve();
-      return post({ token: TOKEN, action: op === 'add' ? 'absence_add' : 'absence_remove', className: code, date: ds });
+      return post({ token: TOKEN, term: termQ(), action: op === 'add' ? 'absence_add' : 'absence_remove', className: code, date: ds });
     }
     const csOpen = () => $('csheet').classList.contains('show') && $('c-title').textContent.indexOf(attCode) === 0 && attCode;
     function failAbs(fn, retry) { fn(); renderAtt(); showFail('couldn’t save', retry); }

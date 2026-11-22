@@ -334,6 +334,11 @@
   .sxpane .txt { height: 30px; padding: 0 10px; font-size: 13px; border-radius: 7px; } .sxpane select.txt { padding-right: 28px; } .sxq { height: 30px; }
   .sgrp .prow + .row { border-top: .5px solid var(--sep); }
   .popset .nwd { font-size: 12px; font-weight: 600; color: var(--sub); padding: 10px 16px 2px; } .popset .row.nwx { height: auto; min-height: 30px; padding-top: 5px; padding-bottom: 5px; } .popset .nwx span { white-space: normal; line-height: 1.3; }
+  .termbar { position: sticky; top: -32px; margin: -32px -32px 20px; padding: 10px 32px; z-index: 6; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--sub);
+    background: color-mix(in srgb, var(--tint) 12%, var(--bg)); border-bottom: .5px solid var(--sep); } .termbar b { color: var(--text); } .termbar .btn { margin-left: auto; }
+  .rcard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; } .rstat { padding: 14px 16px; display: grid; gap: 4px; } .rstat span { font-size: 12px; color: var(--sub); font-weight: 600; } .rstat b { font-size: 26px; font-weight: 700; }
+  html[data-theme=elegant] .rstat b, html[data-theme=moody] .rstat b { font-family: var(--serif); font-weight: 500; }
+  .rcode { min-width: 72px; } .rlet { min-width: 28px; text-align: right; } .rehd2 .iconbtn { flex: none; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -435,6 +440,7 @@
 
   <div id="ptr"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></div>
   <main id="main">
+    <div id="termbar" class="termbar" hidden></div>
     <section class="view" id="v-dash"></section>
     <section class="view" id="v-sheet"></section>
     <section class="view" id="v-grades"></section>
@@ -453,7 +459,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.67 (11/22 5:05pm)';
+const BUILD = 'd1.68 (11/22 5:40pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -461,6 +467,7 @@ const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.ho
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 let KEY = store.get('wheel-token', '');
+let TERM = store.get('desk-term', '');   // the semester you picked ('' = whichever is current)
 let SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1, same as the phone (classes began Wed Aug 19, 2026)
 
 // ===================== helpers =====================
@@ -589,7 +596,7 @@ function load(silent) {
   if (fetching && Date.now() - fetchT0 < 25000) return Promise.resolve();   // a request cut off by sleep never answers: give up on it after 25 s
   const me = fetchT0 = Date.now(); fetching = true; gear();
   const ctl = typeof AbortController === 'function' ? new AbortController() : null; setTimeout(() => { if (ctl) ctl.abort(); }, 20000);
-  return fetch(API + '?token=' + encodeURIComponent(KEY) + '&_=' + me, { cache: 'no-store', signal: ctl ? ctl.signal : undefined }).then(r => r.json()).then(d => {
+  return fetch(API + '?token=' + encodeURIComponent(KEY) + (TERM ? '&term=' + encodeURIComponent(TERM) : '') + '&_=' + me, { cache: 'no-store', signal: ctl ? ctl.signal : undefined }).then(r => r.json()).then(d => {
     if (me !== fetchT0) return; fetching = false;
     if (d.error) { setSync('off', d.error === 'bad token' ? 'wrong connection key' : d.error); if (d.error === 'bad token') { data = null; renderAll(); } return; }
     if (EVT) { d.events = EVT.events; d.calendars = EVT.calendars; }
@@ -607,7 +614,27 @@ function loadEvents(fresh) {
     if (data) { data.events = r.events; data.calendars = r.calendars; if (!editing()) { try { renderAll(); } catch (e) {} } }
   }).catch(() => { evFetching = false; });
 }
-function setData(d) { data = d; LIVE = null; store.set('desk-cache', d); renderAll(); }
+function setData(d) { data = d; LIVE = null; store.set('desk-cache', d); applyTerm(); renderAll(); }
+// ---------- semesters ----------
+const termList = () => (data && data.terms) || [];
+const termNow = () => termList().find(t => t.id === (data && data.term)) || null;
+const termCur = () => termList().find(t => t.status === 'current') || null;
+function applyTerm() { const t = termNow(); if (t && t.start) SEM_START = weekStart(fromYmd(t.start)); }
+const viewingPast = () => { const t = termNow(), c = termCur(); return !!(t && c && t.id !== c.id); };
+function switchTerm(id) {
+  const c = termCur(); TERM = c && c.id === id ? '' : id; store.set('desk-term', TERM);
+  if (DEMO) { data.term = id; data.historyOnly = !(termNow() || {}).sheet; LIVE = null; applyTerm(); return renderAll(); }
+  data = null; LIVE = null; Object.keys(OV).forEach(k => delete OV[k]); renderAll(); load();
+}
+const LETTER_GP = [['A+', 4.333], ['A', 4], ['A-', 3.667], ['B+', 3.333], ['B', 3], ['B-', 2.667], ['C+', 2.333], ['C', 2], ['C-', 1.667], ['D+', 1.333], ['D', 1], ['D-', .667], ['F', 0]];
+const letterOfGp = gp => { if (gp == null || gp === '') return ''; const x = LETTER_GP.find(([, g]) => Math.abs(g - gp) < .01); return x ? x[0] : ''; };
+// a finished term's courses from GPA history: code · name · credits · letter, and its term gpa
+function termReport(t) {
+  const H = ((data && data.history) || []).filter(h => h.term === (t.gpaTerm || t.id).toUpperCase() || h.term === t.gpaTerm);
+  const rows = H.map(h => ({ code: h.code, name: h.name || '', hours: h.hours, letter: h.letter || letterOfGp(h.gp), gp: h.gp }));
+  const g = rows.filter(r => r.hours > 0 && r.gp != null && r.gp !== ''), hrs = g.reduce((a, r) => a + r.hours, 0), pts = g.reduce((a, r) => a + r.gp * r.hours, 0);
+  return { rows, hrs, gpa: hrs ? pts / hrs : null, total: rows.reduce((a, r) => a + (r.hours > 0 ? r.hours : 0), 0) };
+}
 setInterval(() => { if (pendingData && !editing() && !$('drawer').classList.contains('on')) { const d = pendingData; pendingData = null; applyOv(d); setData(d); } }, 1500);
 function setSync(s, msg) {
   syncState = s; const el = $('sync'); el.className = 'sync' + (s === 'off' ? ' off' : s === 'busy' ? ' busy' : '');
@@ -618,7 +645,7 @@ function gear() { const sd = $('side'); if (sd) sd.classList.toggle('busy', fetc
 let inflight = 0;   // saves on their way to the sheet — an app update never reloads the page under them
 function post(body) {
   if (DEMO) return Promise.resolve({ ok: true, id: 'demo' + Date.now() });
-  inflight++; gear();
+  inflight++; gear(); body = Object.assign({ term: (data && data.term) || TERM }, body);   // every save goes to the semester on screen
   return fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, redirect: 'follow', body: JSON.stringify(Object.assign({ token: KEY }, body)) })
     .then(r => r.json()).catch(e => {   // some browsers refuse the POST ("load failed") — send the same save as a GET instead
       if (e && e.name === 'SyntaxError') throw e;
@@ -626,7 +653,7 @@ function post(body) {
     }).then(j => { inflight--; gear(); if (!j || !j.ok) throw new Error((j && j.error) || 'save failed'); return j; }, e => { inflight--; gear(); throw e; });
 }
 const cached = store.get('desk-cache', null);
-if (!DEMO && cached && KEY) data = cached;
+if (!DEMO && cached && KEY && (!TERM || cached.term === TERM)) { data = cached; applyTerm(); }
 
 // ===================== new version → reload into it, keeping the view and scroll (like the phone) =====================
 function smoothReload() {
@@ -842,9 +869,10 @@ function go(v, fade) {
   if (v === 'grades' && mo('donut')) drawDonuts();
   placePill();
 }
+function termBar() { const b = $('termbar'); if (!b) return; const on = viewingPast(); b.hidden = !on; if (on) b.innerHTML = `<span>viewing <b>${esc(termNow().name)}</b></span><button class="btn sm" data-act="term-back">back to ${esc(termCur().name)}</button>`; }
 function renderAll() {
   if (!DEMO && !KEY && VIEW !== 'settings') { $('v-' + VIEW).innerHTML = connectHtml(); return; }
-  subnav(); try { sideWheel(); brandColor(); placePill(); } catch (x) {}
+  subnav(); try { sideWheel(); brandColor(); placePill(); termBar(); } catch (x) {}
   const fn = { dash: renderDash, sheet: renderSheet, grades: renderGrades, att: renderAtt, settings: renderSettings, course: renderCourse }[VIEW];
   const v = $('v-' + VIEW);
   if (VIEW === 'course' && !COURSE) VIEW = 'settings';
@@ -1486,15 +1514,16 @@ const SI = {   // section icons, same line style as the rest
   feedback: '<path d="M5 5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
   shortcuts: '<rect x="3" y="7" width="18" height="11" rx="2"/><path d="M7 11h1M11 11h1M15 11h1M8 15h8"/>',
   about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  semesters: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'
 };
 const SECS = [['appearance', 'appearance', '#c2c7f8'], ['motion', 'motion', '#fbe0a3'], ['widgets', 'widgets', '#91e3d6'],
-  ['feedback', 'feedback', '#f6b8c9'], ['shortcuts', 'keyboard shortcuts', '#9ed2f6'], ['about', 'about', '#e4b39b'], ['courses', 'courses', '#b2e2b6']];   // course colors, toned per theme like the courses are
+  ['feedback', 'feedback', '#f6b8c9'], ['shortcuts', 'keyboard shortcuts', '#9ed2f6'], ['about', 'about', '#e4b39b'], ['semesters', 'semesters', '#bfe6ef'], ['courses', 'courses', '#b2e2b6']];   // course colors, toned per theme like the courses are
 const themed = c => (TMAP[THEME] && TMAP[THEME][c]) || c;
 const inkOn = c => { const n = parseInt(c.slice(1), 16), l = (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; return l > .62 ? 'rgba(0,0,0,.72)' : '#fff'; };
 const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
 const stile = k => { const x = SECS.find(y => y[0] === k), c = themed(x ? x[2] : '#A6A6B1'); return `<span class="stile" style="background:${c};color:${inkOn(c)}">${sicon(k)}</span>`; };
-let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false;
+let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false, REPORT = null;
 if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
 // accent: the tint color, on top of whichever theme is on
 const ACCENTS = [['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'], ['#D2587E', 'pink'], ['#8B6FD6', 'purple']];
@@ -1502,7 +1531,8 @@ let ACC = store.get('desk-accent', '');
 function applyAccent() { const h = document.documentElement; if (ACC) h.style.setProperty('--tint', ACC); else h.style.removeProperty('--tint'); }
 applyAccent();
 const THEMES = [['default', 'dark', '#000', '#1C1C1E', '#0A84FF'], ['light', 'light', '#F2F2F7', '#fff', '#007AFF'], ['elegant', 'elegant', '#E5E3DF', '#F4F3F0', '#2F6B4A'], ['moody', 'moody', '#111', '#1B1B1B', '#9DB27F']];
-const semLabel = () => { const d = new Date(SEM_START + 3 * 864e5), m = d.getMonth(); return (m >= 7 ? 'fall' : m <= 4 ? 'spring' : 'summer') + ' ' + d.getFullYear(); };
+const semLabel = () => { const t = termNow(); if (t) return t.name; return semLabel0(); };
+const semLabel0 = () => { const d = new Date(SEM_START + 3 * 864e5), m = d.getMonth(); return (m >= 7 ? 'fall' : m <= 4 ? 'spring' : 'summer') + ' ' + d.getFullYear(); };
 const isMac = /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
 const kb = (...k) => k.map(x => `<kbd>${x === 'mod' ? (isMac ? '⌘' : 'ctrl') : x === 'shift' ? (isMac ? '⇧' : 'shift') : x}</kbd>`).join('');
 const SHORTCUTS = [['anywhere', [[kb('1'), '–', kb('5')], 'switch pages'], [[kb('n')], 'new assignment'], [[kb('enter')], 'new assignment'], [[kb('/')], 'search the sheet'],
@@ -1513,7 +1543,7 @@ const SHORTCUTS = [['anywhere', [[kb('1'), '–', kb('5')], 'switch pages'], [[k
 // one flat list of every setting, for search
 function settingsIndex() {
   const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['motion', 'motion'], ['motion', 'all motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
-    [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['about', 'what’s new'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
+    [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['semesters', 'semesters'], ['semesters', 'report card'], ['about', 'what’s new'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
     ((data && data.setup) || []).map(x => ['courses', spaceCode(x.code) + ' ' + (x.cfg ? x.cfg.name : '')]),
     SHORTCUTS.flatMap(([, ...rows]) => rows.map(r => ['shortcuts', r[1]])));
   return out;
@@ -1546,6 +1576,12 @@ function setPaneHtml() {
           <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
           <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}</div>`
       : grp('', '<div class="row"><span class="muted">not connected</span></div>');
+  } else if (SSEC === 'semesters') {
+    const T = termList(), on = data && data.term, md2 = y => y ? md(fromYmd(y)) : '';
+    if (REPORT) { const t = T.find(x => x.id === REPORT); if (t) return `<div class="rehd2"><button class="iconbtn" data-act="report-x" aria-label="back">${IC.l}</button><h2 class="sxh">${esc(t.name)}</h2><span class="muted" style="font-size:15px">report card</span></div>` + reportHtml(t); }
+    h = T.length ? grp('', T.slice().reverse().map(t => { const sub = t.status === 'current' ? 'current' : t.status === 'finished' ? 'finished' : t.start ? md2(t.start) + (t.ldoc ? ' – ' + md2(t.ldoc) : '') : '';
+        return `<button class="row prow" data-act="term" data-id="${esc(t.id)}"><span class="grow">${esc(t.name)}</span><span class="muted">${esc(sub)}</span><span class="tick">${t.id === on ? TICK : ''}</span>${!t.sheet ? `<span class="chev">${IC.r}</span>` : ''}</button>`; }).join(''))
+      : grp('', '<div class="row"><span class="muted">–</span></div>');
   } else if (SSEC === 'feedback') {
     const ns = notesList();
     h = (ns.length ? grp('open notes', ns.map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')) : '') +
@@ -1568,6 +1604,11 @@ function setSideHtml() {
       <div class="card sxme"><span class="av">${nm ? esc(nm[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(nm || '–')}</b><span>${semLabel()}${cs.length ? ' · ' + cs.length + ' courses' + (cr ? ' · ' + cr + ' cr' : '') : ''}</span></span></div>
       <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${cur(k) ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>` +
         (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><span class="stile" style="background:${colorFor(x.code)};color:${inkOn(colorFor(x.code))}">${sicon('courses')}</span><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
+}
+function reportHtml(t) {
+  const R = termReport(t);
+  return `<div class="rcard"><div class="card rstat"><span>term gpa</span><b>${R.gpa != null ? R.gpa.toFixed(3) : '–'}</b></div><div class="card rstat"><span>credits</span><b>${R.total || '–'}</b></div><div class="card rstat"><span>courses</span><b>${R.rows.length || '–'}</b></div></div>` +
+    (R.rows.length ? `<div class="card sgrp">${R.rows.map(r => `<div class="row"><b class="rcode" style="color:${colorFor(r.code)}">${esc(spaceCode(r.code))}</b><span class="grow">${esc(r.name)}</span><span class="muted">${r.hours > 0 ? r.hours + ' cr' : ''}</span><b class="rlet">${esc(r.letter || '–')}</b></div>`).join('')}</div>` : '');
 }
 function renderSettings(v) {
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && ae.tagName === 'INPUT' && !/checkbox|date|color/.test(ae.type) && v.innerHTML) return;
@@ -1672,8 +1713,11 @@ document.addEventListener('click', e => {
     case 'popdone': return closePop();
     case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; openPop('asg', t); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
-    case 'setsec': SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
+    case 'setsec': REPORT = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
+    case 'term': { const tm = termList().find(x => x.id === t.dataset.id); if (!tm) return; if (!tm.sheet) { REPORT = tm.id; return renderAll(); } if (tm.id !== (data && data.term)) switchTerm(tm.id); return; }
+    case 'report-x': REPORT = null; return renderAll();
+    case 'term-back': { const c = termCur(); if (c) switchTerm(c.id); return; }
     case 'accent': ACC = t.dataset.c || ''; store.set('desk-accent', ACC); applyAccent(); return renderAll();
     case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
     case 'note-add': return addNote();
@@ -1965,7 +2009,8 @@ function demoData() {
   return { v: 3, courses: C.map(c => c[0] + ' ' + c[1]), assignments: A,
     grades: { engine: true, courses: C.map(c => ({ code: c[0], name: c[1], credits: c[2], passFail: !!R[c[0]].cutoffs.S, rule: safe(R[c[0]]) })) },
     notes: [{ x: 'grade bars look off in elegant', t: T - 864e5 }],
-    history: [['CH 101', 'F25', 4, 4], ['MA 141', 'F25', 4, 3.667], ['ENG 101', 'F25', 4, 4.333], ['HON 110', 'F25', '', 4.333], ['CH 102', 'S26', 4, 4], ['MA 242', 'S26', 4, 3.333], ['BIO 181', 'S26', 4, 4], ['CH 201', 'F26', 4, null]].map(r => ({ code: r[0], term: r[1], hours: r[2] === '' ? null : r[2], gp: r[3] })),
+    terms: [{ id: 'f25', name: 'fall 2025', sheet: '', status: 'finished', gpaTerm: 'F25' }, { id: 's26', name: 'spring 2026', sheet: '', status: 'finished', gpaTerm: 'S26' }, { id: 'f26', name: 'fall 2026', sheet: 'demo', status: 'current', gpaTerm: 'F26', start: ymd(addDays(sem0, 3)), ldoc: ymd(addDays(end, -3)) }, { id: 's27', name: 'spring 2027', sheet: 'demo', status: '', gpaTerm: 'S27', start: ymd(addDays(end, 50)), ldoc: ymd(addDays(end, 150)) }], term: 'f26',
+    history: [['CH 101', 'F25', 4, 4], ['MA 141', 'F25', 4, 3.667], ['ENG 101', 'F25', 4, 4.333], ['HON 110', 'F25', '', 4.333], ['CH 102', 'S26', 4, 4], ['MA 242', 'S26', 4, 3.333], ['BIO 181', 'S26', 4, 4], ['CH 201', 'F26', 4, null]].map(r => ({ code: r[0], name: ({ 'CH 101': 'general chem i', 'MA 141': 'calculus i', 'ENG 101': 'academic writing', 'HON 110': 'honors forum', 'CH 102': 'general chem ii', 'MA 242': 'calculus ii', 'BIO 181': 'intro bio i' })[r[0]] || '', term: r[1], hours: r[2] === '' ? null : r[2], gp: r[3] })),
     setup: C.map((c, i) => { const r = R[c[0]], pf = !!r.cutoffs.S, head = { 'grade by': r.method === 'points' ? 'points' : 'weights', 'entered as': r.method === 'points' ? 'points' : 'percent' };
       if (r.round != null) head['round to'] = r.round; if (pf) head['pass at'] = r.cutoffs.S; else head.cutoffs = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-'].map(L => L + ' ' + r.cutoffs[L]).join(', ');
       return { code: c[0], layout: 'blocks', cfg: { row: i + 2, name: c[1], credits: c[2] }, head,
