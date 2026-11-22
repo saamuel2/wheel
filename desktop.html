@@ -159,8 +159,9 @@
   .chip[data-act=asg] { cursor: pointer; } .chip[data-act=asg]:hover { background: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { background: var(--fill); }
   .chip.dragging { opacity: .35; } .day { transition: box-shadow .15s, background-color .15s; } .day.drop { box-shadow: inset 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--tint) 8%, var(--card)); }
   body.dragon .chip { cursor: grabbing; }
-  .pop.asg { width: 330px; } .aefm .row { height: 40px; } .popset .txt.aenm { display: block; width: calc(100% - 32px); max-width: none; height: 34px; margin: 2px 16px 6px; font-size: 15px; font-weight: 600; }
-  .aefm select.txt, .aefm input[type=date] { width: 150px; } .aesm { width: 64px; text-align: center; } .aeg { display: flex; align-items: center; gap: 6px; } .aeg i { color: var(--sub); font-style: normal; }
+  .pop.asg { width: 330px; } .aefm .row { height: 40px; } .popset .txt.aenm { display: block; width: calc(100% - 32px); max-width: none; margin: 2px 16px 6px; font-weight: 600; }
+  .popset .aefm .txt { height: 30px; } .popset .aefm .row .txt { width: 150px; max-width: 150px; } .popset .aefm .row .aeg .txt { width: 69px; } .aefm .aesm { text-align: left; }
+ .aeg { display: flex; align-items: center; gap: 6px; } .aeg i { color: var(--sub); font-style: normal; }
   .aeft { display: flex; justify-content: space-between; padding: 10px 16px 8px; } .aedel { color: var(--red); }
   .chip.done { padding: 4px 8px 4px 4px; opacity: .55; background: transparent; align-items: center; border-left-color: transparent; }
   .chip.done .nm { font-size: 12px; font-weight: 500; text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -291,10 +292,10 @@
   .delta.up { color: #30D158; } .delta.dn { color: var(--red); }
 
   /* attendance */
-  .acards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .acards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
   .ac { display: flex; flex-direction: column; }
   .ac .n { font-size: 34px; font-weight: 700; } .ac .rule { color: var(--sub); font-size: 13px; }
-  .ac .bottom { margin-top: auto; display: flex; gap: 8px; padding-top: 12px; } .ac .bottom input { flex: 1; min-width: 140px; } .ac .bottom .btn { flex: none; }
+  .ac .bottom { margin-top: auto; display: flex; gap: 8px; padding-top: 12px; } .ac .bottom input { flex: 1; min-width: 0; padding: 0 6px 0 10px; height: 32px; font-size: 13px; } .ac .bottom .btn { flex: none; padding: 0 12px; height: 32px; font-size: 13px; }
   .dates { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
   .dchip { background: var(--fill); border-radius: 8px; padding: 4px 4px 4px 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
   .dchip button { border: 0; background: none; color: var(--sub); padding: 0 4px; font-size: 14px; line-height: 1; }
@@ -324,12 +325,13 @@
   .sgrp .prow .stile { width: 22px; height: 22px; } .sgrp .grow { flex: 1; } .sxnone { padding: 8px 4px; } .sxact { display: flex; justify-content: flex-end; margin-top: -10px; }
   .sxsub { } .sxsub.on { background: var(--fill) !important; color: inherit !important; font-weight: 600; }
   .sx.wide { grid-template-columns: 240px minmax(0, 1fr); } .rehd2 { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; } .rehd2 .sxh { margin: 0; } .rehd2 .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-  .scards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .scards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; } .scname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .scard { position: relative; display: grid; justify-items: start; gap: 2px; padding: 16px; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; overflow: hidden; transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast); }
   .scard::before { content: ''; position: absolute; inset: 0 0 auto; height: 3px; background: var(--c); } .scard:hover { box-shadow: inset 0 0 0 1.5px var(--c); }
   .scard .stile { width: 30px; height: 30px; border-radius: 8px; margin-bottom: 10px; } .scard .stile svg { width: 17px; height: 17px; }
   .sccode { font-size: 17px; font-weight: 700; color: var(--c); } .scname { font-size: 14px; } .scmeta { font-size: 12px; color: var(--sub); margin-top: 6px; }
   .scard .chev { position: absolute; right: 14px; top: 20px; color: var(--sub); }
+  .sxpane .txt { height: 30px; padding: 0 10px; font-size: 13px; border-radius: 7px; } .sxpane select.txt { padding-right: 28px; } .sxq { height: 30px; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -448,7 +450,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.65 (11/22 4:45pm)';
+const BUILD = 'd1.66 (11/22 4:50pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -824,7 +826,8 @@ let SLOT = store.get('desk-slot', 'budget'), slotEdit = false, raAll = false, td
 function go(v, fade) {
   if (v !== 'sheet') TEST = {};
   if (v === 'extra' || v === 'tasks') v = 'dash';   // the tasks page is gone; RA tasks + to-do live on the dashboard
-  if (v !== VIEW) spinWheel2(5);
+  const inSet = x => x === 'settings' || x === 'course', quiet = inSet(v) && inSet(VIEW); if (quiet) fade = false;
+  if (v !== VIEW && !quiet) spinWheel2(5);
   VIEW = v; store.set('desk-view', v); $('main').classList.remove('gsmode'); if ($('gshost')) $('gshost').classList.remove('on');
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
   document.querySelectorAll('.view').forEach(s => { s.classList.toggle('on', s.id === 'v-' + v); s.classList.toggle('fade', fade !== false && s.id === 'v-' + v); });
@@ -1478,8 +1481,8 @@ const SI = {   // section icons, same line style as the rest
   about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
   search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'
 };
-const SECS = [['appearance', 'appearance', '#c2c7f8'], ['motion', 'motion', '#fbe0a3'], ['widgets', 'widgets', '#91e3d6'], ['courses', 'courses', '#b2e2b6'],
-  ['feedback', 'feedback', '#f6b8c9'], ['shortcuts', 'keyboard shortcuts', '#9ed2f6'], ['about', 'about', '#e4b39b']];   // course colors, toned per theme like the courses are
+const SECS = [['appearance', 'appearance', '#c2c7f8'], ['motion', 'motion', '#fbe0a3'], ['widgets', 'widgets', '#91e3d6'],
+  ['feedback', 'feedback', '#f6b8c9'], ['shortcuts', 'keyboard shortcuts', '#9ed2f6'], ['about', 'about', '#e4b39b'], ['courses', 'courses', '#b2e2b6']];   // course colors, toned per theme like the courses are
 const themed = c => (TMAP[THEME] && TMAP[THEME][c]) || c;
 const inkOn = c => { const n = parseInt(c.slice(1), 16), l = (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; return l > .62 ? 'rgba(0,0,0,.72)' : '#fff'; };
 const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
@@ -1658,7 +1661,7 @@ document.addEventListener('click', e => {
     case 'close': return closeDrawer();
     case 'pop': return openPop(t.dataset.p, t);
     case 'popdone': return closePop();
-    case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; return openPop('asg', t); }
+    case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; openPop('asg', t); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
     case 'setsec': SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
