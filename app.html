@@ -444,6 +444,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
 <script>try{var t=localStorage.getItem('wheel-theme');if(t==='light'||t==='elegant'||t==='moody')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+<script src="changelog.js"></script>
 </head>
 <body>
 
@@ -689,11 +690,13 @@
     function fetchData(silent, now) {
       if (DEMO) { if (!silent) { appData = demoData(); synced(); } return Promise.resolve(); }
       if (now) fetchNow = true;
-      if (fetchP) return fetchP; fetching = true;
-      return fetchP = fetch(`${API}?token=${encodeURIComponent(TOKEN)}&_=${Date.now()}`, { cache: 'no-store' })
+      if (fetchP && Date.now() - fetchT0 < 25000) return fetchP;   // a request cut off when the phone slept never answers: start over after 25 s
+      const me = fetchT0 = Date.now(); fetching = true;
+      const ctl = typeof AbortController === 'function' ? new AbortController() : null; setTimeout(() => { if (ctl) ctl.abort(); }, 20000);
+      return fetchP = fetch(`${API}?token=${encodeURIComponent(TOKEN)}&_=${me}`, { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
         .then(res => res.json())
         .then(data => {
-          fetching = false; fetchP = null; const asap = fetchNow; fetchNow = false;
+          if (me !== fetchT0) return; fetching = false; fetchP = null; const asap = fetchNow; fetchNow = false;
           if (asap && pending) commit(pending);
           if (data.error) throw new Error(data.error);
           if (EVT) { data.events = EVT.events; data.calendars = EVT.calendars; }
@@ -703,7 +706,7 @@
           loadEvents();
         })
         .catch(err => {
-          fetching = false; fetchP = null; fetchNow = false; console.error(err);
+          if (me !== fetchT0) return; fetching = false; fetchP = null; fetchNow = false; console.error(err);
           if (silent && appData) return;
           document.getElementById('wheel-frac').textContent = 'error';
           const errBox = document.getElementById('error-msg');
@@ -711,7 +714,7 @@
           errBox.style.display = 'block';
         });
     }
-    let fetching = false, stash = null;
+    let fetching = false, stash = null, fetchT0 = 0;
     let EVT = null; try { EVT = JSON.parse(localStorage.getItem('wheel-ev') || 'null'); } catch (e) {}
     let evFetching = false;
     // calendar comes from its own (cached) request so a slow calendar never holds up the sheet
@@ -759,7 +762,7 @@
       }, { passive: true });
     })();
     function busy() {
-      const ae = document.activeElement, ed = ae && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName);
+      const ae = document.activeElement, ed = ae && /^(INPUT|TEXTAREA)$/.test(ae.tagName) && !/checkbox|radio|color|range/.test(ae.type) && ae.value !== ae.defaultValue;   // a box that's only focused doesn't hold back new data
       return !!(pending || hold || ed || ['sheet', 'csheet', 'asheet'].some(id => $(id).classList.contains('show')));
     }
     function flushStash(asap) {
@@ -797,7 +800,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.68 (11/22 4:20pm)';
+    const BUILD = 'm2.69 (11/22 5:05pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     const SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
     let filter = 'upcoming', lastSync = null, pending = null, hold = false;
@@ -1151,7 +1154,7 @@
         '<div class="task srow iss-row"><input class="sin iss-in" id="iss-in"  autocomplete="off" maxlength="300" value="' + esc(ISSDRAFT) + '"><button class="iss-add" id="iss-add">add</button></div>' +
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
       const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ${IC.r}</span></button>`).join('') + '</div>' : '';
-      $('settings-card').innerHTML = th + cs + wg + iss + '<div class="grp">app info</div><div class="group">' + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
+      $('settings-card').innerHTML = th + cs + wg + iss + '<div class="grp">app info</div><div class="group">' + ((window.CHANGES || []).length ? prow('what’s new', window.CHANGES[0][0], 'new') : '') + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
         (DEMO ? '' : '<div class="task srow iss-row"><span style="flex:none;margin-right:12px">connection key</span><input class="sin iss-in" id="key-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc; text-align: right" value="' + esc(TOKEN) + '"><button class="iss-add" id="key-save">save</button></div>') +
         '</div>';
@@ -1190,7 +1193,8 @@
     }
     function renderWpop() {
       const row = (k, inner) => `<div class="task srow"><span>${k}</span>${inner}</div>`, opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
-      $('w-title').textContent = ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', slot: 'variable' })[WPOP] || '';
+      $('w-title').textContent = ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', slot: 'variable', new: 'what’s new' })[WPOP] || '';
+      if (WPOP === 'new') { $('w-body').innerHTML = (window.CHANGES || []).map(([d, xs]) => `<div class="grp">${esc(d)}</div><div class="group">` + xs.map(x => `<div class="task srow"><span style="white-space:normal">${esc(x)}</span></div>`).join('') + '</div>').join(''); return; }
       $('w-body').innerHTML = '<div class="group">' + (WPOP === 'greet' ? row('randomize', `<label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label>`) + row('name', `<input class="sin" type="text" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}">`)
         : WPOP === 'cal' ? calList().map(c => row(`<span style="display:flex;align-items:center"><i class="ci" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span>`, `<label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label>`)).join('')
         : WPOP === 'slot' ? VOPTS.map(([k, l]) => `<button class="lrow throw" data-pick="${k}">${l}<span class="tick">${SLOT2 === k ? TICK : ''}</span></button>`).join('')
@@ -1324,6 +1328,7 @@
     $('settings-card').addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.cd; if (!k) return; CD[k] = e.target.value; saveCD(); if (e.target.blur) e.target.blur(); renderSide(); if (k === 'mode') renderSettings(); });
     $('settings-card').addEventListener('click', e => { if (e.target.id === 'btn-sync') fetchData(); if (e.target.id === 'btn-loc') { locAsked = false; withLoc(loadWx2, true); } });
     document.addEventListener('visibilitychange', () => { if (!document.hidden) { setGreeting(); renderSide(); fetchData(true, true); loadWx(); if (!busy()) checkUpdate(); } });
+    addEventListener('pageshow', e => { if (e.persisted) fetchData(true, true); }); addEventListener('online', () => fetchData(true, true));
     // Large title -> inline title when scrolled (iOS navigation bar behavior)
     $('scroll-container').addEventListener('scroll', () => $('topbar').classList.toggle('show', $('scroll-container').scrollTop > 34), { passive: true });
     const scrollPos = {}; let scrollView = 'view-dashboard';
