@@ -92,6 +92,9 @@
   html[data-theme=light] .seg button.on { background: #fff; }
   input.txt, select.txt { background: var(--fill); border: 0; border-radius: 8px; padding: 8px 12px; outline: none; }
   input.txt:focus, select.txt:focus { box-shadow: 0 0 0 2px var(--tint); }
+  select.txt { -webkit-appearance: none; appearance: none; padding-right: 30px; cursor: pointer; background-image: linear-gradient(45deg, transparent 50%, var(--sub) 50%), linear-gradient(-45deg, transparent 50%, var(--sub) 50%); background-size: 5px 5px; background-position: calc(100% - 17px) 52%, calc(100% - 12px) 52%; background-repeat: no-repeat; }
+  input.txt[type=date] { font-variant-numeric: tabular-nums; cursor: pointer; } input.txt[type=date]::-webkit-calendar-picker-indicator { opacity: .45; cursor: pointer; } input.txt[type=date]::-webkit-calendar-picker-indicator:hover { opacity: .8; }
+  input.txt[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; } html:not([data-theme=light]):not([data-theme=elegant]) input[type=date]::-webkit-calendar-picker-indicator { filter: invert(1); }
   .chk { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--c, var(--sub)); background: none; padding: 0; display: flex; align-items: center; justify-content: center; }
   .chk svg { opacity: 0; } .done > .chk, .chk.on { background: var(--c, var(--sub)); } .done > .chk svg, .chk.on svg { opacity: 1; }
 
@@ -140,7 +143,7 @@
   .gl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 8px; }
   .gl button { display: flex; align-items: baseline; gap: 8px; border: 0; background: var(--card2); border-radius: 8px; padding: 8px 8px; text-align: left; min-width: 0; }
   .gl .dl { font-weight: 700; font-size: 17px; min-width: 24px; } .gl .cn { font-size: 12px; font-weight: 700; white-space: nowrap; } .gl .cp { font-size: 11px; color: var(--sub); margin-left: auto; }
-  .masked { filter: blur(8px); pointer-events: none; user-select: none; }
+  .masked { filter: blur(8px); pointer-events: none; user-select: none; } .big.masked { filter: blur(16px); }
   .weekbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
   .weekbar .t { font-size: 13px; font-weight: 600; color: var(--sub); }
   .weekbar .r { margin-left: auto; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--sub); font-weight: 600; }
@@ -167,7 +170,7 @@
   .addline { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; } .addline input.txt:first-child { flex: 1 1 160px; min-width: 0; } .addline input[type=date] { flex: 0 0 136px; min-width: 0; }
 
   /* sheet */
-  .stick { position: sticky; top: -28px; z-index: 5; background: var(--bg); padding: 32px 0 0; margin-top: -28px; }
+  .stick { position: sticky; top: -32px; z-index: 5; background: var(--bg); padding: 32px 0 0; margin-top: -32px; }
   .toolbar { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
   .cchips { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; min-width: 0; }
   .fchip { border: 0; padding: 4px 12px 4px; border-radius: 8px; background: var(--fill); text-align: left; display: grid; gap: 0; min-width: 70px; }
@@ -231,7 +234,7 @@
   .wxrow { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; } .wxart { width: 74px; height: 60px; flex: none; }
   .set .ntx { white-space: normal; } .tick { color: var(--tint); display: flex; }
   .gpa .big { font-size: 44px; }
-  .gpa { cursor: pointer; } .eyebig { color: var(--sub); height: 52px; display: flex; align-items: center; }
+  .gpa { cursor: pointer; } .gpa.hid { align-self: start; } .eyebig { color: var(--sub); height: 52px; display: flex; align-items: center; }
   .how { display: grid; gap: 1px; font-size: 12px; margin-top: 4px; }
   .how div { display: grid; grid-template-columns: minmax(0, 1fr) 48px 44px; gap: 8px; padding: 4px 0; border-top: .5px solid var(--sep); }
   .how .k { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--sub); } .how .w, .how .s { text-align: right; font-variant-numeric: tabular-nums; } .how .s { font-weight: 600; }
@@ -282,10 +285,10 @@
   .delta.up { color: #30D158; } .delta.dn { color: var(--red); }
 
   /* attendance */
-  .acards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .acards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
   .ac { display: flex; flex-direction: column; }
   .ac .n { font-size: 34px; font-weight: 700; } .ac .rule { color: var(--sub); font-size: 13px; }
-  .ac .bottom { margin-top: auto; display: flex; gap: 8px; padding-top: 12px; } .ac .bottom input { flex: 1; min-width: 0; }
+  .ac .bottom { margin-top: auto; display: flex; gap: 8px; padding-top: 12px; } .ac .bottom input { flex: 1; min-width: 140px; } .ac .bottom .btn { flex: none; }
   .dates { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
   .dchip { background: var(--fill); border-radius: 8px; padding: 4px 4px 4px 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
   .dchip button { border: 0; background: none; color: var(--sub); padding: 0 4px; font-size: 14px; line-height: 1; }
@@ -299,7 +302,7 @@
 
   #ptr { position: fixed; left: 50%; top: 0; z-index: 700; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--sub); background: var(--card); opacity: 0; pointer-events: none; box-shadow: 0 2px 10px rgba(0,0,0,.25); transform: translate(-50%, -8px); }
   #ptr.spin svg { animation: ptrspin .8s linear infinite; } @keyframes ptrspin { to { transform: rotate(360deg); } }
-  #main { overscroll-behavior-y: contain; }
+  #main { overscroll-behavior-y: contain; scrollbar-gutter: stable; }
   .toast { position: fixed; left: calc(50% + 108px); bottom: 26px; transform: translate(-50%, 20px); background: var(--card2); color: var(--text); padding: 12px 16px 12px 20px; border-radius: 14px;
     box-shadow: 0 8px 30px rgba(0,0,0,.35); display: flex; gap: 12px; align-items: center; opacity: 0; pointer-events: none; transition: opacity .2s, transform .3s var(--spring); z-index: 60; font-weight: 600; }
   .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
@@ -395,7 +398,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.61 (11/22 3:10pm)';
+const BUILD = 'd1.62 (11/22 4:20pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -458,7 +461,7 @@ function colorFor(code) {
   if (!c) { let h = 0; for (const ch of k) h = (h * 31 + ch.charCodeAt(0)) >>> 0; c = SPARE[h % SPARE.length]; }
   const m = TMAP[THEME]; return (m && m[c]) || c;
 }
-const spaceCode = c => String(c || '').replace(/^([a-z]+)(\d+)$/i, (m, a, b) => a.toUpperCase() + ' ' + b);
+const spaceCode = c => String(c || '').replace(/\s+/g, '').toLowerCase();
 
 // ===================== data =====================
 const CBP = {};   // completion bar heights last shown, so a change grows from there
@@ -1008,7 +1011,7 @@ function countdownHtml() {
 function dashGradesHtml() {
   const L = live(); if (!L) return '<div class="card"><div class="ct">grades</div><div class="muted">not connected</div></div>';
   return `<div class="card gcard${showGrades ? '' : ' hid'}" data-act="eye-card"><div class="ct">grades<span class="r"><button class="eyebtn" data-act="eye" aria-label="${showGrades ? 'hide grades' : 'show grades'}">${showGrades ? EYE_OPEN : EYE_SHUT}</button></span></div>
-    <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${colorFor(c.code)}">${esc(c.code)}</b><span class="nm">${esc(c.name)}</span><span class="g">${c.raw != null ? f2(c.raw) + ' (' + esc(c.letter || '–') + ')' : '–'}</span></button>`).join('')}</div></div>`;
+    <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${colorFor(c.code)}">${esc(spaceCode(c.code))}</b><span class="nm">${esc(c.name)}</span><span class="g">${c.raw != null ? f2(c.raw) + ' (' + esc(c.letter || '–') + ')' : '–'}</span></button>`).join('')}</div></div>`;
 }
 const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted">· ${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
 function raHtml(limit) {
@@ -1040,7 +1043,7 @@ let SF = Object.assign({ f: 'upcoming', cls: [], q: '', sort: 'due', dir: 1, out
 const saveSF = () => store.set('desk-sf', SF);
 function classOptions(sel) {
   const cs = courseList().map(c => c.code).concat(EXTRA); if (sel && !cs.includes(sel)) cs.push(sel);
-  return [...new Set(cs)].map(c => `<option value="${esc(c)}"${c === sel ? ' selected' : ''}>${esc(c)}</option>`).join('');
+  return [...new Set(cs)].map(c => `<option value="${esc(c)}"${c === sel ? ' selected' : ''}>${esc(spaceCode(c))}</option>`).join('');
 }
 function dateCell(ms, attrs) {
   const ok = ms != null && !isNaN(ms), k = (/data-k="([^"]*)"/.exec(attrs) || [])[1];
@@ -1166,8 +1169,7 @@ function drawDonuts() {
   requestAnimationFrame(step);
 }
 function gpaCard(act, title, shown, val, how) {
-  return `<div class="card gpa" data-act="${act}"><div class="ct">${title}</div>${shown ? `<div class="big">${val != null ? cnt('gpa-' + act, Number(val), 3) : '–'}</div><div class="sec"><div class="ct">how it was calculated</div>${how}</div>`
-    : `<div class="eyebig">${EYE_SHUT.replace('width="22" height="14"', 'width="54" height="34"')}</div>`}</div>`;
+  return `<div class="card gpa${shown ? '' : ' hid'}" data-act="${act}"><div class="ct">${title}<span class="r"><button class="eyebtn" data-act="${act}" aria-label="${shown ? 'hide' : 'show'}">${shown ? EYE_OPEN : EYE_SHUT}</button></span></div>${shown ? `<div class="big">${val != null ? cnt('gpa-' + act, Number(val), 3) : '–'}</div><div class="sec"><div class="ct">how it was calculated</div>${how}</div>` : `<div class="masked big">${val != null ? Number(val).toFixed(3) : '–'}</div>`}</div>`;
 }
 // overall NCSU GPA: finished terms from the GPA Tracker + this term's live letters
 function overallGpa(L) {
