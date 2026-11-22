@@ -1,0 +1,38 @@
+# Shared grading library ("assignments engine"): one standalone Apps Script project holding Grades.gs.
+# Every term sheet's own script calls it, so a grading fix reaches every semester at once.
+# First run (no ENGINE_LIB_ID in backend/lib/engine-id.txt yet) creates the project and prints its id.
+name: engine library
+on:
+  push:
+    branches: [main]
+    paths: ['backend/Grades.gs', 'backend/lib/**']
+  workflow_dispatch:
+jobs:
+  lib:
+    runs-on: ubuntu-24.04
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+    steps:
+      - uses: actions/checkout@v5
+      - if: env.CLASPRC_JSON != ''
+        run: |
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          npm i -g @google/clasp@2.4.2
+          set -o pipefail
+          id=$(tr -d ' \n' < backend/lib/engine-id.txt 2>/dev/null || true)
+          dir=$(mktemp -d); cd "$dir"
+          if [ -z "$id" ]; then
+            clasp create --type standalone --title "assignments engine" 2>&1 | tee create.log
+            id=$(node -e "console.log(require('./.clasp.json').scriptId)")
+            echo "ENGINE_LIB_ID=$id"
+          else
+            echo "{\"scriptId\":\"$id\"}" > .clasp.json
+            clasp pull
+          fi
+          cp "$GITHUB_WORKSPACE/backend/Grades.gs" Grades.js
+          cat > appsscript.json <<'JSON'
+          {"timeZone":"America/New_York","exceptionLogging":"STACKDRIVER","runtimeVersion":"V8"}
+          JSON
+          clasp push --force 2>&1 | tee push.log
+          if grep -q "Push failed" push.log; then echo "::error::push failed"; exit 1; fi
+          echo "library id: $id"
