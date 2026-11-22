@@ -331,9 +331,6 @@
   .chk { position: relative; } .burst { position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--c, var(--tint)); pointer-events: none; animation: burst .6s cubic-bezier(.2,.8,.3,1) forwards; }
   @keyframes burst { from { transform: scale(.7); opacity: .9; } to { transform: scale(2.6); opacity: 0; border-width: .5px; } }
   html.m-page .view.fade { animation: pagein .34s var(--ease); } @keyframes pagein { from { opacity: 0; transform: translateY(10px); } }
-  @property --dr { syntax: '<angle>'; inherits: false; initial-value: 360deg; }
-  .donut svg.draw { -webkit-mask: conic-gradient(#000 var(--dr), transparent 0); mask: conic-gradient(#000 var(--dr), transparent 0); animation: drawin .9s cubic-bezier(.3,.7,.2,1) both; }
-  @keyframes drawin { from { --dr: 0deg; } to { --dr: 360deg; } }
   html.m-row .grid.b tr.row td { transition: background-color .16s; } html.m-row .grid.b tr.row .delbtn { opacity: 0; transition: opacity .16s, color .14s, background-color .14s; }
   html.m-row .grid.b tr.row:hover .delbtn, html.m-row .grid.b tr.row .delbtn:focus { opacity: 1; }
   html:not(.m-row) .grid tr.row:hover td { background: inherit; }
@@ -396,7 +393,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.53 (11/22 2:10pm)';
+const BUILD = 'd1.54 (11/22 2:05pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -475,16 +472,18 @@ function motionRows() {
   return `<div class="row"><span>all motion</span>${sw('all', MO.all)}</div>` + MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(k, MO[k])}</div>`).join('');
 }
 // numbers that tick to their new value: cnt(key, value, decimals) marks the spot; countUp() runs after each render
-const CNT = {};
+const CNT = {}; let COUNT0 = false;   // COUNT0: numbers on a page you just opened count up from 0
 function cnt(key, v, dec) { if (v == null || isNaN(v)) return '–'; return `<span class="cnt" data-ck="${esc(key)}" data-cv="${v}" data-cd="${dec}">${fmtN(v, dec)}</span>`; }
 function fmtN(v, dec) { return dec === 2 ? f2(v) : Number(v).toFixed(dec); }
 function countUp() {
   document.querySelectorAll('.cnt[data-ck]').forEach(el => {
     const k = el.dataset.ck, v = +el.dataset.cv, dec = +el.dataset.cd, was = CNT[k]; CNT[k] = v;
-    if (!mo('count') || was == null || Math.abs(was - v) < 1e-9) return;
-    const t0 = performance.now(), dur = 650;
-    const step = now => { if (!el.isConnected) return; const q = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - q, 3); el.textContent = fmtN(was + (v - was) * e, dec); if (q < 1) requestAnimationFrame(step); };
-    el.textContent = fmtN(was, dec); requestAnimationFrame(step);
+    const from = was == null ? (COUNT0 ? 0 : null) : was;
+    if (!mo('count') || from == null || Math.abs(from - v) < 1e-9) return;
+    const t0 = performance.now(), dur = from === 0 && was == null ? 800 : 650;
+    const step = now => { if (!el.isConnected) { const n = document.querySelector(`.cnt[data-ck="${CSS.escape(k)}"]`); if (n && n !== el) { el = n; } else return; }
+      const q = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - q, 3); el.textContent = fmtN(from + (v - from) * e, dec); if (q < 1) requestAnimationFrame(step); };
+    el.textContent = fmtN(from, dec); requestAnimationFrame(step);
   });
 }
 // confetti when this week's last assignment gets checked off
@@ -761,8 +760,8 @@ function go(v, fade) {
   VIEW = v; store.set('desk-view', v); $('main').classList.remove('gsmode'); if ($('gshost')) $('gshost').classList.remove('on');
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
   document.querySelectorAll('.view').forEach(s => { s.classList.toggle('on', s.id === 'v-' + v); s.classList.toggle('fade', fade !== false && s.id === 'v-' + v); });
-  renderAll(); $('main').scrollTop = 0;
-  if (v === 'grades' && mo('donut')) document.querySelectorAll('#v-grades .donut svg').forEach(sv => sv.classList.add('draw'));
+  Object.keys(CNT).forEach(k => delete CNT[k]); COUNT0 = true; renderAll(); COUNT0 = false; $('main').scrollTop = 0;
+  if (v === 'grades' && mo('donut')) drawDonuts();
   placePill();
 }
 function renderAll() {
@@ -1121,10 +1120,11 @@ function tipArc(rad, w, a0, a1, col, op) {
   const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
   return `<path d="M${P(r2, a0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(rad, a1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, a0)}Z" fill="${col}"${op != null ? ` fill-opacity="${op}"` : ''}/>`;
 }
-function donutSvg(c, col) {
+// q: how far each category has swept in (0 → 1), for the draw-in when the grades page opens
+function donutSvg(c, col, q) {
   const cats = (c.cats || []).filter(k => k.share > 0), R = 76, Cc = 2 * Math.PI * R; let off = 0, h = '';
   cats.forEach((k, i) => {
-    const len = k.share * Cc, seg = Math.max(len - 3, 1), fill = k.poss ? Math.min(k.graded / k.poss, 1) : 0;
+    const len = k.share * Cc, seg = Math.max(len - 3, 1), fill = (k.poss ? Math.min(k.graded / k.poss, 1) : 0) * (q ? q(i, cats.length) : 1);
     const ring = (d, stroke, op) => `<circle cx="100" cy="100" r="${R}" fill="none" stroke="${stroke}" stroke-width="22" stroke-dasharray="${d} ${Cc - d}" stroke-dashoffset="${-off}" transform="rotate(-90 100 100)"${op != null ? ` stroke-opacity="${op}"` : ''}/>`;
     h += ring(seg, 'var(--dtrack)');
     if (fill >= .999) h += ring(seg, col, OPS[i % OPS.length]);
@@ -1132,6 +1132,19 @@ function donutSvg(c, col) {
     off += len;
   });
   return `<svg viewBox="0 0 200 200">${h}</svg>`;
+}
+// each category's segment sweeps from its own start to how much of it is graded, one after another
+function drawDonuts() {
+  const cards = Array.from(document.querySelectorAll('#v-grades .cc[data-code]')), t0 = performance.now(), DUR = 700, LAG = 120;
+  const ease = x => 1 - Math.pow(1 - x, 3);
+  const step = now => {
+    const t = now - t0; let more = false;
+    cards.forEach(cc => { const c = gradeOf(cc.dataset.code), box = cc.querySelector('.donut svg'); if (!c || !box || !cc.isConnected) return;
+      const q = i => { const x = Math.min(Math.max((t - i * LAG) / DUR, 0), 1); if (x < 1) more = true; return ease(x); };
+      box.outerHTML = donutSvg(c, colorFor(c.code), q); });
+    if (more && VIEW === 'grades') requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 function gpaCard(act, title, shown, val, how) {
   return `<div class="card gpa" data-act="${act}"><div class="ct">${title}</div>${shown ? `<div class="big">${val != null ? cnt('gpa-' + act, Number(val), 3) : '–'}</div><div class="sec"><div class="ct">how it was calculated</div>${how}</div>`
