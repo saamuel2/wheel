@@ -79,6 +79,7 @@ function pickTerm_(id) {
   if (!t) t = { id: '', name: '', sheet: SHEET_ID, status: 'current' };
   return { list: list, term: t };
 }
+function homeSS_() { return SpreadsheetApp.openById(HOME_ID); }
 function termSheet_(t) { return SpreadsheetApp.openById(t.sheet || SHEET_ID); }
 
 function token_() { return PropertiesService.getScriptProperties().getProperty('TOKEN') || ''; }
@@ -118,6 +119,7 @@ function doGet(e) {
     res.assignments = []; res.courses = []; res.historyOnly = true;
     try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
     try { res.todo = readTodo_(); } catch (err) { errors.todo = String(err); }
+    try { res.notes = readNotes_(homeSS_()); } catch (err) { errors.notes = String(err); }
     res.errors = errors; return out_(res);
   }
   var ss = termSheet_(pk.term);
@@ -127,7 +129,7 @@ function doGet(e) {
   try { res.grades = readGrades_(ss); } catch (err) { errors.grades = String(err); }
   try { res.setup = readCourseSetup_(ss); } catch (err) { errors.setup = String(err); }
   try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
-  try { res.notes = readNotes_(ss); res.claude = readClaudeAsk_(ss); } catch (err) { errors.notes = String(err); }
+  try { var hs = homeSS_(); res.notes = readNotes_(hs); res.claude = readClaudeAsk_(hs); } catch (err) { errors.notes = String(err); }
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
@@ -146,6 +148,10 @@ function write_(parse) {
     var b = parse();
     if (!token_() || b.token !== token_()) return out_({ ok: false, error: 'bad token' });
     if (b.action === 'term_new') return out_(termNew_(b));
+    // feedback lives on the home sheet (one list for every semester)
+    if (b.action === 'note_add') return out_(noteAdd_(homeSS_(), b));
+    if (b.action === 'note_done') return out_(noteDone_(homeSS_(), b));
+    if (b.action === 'claude_ask') return out_(claudeAsk_(homeSS_(), b));
     var tk = pickTerm_(b.term).term;
     if (tk.id && !tk.sheet) return out_({ ok: false, error: 'this term has no sheet' });
     var ss = termSheet_(tk);
