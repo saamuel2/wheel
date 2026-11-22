@@ -68,7 +68,7 @@
   main { overflow-y: auto; padding: 32px 32px 80px; position: relative; }
   .view { display: none; max-width: 1320px; margin: 0 auto; }
   .view.on { display: block; }
-  .view.fade { animation: fade .15s ease-out; }
+  html:not(.m-page) .view.fade { animation: none; }
   @keyframes fade { from { opacity: 0; transform: translateY(3px); } }
   h1 { font-size: 28px; font-weight: 700; letter-spacing: -.5px; margin: 0; text-transform: lowercase; }
   .head { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
@@ -103,7 +103,7 @@
   .wk .lbl { font-weight: 700; color: var(--sub); }
   .wheel { position: relative; width: 196px; height: 196px; margin: 8px auto 8px; }
   .wheel svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .wheel .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .wheel .c { pointer-events: none; position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .wpct { font-size: 26px; font-weight: 700; letter-spacing: -.5px; line-height: 1; } .wpct.full { font-size: 22px; }
   .wfrac { color: var(--sub); font-weight: 700; margin-top: 3px; font-size: 11px; font-variant-numeric: tabular-nums; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; font-size: 11px; color: var(--sub); }
@@ -318,7 +318,27 @@
     --r-ctl: 8px; --r-card: 14px; --r-sheet: 14px; --ease: cubic-bezier(.32,.72,0,1); --dur: .22s; --dur-fast: .14s; }
   .ic { display: inline-block; flex: none; vertical-align: -2px; } .chev .ic, .more .ic { opacity: .55; }
   .btn, .iconbtn, .nav, .prow, .cc, .fchip, .seg button, .cchip, .link, .delbtn, .ins { transition: transform var(--dur-fast) var(--ease), background-color var(--dur-fast), color var(--dur-fast), opacity var(--dur-fast); }
-  .btn:active, .iconbtn:active, .fchip:active, .cchip:active { transform: scale(.95); } .cc:active { transform: scale(.98); }
+  /* motion (settings → motion): each effect is on only while html has its m-* class */
+  html.m-squish :is(.btn, .iconbtn, .fchip, .cchip, .seg button, .link, .chk, .nav, .prow, .delbtn, .chip):active { transform: scale(.94); } html.m-squish .cc:active { transform: scale(.98); }
+  html.m-squish .chk { transition: transform .14s var(--ease); }
+  html.m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card) { transition: transform .28s var(--ease), box-shadow .28s var(--ease); }
+  html.m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.22); }
+  html[data-theme=light].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover, html[data-theme=elegant].m-lift :is(#v-dash .glance .card, #v-dash .day, #v-grades .cc, #v-grades .gpa, #v-att .card):hover { box-shadow: 0 10px 26px rgba(24,40,40,.14); }
+  .side { position: relative; } .navpill { position: absolute; left: 12px; right: 12px; top: 0; height: 0; border-radius: 8px; background: var(--fill); opacity: 0; pointer-events: none; z-index: 0;
+    transition: transform .38s var(--ease), height .38s var(--ease), opacity .2s; } .side > .nav, .subnav .nav { position: relative; z-index: 1; }
+  html.m-pill .navpill { opacity: 1; } html.m-pill .side .nav:hover, html.m-pill .side .nav.on { background: transparent; }
+  html.m-ring .wheel svg [data-ri] { transition: opacity .22s var(--ease); } html.m-ring .wheel svg.rf [data-ri] { opacity: .28; } html.m-ring .wheel svg.rf [data-ri].hot { opacity: 1; }
+  .chk { position: relative; } .burst { position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--c, var(--tint)); pointer-events: none; animation: burst .6s cubic-bezier(.2,.8,.3,1) forwards; }
+  @keyframes burst { from { transform: scale(.7); opacity: .9; } to { transform: scale(2.6); opacity: 0; border-width: .5px; } }
+  html.m-page .view.fade { animation: pagein .34s var(--ease); } @keyframes pagein { from { opacity: 0; transform: translateY(10px); } }
+  @property --dr { syntax: '<angle>'; inherits: false; initial-value: 360deg; }
+  .donut svg.draw { -webkit-mask: conic-gradient(#000 var(--dr), transparent 0); mask: conic-gradient(#000 var(--dr), transparent 0); animation: drawin .9s cubic-bezier(.3,.7,.2,1) both; }
+  @keyframes drawin { from { --dr: 0deg; } to { --dr: 360deg; } }
+  html.m-row .grid.b tr.row td { transition: background-color .16s; } html.m-row .grid.b tr.row .delbtn { opacity: 0; transition: opacity .16s, color .14s, background-color .14s; }
+  html.m-row .grid.b tr.row:hover .delbtn, html.m-row .grid.b tr.row .delbtn:focus { opacity: 1; }
+  html:not(.m-row) .grid tr.row:hover td { background: inherit; }
+  .confetti { position: fixed; inset: 0; pointer-events: none; z-index: 200; }
+  .mo-sub { opacity: .45; } 
   .btn, .txt, .seg, .fchip, .cchip { border-radius: var(--r-ctl); } .card, .cc, .pop, .drawer .card { border-radius: var(--r-card); }
   .chk.ckpop { animation: chkpop .38s var(--ease); } @keyframes chkpop { 0% { transform: scale(.72); } 55% { transform: scale(1.15); } 100% { transform: scale(1); } }
   :focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; } .txt:focus, .cell:focus { outline: none; }
@@ -376,7 +396,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.52 (11/18 6:30pm)';
+const BUILD = 'd1.53 (11/22 2:10pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -443,6 +463,45 @@ const spaceCode = c => String(c || '').replace(/^([a-z]+)(\d+)$/i, (m, a, b) => 
 
 // ===================== data =====================
 const CBP = {};   // completion bar heights last shown, so a change grows from there
+// motion settings: one switch for everything, one per effect; each effect is a class on <html>
+const MOTION_LIST = [['lift', 'cards lift'], ['pill', 'sidebar pill'], ['ring', 'wheel ring focus'], ['squish', 'press squish'], ['burst', 'check burst'], ['count', 'numbers count up'],
+  ['page', 'page transitions'], ['donut', 'donuts draw in'], ['confetti', '100% week confetti'], ['row', 'sheet row hover']];
+const MO = Object.assign({ all: true }, Object.fromEntries(MOTION_LIST.map(m => [m[0], true])), store.get('desk-motion', {}));
+const mo = k => MO.all && MO[k];
+function applyMotion() { const h = document.documentElement; MOTION_LIST.forEach(([k]) => h.classList.toggle('m-' + k, !!mo(k))); if (typeof placePill === 'function') placePill(); }
+applyMotion();
+function motionRows() {
+  const sw = (k, on) => `<label class="sw"><input type="checkbox" data-mo="${k}"${on ? ' checked' : ''}><i></i></label>`;
+  return `<div class="row"><span>all motion</span>${sw('all', MO.all)}</div>` + MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(k, MO[k])}</div>`).join('');
+}
+// numbers that tick to their new value: cnt(key, value, decimals) marks the spot; countUp() runs after each render
+const CNT = {};
+function cnt(key, v, dec) { if (v == null || isNaN(v)) return '–'; return `<span class="cnt" data-ck="${esc(key)}" data-cv="${v}" data-cd="${dec}">${fmtN(v, dec)}</span>`; }
+function fmtN(v, dec) { return dec === 2 ? f2(v) : Number(v).toFixed(dec); }
+function countUp() {
+  document.querySelectorAll('.cnt[data-ck]').forEach(el => {
+    const k = el.dataset.ck, v = +el.dataset.cv, dec = +el.dataset.cd, was = CNT[k]; CNT[k] = v;
+    if (!mo('count') || was == null || Math.abs(was - v) < 1e-9) return;
+    const t0 = performance.now(), dur = 650;
+    const step = now => { if (!el.isConnected) return; const q = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - q, 3); el.textContent = fmtN(was + (v - was) * e, dec); if (q < 1) requestAnimationFrame(step); };
+    el.textContent = fmtN(was, dec); requestAnimationFrame(step);
+  });
+}
+// confetti when this week's last assignment gets checked off
+function confetti() {
+  if (!mo('confetti')) return;
+  const c = document.createElement('canvas'), d = devicePixelRatio || 1; c.className = 'confetti'; c.width = innerWidth * d; c.height = innerHeight * d; document.body.appendChild(c);
+  const x = c.getContext('2d'); x.scale(d, d);
+  const w = document.querySelector('#v-dash .wheel'), r = w ? w.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 3, width: 0, height: 0 };
+  const ox = r.left + r.width / 2, oy = r.top + r.height / 2, cols = courseList().map(k => colorFor(k.code)).concat(['#FFD60A']);
+  const P = Array.from({ length: 110 }, (_, i) => { const a = Math.random() * Math.PI * 2, sp = 4 + Math.random() * 7; return { x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4, s: 4 + Math.random() * 5, r: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cols[i % cols.length] }; });
+  const t0 = performance.now();
+  const step = now => { const t = now - t0; x.clearRect(0, 0, innerWidth, innerHeight); x.globalAlpha = Math.max(0, 1 - Math.max(0, t - 900) / 700);
+    P.forEach(p => { p.vy += .22; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr; x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); x.restore(); });
+    if (t < 1600) requestAnimationFrame(step); else c.remove(); };
+  requestAnimationFrame(step);
+}
+function weekAllDone() { const ws = weekStart(Date.now()), we = addDays(ws, 7), wk = (data.assignments || []).filter(a => a.t >= ws && a.t < we && !blankCls(a.c)); return wk.length > 0 && wk.every(a => a.d); }
 let data = null, lastSync = 0, syncState = 'busy', fetching = false, pendingData = null;
 const OV = {};                                // local edits stay on screen until the sheet shows them (or 90 s pass)
 const kOf = a => a.c + '|' + a.n + '|' + a.t;
@@ -612,7 +671,9 @@ function deleteAssignment(a) {
 }
 function toggleDone(a) {
   const to = !a.d; a.d = to; if (VIEW === 'sheet') STAY.add(kOf(a)); setOv(a, { d: to }); changed();
-  if (to) { const i = data.assignments.indexOf(a); document.querySelectorAll(`[data-i="${i}"] .chk, .chk[data-i="${i}"]`).forEach(c => c.classList.add('ckpop')); }
+  if (to) { const i = data.assignments.indexOf(a); document.querySelectorAll(`[data-i="${i}"] .chk, .chk[data-i="${i}"]`).forEach(c => { c.classList.add('ckpop');
+      if (mo('burst')) { const b = document.createElement('span'); b.className = 'burst'; b.style.setProperty('--c', colorFor(a.c)); c.appendChild(b); setTimeout(() => b.remove(), 650); } });
+    const ws = weekStart(Date.now()); if (a.t >= ws && a.t < addDays(ws, 7) && weekAllDone()) setTimeout(confetti, 250); }
   let undone = false;
   const t = setTimeout(() => { if (undone) return;
     post({ action: to ? 'done' : 'undone', row: a.r, n: a.n, c: a.c }).catch(() => { a.d = !to; setOv(a, { d: !to }); changed(); toast('couldn’t save — try again'); }); }, 2500);
@@ -701,10 +762,12 @@ function go(v, fade) {
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
   document.querySelectorAll('.view').forEach(s => { s.classList.toggle('on', s.id === 'v-' + v); s.classList.toggle('fade', fade !== false && s.id === 'v-' + v); });
   renderAll(); $('main').scrollTop = 0;
+  if (v === 'grades' && mo('donut')) document.querySelectorAll('#v-grades .donut svg').forEach(sv => sv.classList.add('draw'));
+  placePill();
 }
 function renderAll() {
   if (!DEMO && !KEY && VIEW !== 'settings') { $('v-' + VIEW).innerHTML = connectHtml(); return; }
-  subnav(); try { sideWheel(); brandColor(); } catch (x) {}
+  subnav(); try { sideWheel(); brandColor(); placePill(); } catch (x) {}
   const fn = { dash: renderDash, sheet: renderSheet, grades: renderGrades, att: renderAtt, settings: renderSettings, course: renderCourse }[VIEW];
   const v = $('v-' + VIEW);
   if (VIEW === 'course' && !COURSE) VIEW = 'settings';
@@ -712,11 +775,11 @@ function renderAll() {
   const ae = document.activeElement, keep = ae && ae.dataset && ae.dataset.k ? { k: ae.dataset.k, s: ae.selectionStart, e: ae.selectionEnd } : null;
   if (keep && ae.isConnected && v.contains(ae) && !(VIEW === 'sheet' && SF.gs)) {   // typing: update everything around the focused box without replacing it, so the iPad keyboard doesn't reset
     const tmp = document.createElement('div'); fn(tmp);
-    if (morphKeep(v, tmp, ae)) { if (VIEW === 'course') rulesPreview(); growBars(); return; }
+    if (morphKeep(v, tmp, ae)) { if (VIEW === 'course') rulesPreview(); growBars(); countUp(); return; }
     v.replaceChildren(...tmp.childNodes);
   } else fn(v);
   if (VIEW === 'course') rulesPreview();
-  growBars();
+  growBars(); countUp();
   if (keep) { const el = v.querySelector('[data-k="' + CSS.escape(keep.k) + '"]'); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (x) {} } }
 }
 function morphKeep(o, n, ae) {
@@ -787,7 +850,7 @@ function renderDash(v) {
   v.innerHTML = `<div class="head"><h1>${esc(greet())}</h1><div class="tools"><button class="btn tint" data-act="add">add assignment</button></div></div>
     <div class="glance">
       <div class="card"><div class="wk"><button class="iconbtn" data-act="wk-" aria-label="previous week">${IC.l}</button><span class="lbl">${rel}</span><button class="iconbtn" data-act="wk+" aria-label="next week">${IC.r}</button></div>
-        <div class="wheel"><svg viewBox="0 0 200 200">${wheelSvg(wk)}</svg><div class="c"><div class="wpct${wk.length && done === wk.length ? ' full' : ''}">${wk.length ? Math.round(done / wk.length * 100) : 0}%</div><div class="wfrac">${done}/${wk.length}</div></div></div>
+        <div class="wheel"><svg viewBox="0 0 200 200">${wheelSvg(wk)}</svg><div class="c"><div class="wpct${wk.length && done === wk.length ? ' full' : ''}">${cnt('wk' + weekOff, wk.length ? Math.round(done / wk.length * 100) : 0, 0)}%</div><div class="wfrac">${done}/${wk.length}</div></div></div>
         <div class="legend">${wheelCourses(wk).map(c => `<span><b style="background:${colorFor(c)}"></b>${esc(c)}</span>`).join('')}</div></div>
       ${nextUpHtml()}
       <div class="col${SLOT === 'completion' && !slotEdit ? ' wide1' : ''}">${slotHtml()}${countdownHtml()}</div>
@@ -814,7 +877,7 @@ function wheelSvg(wk) {
     const P = (r, t) => (100 + r * Math.sin(t)).toFixed(2) + ' ' + (100 - r * Math.cos(t)).toFixed(2);
     return `<path d="M${P(r2, 0)}A${r2} ${r2} 0 ${big} 1 ${P(r2, tc)}L${P(g.rad, t1)}L${P(r1, tc)}A${r1} ${r1} 0 ${big} 0 ${P(r1, 0)}Z" fill="${g.col}"/>`;
   };
-  const arcs = ps => rings.map((g, i) => arc(g, ps[i])).join(''), to = rings.map(g => g.pct);
+  const arcs = ps => rings.map((g, i) => `<g data-ri="${i}">${arc(g, ps[i])}</g>`).join(''), to = rings.map(g => g.pct);
   const geo = weekOff + '|' + rings.map(g => g.rad.toFixed(2) + g.col).join(',');
   const from = DW && DW.geo === geo && DW.pcts.some((p, i) => Math.abs(p - to[i]) > 1e-6) ? DW.shown.slice() : null;
   DW = { geo, pcts: to, shown: from || to.slice() };
@@ -822,7 +885,7 @@ function wheelSvg(wk) {
     const step = now => { const g = document.getElementById('dwg'); if (tok !== dwTok || !g) return; const q = Math.min((now - t0) / 650, 1), e = 1 - Math.pow(1 - q, 3), ps = to.map((t, i) => from[i] + (t - from[i]) * e);
       g.innerHTML = arcs(ps); DW.shown = ps; if (q < 1) requestAnimationFrame(step); };
     requestAnimationFrame(step); }
-  return rings.map(g => `<circle cx="100" cy="100" r="${g.rad}" fill="none" stroke-width="${g.w}" stroke="var(--track)"/>`).join('') + `<g id="dwg">${arcs(from || to)}</g>`;
+  return rings.map((g, i) => `<circle data-ri="${i}" cx="100" cy="100" r="${g.rad}" fill="none" stroke-width="${g.w}" stroke="var(--track)"/>`).join('') + `<g id="dwg">${arcs(from || to)}</g>`;
 }
 function nextUpHtml() {
   const ev = data.events, now = Date.now(), all = ev ? shownEv().filter(e => (e.e || e.t) > now) : [];
@@ -898,7 +961,7 @@ function budgetHtml(pen) {
   const W = data.weeks || [], T = today(), next = W.find(w => w.t >= T && w.budget != null);
   if (!next) return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="muted">no budget targets on the sheet</div></div>`;
   const days = Math.round((next.t - T) / 864e5);
-  return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="big">$${f2(next.budget)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
+  return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="big">$${cnt('budget', next.budget, 2)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
 }
 let cdEdit = false;
 function cdForm() {
@@ -1071,7 +1134,7 @@ function donutSvg(c, col) {
   return `<svg viewBox="0 0 200 200">${h}</svg>`;
 }
 function gpaCard(act, title, shown, val, how) {
-  return `<div class="card gpa" data-act="${act}"><div class="ct">${title}</div>${shown ? `<div class="big">${val != null ? Number(val).toFixed(3) : '–'}</div><div class="sec"><div class="ct">how it was calculated</div>${how}</div>`
+  return `<div class="card gpa" data-act="${act}"><div class="ct">${title}</div>${shown ? `<div class="big">${val != null ? cnt('gpa-' + act, Number(val), 3) : '–'}</div><div class="sec"><div class="ct">how it was calculated</div>${how}</div>`
     : `<div class="eyebig">${EYE_SHUT.replace('width="22" height="14"', 'width="54" height="34"')}</div>`}</div>`;
 }
 // overall NCSU GPA: finished terms from the GPA Tracker + this term's live letters
@@ -1095,7 +1158,7 @@ function renderGrades(v) {
   v.innerHTML = `<div class="head"><h1>grades</h1></div>
     <div class="ccards">${L.courses.map(c => { const col = colorFor(c.code); return `<button class="cc" style="--c:${col}" data-act="course" data-code="${esc(c.code)}">
       <div class="top"><span class="code">${esc(spaceCode(c.code))}</span><span class="nmx">${esc(c.name)}</span>${c.passFail ? '<span class="pf">S/U</span>' : `<span class="pf">${c.credits} cr</span>`}</div>
-      <div class="donut">${donutSvg(c, col)}<div class="c"><div class="dl" style="color:${col}">${esc(c.letter || '–')}</div><div class="cp">${c.raw != null ? f2(c.raw) + (c._rule && c._rule.binCutoffs ? ' pts' : '%') : ''}</div></div></div>
+      <div class="donut">${donutSvg(c, col)}<div class="c"><div class="dl" style="color:${col}">${esc(c.letter || '–')}</div><div class="cp">${c.raw != null ? cnt('cp-' + c.code, c.raw, 2) + (c._rule && c._rule.binCutoffs ? ' pts' : '%') : ''}</div></div></div>
       ${how(c)}</button>`; }).join('')}
     ${gpaCard('gpa', 'term gpa', showGpa, L.gpa, `<ol class="trace">${lg.map(c => `<li>${esc(spaceCode(c.code))}: ${esc(c.letter)} = ${c.gp} × ${c.credits} cr = ${f2(c.gp * c.credits)}</li>`).join('')}
           ${pf.length ? `<li>${esc(pf.map(c => spaceCode(c.code)).join(', '))}: pass/fail, not in GPA</li>` : ''}<li>${f2(pts)} grade points ÷ ${cr} credits = ${cr ? (pts / cr).toFixed(3) : '–'}</li></ol>`)}
@@ -1329,6 +1392,7 @@ function renderSettings(v) {
   v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="set">
     <div class="card"><div class="ct">theme</div><div class="themes">${th.map(([k, l]) => `<button class="btn${THEME === k ? ' tint' : ''}" data-act="theme" data-t="${k}">${l}</button>`).join('')}</div></div>
     ${data && data.setup ? `<div class="card"><div class="ct">courses</div>${data.setup.map(x => `<button class="row prow" data-act="rules" data-code="${esc(x.code)}"><span><b style="color:${colorFor(x.code)}">${esc(spaceCode(x.code))}</b>&nbsp; ${esc(x.cfg ? x.cfg.name : '')}</span><span class="muted">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''}</span><span class="chev">${IC.r}</span></button>`).join('')}</div>` : ''}
+    <div class="card"><div class="ct">motion</div>${motionRows()}</div>
     <div class="card"><div class="ct">widgets</div>
       ${prow('greeting', (GR.rand ? 'random' : 'plain') + (GR.name ? ' · ' + GR.name : ''), 'greet')}
       ${cl.length > 1 ? prow('calendars', on + ' of ' + cl.length + ' shown', 'cal') : ''}
@@ -1492,6 +1556,7 @@ document.addEventListener('input', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
+  if (t.dataset && t.dataset.mo) { MO[t.dataset.mo] = t.checked; store.set('desk-motion', MO); applyMotion(); if (t.dataset.mo === 'all') renderAll(); return; }
   if (t.dataset && t.dataset.dtin !== undefined) {
     const dp = t.parentNode.querySelector('input[type=date]'), y = parseDateText(t.value);
     if (!t.value.trim()) { t.classList.remove('bad'); return; }
@@ -1709,6 +1774,24 @@ function demoData() {
   if (r && Date.now() - r.t < 60000) { VIEW = r.v; go(VIEW, false); setTimeout(() => { $('main').scrollTop = r.s; }, 0); }
   else go(VIEW);
 })();
+// sidebar pill: follows the hovered item, rests on the current page
+function placePill(el) {
+  const pill = $('navpill'), side = $('side'); if (!pill || !side) return;
+  el = el || side.querySelector('.nav.sub.on') || side.querySelector('.nav.on'); if (!el) { pill.style.height = '0px'; return; }
+  pill.style.transform = `translateY(${el.offsetTop}px)`; pill.style.height = el.offsetHeight + 'px';
+  pill.style.left = el.offsetLeft + 'px'; pill.style.right = 'auto'; pill.style.width = el.offsetWidth + 'px';
+}
+(() => { const side = $('side'); if (!side) return; const pill = document.createElement('div'); pill.className = 'navpill'; pill.id = 'navpill'; side.prepend(pill);
+  side.addEventListener('mouseover', e => { const n = e.target.closest('.nav'); if (n && mo('pill')) placePill(n); });
+  side.addEventListener('mouseleave', () => placePill()); addEventListener('resize', () => placePill()); setTimeout(() => placePill(), 50); })();
+// wheel ring focus: hovering a ring brings it forward
+document.addEventListener('mouseover', e => {
+  const sv = e.target.closest && e.target.closest('.wheel svg'); document.querySelectorAll('.wheel svg.rf').forEach(x => { if (x !== sv) x.classList.remove('rf'); });
+  if (!sv || !mo('ring')) return; const g = e.target.closest('[data-ri]');
+  sv.querySelectorAll('[data-ri].hot').forEach(x => x.classList.remove('hot'));
+  if (!g) { sv.classList.remove('rf'); return; }
+  sv.querySelectorAll(`[data-ri="${g.dataset.ri}"]`).forEach(x => x.classList.add('hot')); sv.classList.add('rf');
+});
 load();
 setTimeout(() => { if (!DEMO && KEY) gsHost(); }, 2000);   // warm up the google sheet so the toggle is instant
 </script>
