@@ -159,6 +159,9 @@
   .chip[data-act=asg] { cursor: pointer; } .chip[data-act=asg]:hover { background: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { background: var(--fill); }
   .chip.dragging { opacity: .35; } .day { transition: box-shadow .15s, background-color .15s; } .day.drop { box-shadow: inset 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--tint) 8%, var(--card)); }
   body.dragon .chip { cursor: grabbing; }
+  .pop.paste { width: 600px; } .pvbox { padding: 4px 16px 8px; } .popset textarea.txt { display: block; width: 100%; max-width: none; height: auto; min-height: 120px; padding: 8px 10px; resize: vertical; font: inherit; font-size: 13px; line-height: 1.4; }
+  .pvtab { width: calc(100% - 32px); margin: 0 16px; border-collapse: collapse; } .pvtab td { padding: 3px 3px; } .popset .pvtab .txt { width: 100%; max-width: none; } .pvtab td:nth-child(1) { width: 22px; } .pvtab td:nth-child(2) { width: 140px; } .pvtab td:nth-child(4) { width: 64px; }
+  .pvtab tr.off .txt { opacity: .4; } .pvty { text-transform: uppercase; }
   .pop.asg { width: 330px; } .aefm .row { height: 40px; } .popset .txt.aenm { display: block; width: calc(100% - 32px); max-width: none; margin: 2px 16px 6px; font-weight: 600; }
   .popset .aefm .txt { height: 30px; } .popset .aefm .row .txt { width: 150px; max-width: 150px; } .popset .aefm .row .aeg .txt { width: 69px; } .aefm .aesm { text-align: left; }
  .aeg { display: flex; align-items: center; gap: 6px; } .aeg i { color: var(--sub); font-style: normal; }
@@ -340,6 +343,11 @@
   .rcard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; } .rstat { padding: 14px 16px; display: grid; gap: 4px; } .rstat span { font-size: 12px; color: var(--sub); font-weight: 600; } .rstat b { font-size: 26px; font-weight: 700; }
   html[data-theme=elegant] .rstat b, html[data-theme=moody] .rstat b { font-family: var(--serif); font-weight: 500; }
   .rcode { min-width: 72px; } .rlet { min-width: 28px; text-align: right; } .rehd2 .iconbtn { flex: none; }
+  .scnew { border: 0; align-content: start; color: var(--sub); box-shadow: inset 0 0 0 1.5px var(--sep) !important; background: transparent; } .scnew::before { display: none; } .scnew .stile { background: var(--fill); color: var(--sub); } .scnew .sccode { color: var(--sub); }
+  .scnew:hover { box-shadow: inset 0 0 0 1.5px var(--tint) !important; color: var(--text); } .ncstep { margin-left: auto; font-size: 13px; } .ncnote { margin: -14px 0 18px 4px; font-size: 13px; }
+  .ncfoot { display: flex; align-items: center; gap: 8px; } .ncfoot .grow, .ncfoot .reerr { flex: 1; } .ncfoot .btn:disabled { opacity: .45; cursor: default; }
+  .nctab { width: 100%; border-collapse: collapse; margin: 6px 0 2px; } .nctab th { font-size: 12px; font-weight: 600; color: var(--sub); text-align: left; padding: 4px 4px; } .nctab td { padding: 3px 4px; }
+  .nctab .txt { width: 100%; } .nctab td:nth-child(1) { width: 40%; } .nctab td:nth-child(n+2):nth-child(-n+5) { width: 13%; } .nctab td:last-child { width: 32px; } .ncats .row .btn { flex: none; } .ncpass { width: 70px !important; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -460,10 +468,13 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.70 (11/22 6:05pm)';
+const BUILD = 'd1.71 (11/22 6:50pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
+const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
+// the open semester's own sheet (fall 2026 until the semester list has loaded)
+const termSheetId = () => { const t = typeof termNow === 'function' && data ? termNow() : null; return t && t.sheet && t.sheet !== 'demo' ? t.sheet : FALL26_ID; };
+const sheetUrl = () => 'https://docs.google.com/spreadsheets/d/' + termSheetId() + '/edit';
 const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
@@ -520,7 +531,7 @@ TMAP.moody = TMAP.elegant;
 let THEME = document.documentElement.getAttribute('data-theme') || 'default';
 function colorFor(code) {
   const k = String(code || '').toLowerCase().replace(/\s+/g, '');
-  let c = COLORS[k];
+  let c = COLORS[k] || (data && data.colors && data.colors[k]);
   if (!c) { let h = 0; for (const ch of k) h = (h * 31 + ch.charCodeAt(0)) >>> 0; c = SPARE[h % SPARE.length]; }
   const m = TMAP[THEME]; return (m && m[c]) || c;
 }
@@ -1163,13 +1174,14 @@ function parseDateText(s) {
   const dt = new Date(y, mo - 1, dd); if (dt.getMonth() !== mo - 1 || dt.getDate() !== dd) return null;
   return ymd(dt.getTime());
 }
-const GS_EMBED = SHEET_URL + '?rm=minimal#gid=1498365095&range=A1';
-const sheetHead = () => `<div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><button class="btn${SF.gs ? ' on' : ''}" data-act="gs">google sheet</button><a class="btn ic" href="${SHEET_URL}" target="_blank" rel="noopener" aria-label="open in google sheets" title="open in google sheets">${IC.ext.replace(/width="11" height="11"/, 'width="15" height="15"')}</a><button class="btn tint" data-act="add">add assignment</button></div></div>`;
+const gsEmbed = () => sheetUrl() + '?rm=minimal#gid=' + (termSheetId() === FALL26_ID ? '1498365095' : '772812577') + '&range=A1';   // Assignments tab (new terms keep the template's tab id)
+const sheetHead = () => `<div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><button class="btn${SF.gs ? ' on' : ''}" data-act="gs">google sheet</button><a class="btn ic" href="${sheetUrl()}" target="_blank" rel="noopener" aria-label="open in google sheets" title="open in google sheets">${IC.ext.replace(/width="11" height="11"/, 'width="15" height="15"')}</a><button class="btn" data-act="paste">paste schedule</button><button class="btn tint" data-act="add">add assignment</button></div></div>`;
 // embed view: the page itself stops scrolling and the sheet fills everything below the header
 // the sheet frame lives outside the page views and loads once, in the background, so showing it is instant
 function gsHost() {
   let h = $('gshost');
-  if (!h) { h = document.createElement('div'); h.id = 'gshost'; h.className = 'gsw'; h.innerHTML = `<iframe id="gsframe" src="${GS_EMBED}" title="google sheet"></iframe>`; $('main').appendChild(h); }
+  if (!h) { h = document.createElement('div'); h.id = 'gshost'; h.className = 'gsw'; h.innerHTML = `<iframe id="gsframe" src="${gsEmbed()}" title="google sheet"></iframe>`; $('main').appendChild(h); }
+  else { const f = $('gsframe'), u = gsEmbed(); if (f && f.getAttribute('src') !== u) f.setAttribute('src', u); }   // switched semesters
   return h;
 }
 function fitGs() {
@@ -1537,7 +1549,7 @@ const themed = c => (TMAP[THEME] && TMAP[THEME][c]) || c;
 const inkOn = c => { const n = parseInt(c.slice(1), 16), l = (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; return l > .62 ? 'rgba(0,0,0,.72)' : '#fff'; };
 const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
 const stile = k => { const x = SECS.find(y => y[0] === k), c = themed(x ? x[2] : '#A6A6B1'); return `<span class="stile" style="background:${c};color:${inkOn(c)}">${sicon(k)}</span>`; };
-let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false, REPORT = null, NEWT = null;   // NEWT: the new-semester form while it's open
+let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false, REPORT = null, NEWT = null, NEWC = null;   // NEWC: the new-course steps while they're open   // NEWT: the new-semester form while it's open
 if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
 // accent: the tint color, on top of whichever theme is on
 const ACCENTS = [['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'], ['#D2587E', 'pink'], ['#8B6FD6', 'purple']];
@@ -1585,10 +1597,12 @@ function setPaneHtml() {
     const cl = calList();
     h = grp('greeting', popBody('greet')) + (cl.length > 1 ? grp('calendars', popBody('cal')) : '') + grp('countdown', popBody('cd')) + grp('variable', popBody('var'));
   } else if (SSEC === 'courses') {
+    if (NEWC) return newCourseHtml();
     h = data && data.setup ? `<div class="scards">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
         return `<button class="card scard" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}"><span class="stile" style="background:${col};color:${inkOn(col)}">${sicon('courses')}</span>
           <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
-          <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}</div>`
+          <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', x.bare ? 'grading not set up' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
+          ${data.historyOnly ? '' : `<button class="card scard scnew" data-act="nc-open"><span class="stile">${IC.plus}</span><span class="sccode">new course</span></button>`}</div>`
       : grp('', '<div class="row"><span class="muted">not connected</span></div>');
   } else if (SSEC === 'semesters') {
     const T = termList(), on = data && data.term, md2 = y => y ? md(fromYmd(y)) : '';
@@ -1611,7 +1625,7 @@ function setPaneHtml() {
     h = SHORTCUTS.map(([g, ...rows]) => grp(g, rows.map(([keys, l]) => `<div class="row"><span>${l}</span><span class="keys">${keys.join('')}</span></div>`).join(''))).join('');
   } else {
     h = grp('', `${(window.CHANGES || []).length ? `<button class="row prow" data-act="pop" data-p="new"><span class="grow">what’s new</span><span class="muted">${esc(window.CHANGES[0][0])}</span><span class="chev">${IC.r}</span></button>` : ''}<div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
-      <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
+      <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${sheetUrl()}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
       <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '–'}</span><button class="btn sm" data-act="sync">refresh</button></div>`) +
       grp('connection', `<div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>`);
   }
@@ -1629,6 +1643,53 @@ function reportHtml(t) {
   const R = termReport(t);
   return `<div class="rcard"><div class="card rstat"><span>term gpa</span><b>${R.gpa != null ? R.gpa.toFixed(3) : '–'}</b></div><div class="card rstat"><span>credits</span><b>${R.total || '–'}</b></div><div class="card rstat"><span>courses</span><b>${R.rows.length || '–'}</b></div></div>` +
     (R.rows.length ? `<div class="card sgrp">${R.rows.map(r => `<div class="row"><b class="rcode" style="color:${colorFor(r.code)}">${esc(spaceCode(r.code))}</b><span class="grow">${esc(r.name)}</span><span class="muted">${r.hours > 0 ? r.hours + ' cr' : ''}</span><b class="rlet">${esc(r.letter || '–')}</b></div>`).join('')}</div>` : '');
+}
+// ---------- new course: course → credits and color → how it's graded → review ----------
+const NC_TPL = [
+  ['exams', 'exams + homework', { 'grade by': 'weights' }, [['exams', 'EX', 60, '', ''], ['homework', 'HW', 40, '', '']]],
+  ['final', 'exams, homework + final', { 'grade by': 'weights' }, [['exams', 'EX', 50, '', ''], ['homework', 'HW', 25, '', ''], ['final exam', 'FI', 25, 1, '']]],
+  ['drop', 'drop the lowest exam', { 'grade by': 'weights' }, [['exams', 'EX', 60, '', 1], ['homework', 'HW', 40, '', '']]],
+  ['points', 'total points', { 'grade by': 'points', 'entered as': 'points' }, [['assignments', 'AS', '', '', '']]],
+  ['pf', 'pass / fail', { 'grade by': 'weights', 'pass at': 70 }, [['coursework', 'CW', 100, '', '']]],
+  ['blank', 'blank', { 'grade by': 'weights' }, []],
+  ['later', 'set up later', null, null]];
+function nextColor() { const used = new Set(((data && data.setup) || []).map(x => colorFor(x.code))); return SPARE.find(c => !used.has(themed(c))) || SPARE[0]; }
+function ncValid(st) { const N = NEWC;
+  if (st === 1) return /^[a-z]{1,5}\d{2,4}[a-z]?$/.test(N.code) && !!N.name.trim() && !((data && data.setup) || []).some(x => x.code === N.code);
+  if (st === 2) return N.credits === '' || !isNaN(Number(N.credits));
+  if (st === 3) return !!N.tpl;
+  return N.tpl === 'later' || (N.cats.length > 0 && N.cats.every(c => c.name.trim() && c.type.trim()) && new Set(N.cats.map(c => c.type.trim().toUpperCase())).size === N.cats.length); }
+function newCourseHtml() {
+  const N = NEWC, st = N.step, sw = SPARE.map(c => `<button class="acc${N.color === c ? ' on' : ''}" data-act="nc-color" data-c="${c}" style="background:${themed(c)}" aria-label="color"></button>`).join('');
+  const f = (k, label, extra) => `<div class="row"><span>${label}</span><input class="txt" data-nc="${k}" data-k="nc-${k}" value="${esc(N[k])}" autocomplete="off" spellcheck="false" ${extra || ''}></div>`;
+  let body = '';
+  if (st === 1) body = `<div class="sgl">course</div><div class="card sgrp">${f('code', 'code', 'maxlength="10"')}${f('name', 'name', 'maxlength="40"')}</div>` + (N.code && ((data && data.setup) || []).some(x => x.code === N.code) ? `<div class="muted ncnote">${esc(N.code)} is already a course</div>` : '');
+  else if (st === 2) body = `<div class="sgl">credits and color</div><div class="card sgrp">${f('credits', 'credits', 'inputmode="decimal" maxlength="4"')}<div class="row"><span>color</span><div class="accs">${sw}</div></div></div>`;
+  else if (st === 3) body = `<div class="sgl">how is it graded?</div><div class="card sgrp">${NC_TPL.map(([k, l]) => `<button class="row prow" data-act="nc-tpl" data-t="${k}"><span class="grow">${l}</span><span class="tick">${N.tpl === k ? TICK : ''}</span></button>`).join('')}</div>`;
+  else {
+    const col = themed(N.color), cats = N.tpl === 'later' ? '<div class="row"><span>grading</span><span class="muted">–</span></div>'
+      : `<table class="nctab"><thead><tr><th>category</th><th>type</th><th>${N.head['grade by'] === 'points' ? 'points' : 'weight'}</th><th>items</th><th>drop</th><th></th></tr></thead><tbody>${N.cats.map((c, i) => `<tr>
+          <td><input class="txt" data-ncc="${i}.name" data-k="ncc${i}n" value="${esc(c.name)}" maxlength="40"></td><td><input class="txt up" data-ncc="${i}.type" data-k="ncc${i}t" value="${esc(c.type)}" maxlength="6"></td>
+          <td><input class="txt" data-ncc="${i}.weight" data-k="ncc${i}w" value="${esc(c.weight)}" inputmode="decimal"></td><td><input class="txt" data-ncc="${i}.items" data-k="ncc${i}i" value="${esc(c.items)}" inputmode="numeric"></td>
+          <td><input class="txt" data-ncc="${i}.drop" data-k="ncc${i}d" value="${esc(c.drop)}" inputmode="numeric"></td><td><button class="iconbtn x" data-act="nc-rm" data-i="${i}" aria-label="remove">${IC.x}</button></td></tr>`).join('')}</tbody></table>
+        <div class="row"><button class="btn sm" data-act="nc-add">${IC.plus} category</button>${N.head['pass at'] != null ? `<span class="grow"></span><span class="muted">pass at</span><input class="txt ncpass" data-nh="pass at" data-k="nc-pass" value="${esc(N.head['pass at'])}" inputmode="decimal">` : ''}</div>`;
+    body = `<div class="sgl">review</div><div class="card sgrp"><div class="row"><span class="stile" style="background:${col};color:${inkOn(col)}">${sicon('courses')}</span><b style="color:${col}">${esc(N.code)}</b><span class="grow">${esc(N.name)}</span><span class="muted">${N.credits !== '' ? esc(N.credits) + ' cr' : ''}</span></div></div>
+      <div class="sgl">${esc((NC_TPL.find(t => t[0] === N.tpl) || [])[1] || '')}</div><div class="card sgrp ncats">${cats}</div>`;
+  }
+  const ok = ncValid(st);
+  return `<div class="rehd2"><button class="iconbtn" data-act="nc-x" aria-label="close">${IC.x}</button><h2 class="sxh">new course</h2><span class="muted ncstep">${st} of 4</span></div>${body}
+    <div class="ncfoot">${N.err ? `<span class="reerr">${esc(N.err)}</span>` : '<span class="grow"></span>'}${st > 1 ? '<button class="btn" data-act="nc-back">back</button>' : ''}<button class="btn tint" id="nc-next" data-act="${st < 4 ? 'nc-next' : 'nc-go'}"${ok && !N.busy ? '' : ' disabled'}>${st < 4 ? 'next' : N.busy ? 'adding…' : 'add course'}</button></div>`;
+}
+function ncRefresh() { const p = $('sxpane'); if (p && SSEC === 'courses' && NEWC) { const n = $('nc-next'); if (n) n.disabled = !ncValid(NEWC.step) || NEWC.busy; } }
+function addCourse() {
+  const N = NEWC; if (!N || N.busy || !ncValid(4)) return;
+  const cats = N.tpl === 'later' ? [] : N.cats.map(c => ({ name: c.name.trim(), type: c.type.trim().toUpperCase(), weight: c.weight, items: c.items, combine: N.head['grade by'] === 'points' ? 'points' : 'average', drop: c.drop }));
+  const body = { action: 'course_add', code: N.code, name: N.name.trim(), credits: N.credits, color: N.color, head: N.head || {}, cats };
+  N.busy = true; N.err = ''; renderAll();
+  const done = () => { NEWC = null; toast('added ' + body.code); renderAll(); };
+  if (DEMO) { data.setup.push({ code: body.code, layout: 'blocks', cfg: { name: body.name, credits: body.credits }, head: body.head, cats, bare: !cats.length }); (data.colors = data.colors || {})[body.code] = body.color; return done(); }
+  post(body).then(() => { (data.colors = data.colors || {})[body.code] = body.color; done(); load(true); })
+    .catch(e => { if (NEWC) { NEWC.busy = false; NEWC.err = String(e.message || e); } renderAll(); });
 }
 function renderSettings(v) {
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && ae.tagName === 'INPUT' && !/checkbox|date|color/.test(ae.type) && v.innerHTML) return;
@@ -1675,6 +1736,7 @@ function openPop(k, from) { POP = k; let w = $('popw'); if (!w) { w = document.c
 function closePop() { POP = null; const w = $('popw'); if (w) w.classList.remove('on'); renderAll(); }
 function popBody(k) {
   if (k === 'asg') return asgBody();
+  if (k === 'paste') return pasteBody();
   if (k === 'new') return newsHtml();
   const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
   return k === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
@@ -1684,6 +1746,51 @@ function popBody(k) {
     : `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
       (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
       (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
+}
+// ---------- paste a schedule: one assignment per line (or a pasted table), each needs a date ----------
+let PASTE = null;
+const TYPE_WORDS = [[/\bfinal\b/, 'FI'], [/\b(mid ?term|exam|test)\b/, 'EX'], [/\bquiz/, 'QZ'], [/\blab\b/, 'LB'], [/\b(hw|homework|problem set|pset)\b/, 'HW'], [/\b(essay|paper)\b/, 'ES'], [/\bproject\b/, 'PJ'], [/\b(reading|read)\b/, 'RD'], [/\bpresentation\b/, 'PR']];
+function termYearFix(y) {   // pasted dates without a year land inside the open semester
+  const t = termNow(); if (!t || !t.start || !y) return y; const s0 = fromYmd(t.start), e0 = t.ldoc ? fromYmd(t.ldoc) : s0 + 150 * 864e5, d = fromYmd(y);
+  if (d >= s0 - 30 * 864e5 && d <= e0 + 45 * 864e5) return y;
+  for (const k of [-1, 1]) { const x = new Date(d); x.setFullYear(x.getFullYear() + k); if (x.getTime() >= s0 - 30 * 864e5 && x.getTime() <= e0 + 45 * 864e5) return ymd(x.getTime()); }
+  return y;
+}
+function parseSchedule(text) {
+  const out = [], DT = /\b(?:(?:sun|mon|tue|wed|thu|fri|sat)[a-z]*\.?,?\s+)?(\d{1,2}[\/\-.]\d{1,2}(?:[\/\-.]\d{2,4})?|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}(?:,?\s*\d{4})?)\b/i;
+  String(text || '').split(/\r?\n/).forEach(line => {
+    const cells = line.split('\t').map(x => x.trim()).filter(Boolean); if (!cells.length) return;
+    let due = null, rest = [];
+    if (cells.length > 1) cells.forEach(c => { const d = !due && parseDateText(c); if (d) due = d; else rest.push(c); });
+    else { const m = DT.exec(line); if (m) { due = parseDateText(m[1]); rest = [line.slice(0, m.index) + ' ' + line.slice(m.index + m[0].length)]; } }
+    if (!due) return;
+    const name = rest.join(' ').replace(/\b(sun|mon|tue|wed|thu|fri|sat)(day)?\b\.?,?/gi, '').replace(/^[\s\-–—:|•*·,.]+|[\s\-–—:|•*·,]+$/g, '').replace(/\s{2,}/g, ' ').trim(); if (!name) return;
+    const low = name.toLowerCase(), ty = (TYPE_WORDS.find(([re]) => re.test(low)) || [])[1] || '';
+    out.push({ on: true, due: termYearFix(due), name, type: ty });
+  });
+  return out;
+}
+function pasteRowsHtml() {
+  const R = PASTE.rows; if (!R.length) return '';
+  return `<table class="pvtab">${R.map((r, i) => `<tr class="${r.on ? '' : 'off'}"><td><input type="checkbox" data-pvr="${i}.on"${r.on ? ' checked' : ''}></td><td><input class="txt" type="date" data-pvr="${i}.due" value="${r.due}"></td>
+    <td><input class="txt" data-pvr="${i}.name" value="${esc(r.name)}"></td><td><input class="txt pvty" data-pvr="${i}.type" value="${esc(r.type)}" maxlength="6"></td></tr>`).join('')}</table>`;
+}
+function pasteGo() { const n = PASTE.rows.filter(r => r.on && r.name.trim() && r.due).length; return { n, ok: n > 0 && !!PASTE.cls && !PASTE.busy }; }
+function pasteBody() {
+  const g = pasteGo();
+  return `<div class="row"><span>class</span><select class="txt" data-pv="cls"><option value=""${PASTE.cls ? '' : ' selected'}>–</option>${courseList().map(c => `<option value="${esc(c.code)}"${PASTE.cls === c.code ? ' selected' : ''}>${esc(spaceCode(c.code))}</option>`).join('')}</select></div>
+    <div class="pvbox"><textarea class="txt" id="pv-text" data-pv="text" rows="6" spellcheck="false" aria-label="schedule">${esc(PASTE.text)}</textarea></div>
+    <div id="pv-list">${pasteRowsHtml()}</div>
+    <div class="aeft"><span></span><button class="btn tint" id="pv-go" data-act="pv-go"${g.ok ? '' : ' disabled'}>${PASTE.busy ? 'adding…' : g.n ? 'add ' + g.n : 'add'}</button></div>`;
+}
+function pasteRefresh(list) { if (list) { const l = $('pv-list'); if (l) l.innerHTML = pasteRowsHtml(); } const b = $('pv-go'), g = pasteGo(); if (b) { b.disabled = !g.ok; b.textContent = g.n ? 'add ' + g.n : 'add'; } }
+function pasteAdd() {
+  const g = pasteGo(); if (!g.ok) return; const cls = PASTE.cls, rows = PASTE.rows.filter(r => r.on && r.name.trim() && r.due).map(r => ({ name: r.name.trim(), className: cls, type: r.type.trim().toUpperCase(), due: r.due }));
+  PASTE.busy = true; renderPop();
+  const local = () => rows.forEach((r, i) => { const a = { r: 0, n: r.name, c: cls, y: r.type, t: fromYmd(r.due), d: false, g: '', o: null }; data.assignments.push(a); setOv(a, {}, true); });
+  if (DEMO) { local(); PASTE = null; closePop(); toast('added ' + rows.length); return changed(); }
+  post({ action: 'add_many', rows }).then(() => { local(); PASTE = null; closePop(); toast('added ' + rows.length); changed(); setTimeout(() => load(true), 1500); })
+    .catch(e => { if (PASTE) PASTE.busy = false; renderPop(); toast('couldn’t add — ' + (e.message || e)); });
 }
 function newsHtml() { return (window.CHANGES || []).map(([d, xs]) => `<div class="nwd">${esc(d)}</div>` + xs.map(x => `<div class="row nwx"><span>${esc(x)}</span></div>`).join('')).join(''); }
 // assignment editor (dashboard): every field saves as you change it, same as the sheet
@@ -1701,8 +1808,8 @@ function asgBody() {
     <div class="aeft"><button class="btn aedel" data-act="ae-del">delete</button><button class="btn tint" data-act="popdone">done</button></div></div>`;
 }
 function renderPop() {
-  const box = $('pop'); if (!box || !POP) return; box.classList.toggle('asg', POP === 'asg'); const body = popBody(POP);
-  box.innerHTML = `<div class="pophd"><span>${(POP === 'asg' ? (a => a ? `<b style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}</b>` : '')(asgCur()) : ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable', new: 'what’s new' })[POP])}</span>${POP === 'asg' ? '' : '<button class="link" data-act="popdone">done</button>'}</div><div class="set popset">${body}</div>`;
+  const box = $('pop'); if (!box || !POP) return; box.classList.toggle('asg', POP === 'asg'); box.classList.toggle('paste', POP === 'paste'); const body = popBody(POP);
+  box.innerHTML = `<div class="pophd"><span>${(POP === 'asg' ? (a => a ? `<b style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}</b>` : '')(asgCur()) : ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable', new: 'what’s new', paste: 'paste a schedule' })[POP])}</span>${POP === 'asg' ? '' : '<button class="link" data-act="popdone">done</button>'}</div><div class="set popset">${body}</div>`;
 }
 // ===================== events =====================
 function startAdd(after) {
@@ -1713,6 +1820,7 @@ function startAdd(after) {
 }
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-act],[data-view]'); if (!t) return;
+  { const ae = document.activeElement; if (ae && ae.tagName === 'INPUT' && ae !== t && ae.closest && ae.closest('#v-settings') && t.closest('#v-settings')) ae.blur(); }   // Safari keeps focus in the box on a button click, which would hold back the settings re-render
   const act = t.dataset.act;
   if (!act && t.dataset.view) return go(t.dataset.view);
   const holder = t.closest('[data-i]');
@@ -1731,15 +1839,26 @@ document.addEventListener('click', e => {
     case 'close': return closeDrawer();
     case 'pop': return openPop(t.dataset.p, t);
     case 'popdone': return closePop();
+    case 'paste': { if (VIEW !== 'sheet') go('sheet'); PASTE = PASTE || { cls: '', text: '', rows: [] }; openPop('paste'); setTimeout(() => { const x = $('pv-text'); if (x) x.focus(); }, 30); return; }
+    case 'pv-go': return pasteAdd();
     case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; openPop('asg', t); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
-    case 'setsec': REPORT = null; NEWT = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
+    case 'setsec': REPORT = null; NEWT = null; NEWC = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
     case 'term': { const tm = termList().find(x => x.id === t.dataset.id); if (!tm) return; if (!tm.sheet) { REPORT = tm.id; return renderAll(); } if (tm.id !== (data && data.term)) switchTerm(tm.id); return; }
     case 'report-x': REPORT = null; return renderAll();
     case 'nt-open': NEWT = { name: guessTermName(), start: '', ldoc: '', exams: '' }; return renderAll();
     case 'nt-x': NEWT = null; return renderAll();
     case 'nt-go': return newTerm();
+    case 'nc-open': NEWC = { step: 1, code: '', name: '', credits: '3', color: nextColor(), tpl: '', head: {}, cats: [] }; renderAll(); setTimeout(() => { const i = document.querySelector('[data-nc=code]'); if (i) i.focus(); }, 30); return;
+    case 'nc-x': NEWC = null; return renderAll();
+    case 'nc-back': NEWC.step--; NEWC.err = ''; return renderAll();
+    case 'nc-next': if (ncValid(NEWC.step)) { NEWC.step++; renderAll(); setTimeout(() => { const i = document.querySelector('#sxpane input'); if (i && NEWC && NEWC.step === 2) i.focus(); }, 30); } return;
+    case 'nc-go': return addCourse();
+    case 'nc-color': NEWC.color = t.dataset.c; return renderAll();
+    case 'nc-tpl': { const tp = NC_TPL.find(x => x[0] === t.dataset.t); NEWC.tpl = tp[0]; NEWC.head = tp[2] ? Object.assign({}, tp[2]) : {}; NEWC.cats = (tp[3] || []).map(c => ({ name: c[0], type: c[1], weight: c[2], items: c[3], drop: c[4] })); return renderAll(); }
+    case 'nc-add': NEWC.cats.push({ name: '', type: '', weight: '', items: '', drop: '' }); renderAll(); setTimeout(() => { const r = document.querySelectorAll('.nctab tbody tr'); const i = r.length && r[r.length - 1].querySelector('input'); if (i) i.focus(); }, 30); return;
+    case 'nc-rm': NEWC.cats.splice(+t.dataset.i, 1); return renderAll();
     case 'term-back': { const c = termCur(); if (c) switchTerm(c.id); return; }
     case 'accent': ACC = t.dataset.c || ''; store.set('desk-accent', ACC); applyAccent(); return renderAll();
     case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
@@ -1804,6 +1923,11 @@ document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'sq') { SF.q = t.value; saveSF(); renderAll(); return; }
   if (t.id === 'acc-any') { ACC = t.value; applyAccent(); return; }
+  if (t.dataset.pv === 'text' && PASTE) { PASTE.text = t.value; PASTE.rows = parseSchedule(t.value); return pasteRefresh(true); }
+  if (t.dataset.pvr && PASTE) { const [i, k] = t.dataset.pvr.split('.'); if (k !== 'on') PASTE.rows[+i][k] = k === 'type' ? t.value.toUpperCase() : t.value; return pasteRefresh(false); }
+  if (t.dataset.nc && NEWC) { let v = t.value; if (t.dataset.nc === 'code') { v = v.toLowerCase().replace(/\s+/g, ''); if (v !== t.value) t.value = v; } NEWC[t.dataset.nc] = v; NEWC.err = ''; return ncRefresh(); }
+  if (t.dataset.ncc && NEWC) { const [i, k] = t.dataset.ncc.split('.'); NEWC.cats[+i][k] = k === 'type' ? t.value.toUpperCase() : t.value; return ncRefresh(); }
+  if (t.dataset.nh && NEWC) { NEWC.head[t.dataset.nh] = t.value; return ncRefresh(); }
   if (t.dataset.nt && NEWT) { NEWT[t.dataset.nt] = t.value; NEWT.err = ''; const g = $('nt-go'); if (g) g.disabled = !(NEWT.name.trim() && NEWT.start && NEWT.ldoc); return; }
   if (t.id === 'set-q' && VIEW === 'course') { SQ = t.value; go('settings', false); const q = $('set-q'); if (q) { q.focus(); q.setSelectionRange(SQ.length, SQ.length); } return; }
   if (t.id === 'set-q') { SQ = t.value; const p = $('sxpane'); if (p) p.innerHTML = setPaneHtml(); document.querySelectorAll('.sxnav button').forEach(b => b.classList.toggle('on', !SQ.trim() && b.dataset.s === SSEC)); return; }
@@ -1831,6 +1955,8 @@ document.addEventListener('change', e => {
     t.value = dayLabel(fromYmd(y)); return;
   }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.value = t.value ? dayLabel(fromYmd(t.value)) : ''; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
+  if (t.dataset.pv === 'cls' && PASTE) { PASTE.cls = t.value; return pasteRefresh(false); }
+  if (t.dataset.pvr && PASTE && t.type === 'checkbox') { const i = +t.dataset.pvr.split('.')[0]; PASTE.rows[i].on = t.checked; t.closest('tr').classList.toggle('off', !t.checked); return pasteRefresh(false); }
   if (t.dataset.ae) { const a = asgCur(); if (!a) return; const f = t.dataset.ae;
     if (f === 'd') { if (!!a.d !== t.checked) toggleDone(a); }
     else saveCell(a, f, t.value, t);
@@ -1981,6 +2107,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && t.dataset && t.dataset.draft) { e.preventDefault(); saveDraft(+t.dataset.draft); return; }
   if (e.key === 'Enter' && (t.id === 'td-new' || t.id === 'td-due')) { e.preventDefault(); addTodo(); return; }
   if (e.key === 'Enter' && t.dataset && t.dataset.ae) { e.preventDefault(); t.blur(); return; }
+  if (e.key === 'Enter' && t.dataset && (t.dataset.nc || t.dataset.ncc || t.dataset.nh) && NEWC) { e.preventDefault(); const n = $('nc-next'); if (n && !n.disabled) n.click(); return; }
   if (e.key === 'Enter' && t.id === 'note-in') { e.preventDefault(); addNote(); return; }
   if (e.key === 'Enter' && t.classList && t.classList.contains('cell') && t.closest('tr.row')) { e.preventDefault(); t.blur(); return; }
   // ctrl/cmd+z (shift for redo) undoes the last change anywhere: a cell, a grade, a check-off

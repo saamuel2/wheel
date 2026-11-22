@@ -596,7 +596,8 @@
     TMAP.moody = TMAP.elegant;
     function colorFor(name) {
       let n = String(name || '').toLowerCase(), c = '#A6A6B1';
-      if (COLORS[n]) c = COLORS[n]; else for (let k in COLORS) if (n.includes(k)) { c = COLORS[k]; break; }
+      const SC = (typeof appData !== 'undefined' && appData && appData.colors) || {};   // colors saved with courses added in the app
+      if (COLORS[n]) c = COLORS[n]; else if (SC[n]) c = SC[n]; else { let hit = false; for (let k in COLORS) if (n.includes(k)) { c = COLORS[k]; hit = true; break; } if (!hit) for (let k in SC) if (n.includes(k)) { c = SC[k]; break; } }
       const m = TMAP[THEME]; return (m && m[c]) || c;
     }
     function applyTheme(t) {
@@ -804,7 +805,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.70 (11/22 5:40pm)';
+    const BUILD = 'm2.71 (11/22 6:50pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
     const termQ = () => (appData && appData.term) || TERM;
@@ -1044,7 +1045,7 @@
         cb();
       }, () => cb(), { timeout: 8000, maximumAge: 30 * 60000 });
     }
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
+    const sheetUrlOf = () => { const t = termNow(); return 'https://docs.google.com/spreadsheets/d/' + (t && t.sheet && t.sheet !== 'demo' ? t.sheet : '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0') + '/edit'; };   // the open semester's sheet
     let WX = null, EV = null, wxi = 1;
     const WXL = { clear: 'clear', partly: 'partly', cloudy: 'cloudy', fog: 'foggy', rain: 'rain', snow: 'snow', storm: 'storms' };
     const WXD = [['clear',1,64,69,48],['partly',1,62,68,51],['cloudy',1,57,60,49],['rain',1,52,56,47],['snow',1,28,33,22],['storm',1,71,76,63],['fog',1,45,58,41],['clear',0,50,69,48],['partly',0,54,68,51]];
@@ -1174,7 +1175,7 @@
         (ISS.length ? '<button class="lrow" id="iss-copy">copy list</button>' : '') + '</div>';
       const cs = appData && appData.setup ? '<div class="grp">courses</div><div class="group">' + appData.setup.map(x => `<button class="lrow" data-rules="${esc(x.code)}" style="color:var(--text)"><b style="color:${colorFor(x.code)};margin-right:8px">${esc(x.code)}</b>${esc(x.cfg ? x.cfg.name : '')}<span class="tg" style="margin-left:auto">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''} ${IC.r}</span></button>`).join('') + '</div>' : '';
       const T = termsOf(), sem = T.length ? '<div class="grp">semesters</div><div class="group">' + T.slice().reverse().map(t => `<button class="lrow" data-term="${esc(t.id)}" style="color:var(--text)">${esc(t.name)}<span class="tg" style="margin-left:auto">${t.status === 'current' ? 'current' : t.status === 'finished' ? 'finished' : ''}${t.id === (appData && appData.term) ? ' ' + TICK : !t.sheet ? ' ' + IC.r : ''}</span></button>`).join('') + '</div>' : '';
-      $('settings-card').innerHTML = th + cs + sem + wg + iss + '<div class="grp">app info</div><div class="group">' + ((window.CHANGES || []).length ? prow('what’s new', window.CHANGES[0][0], 'new') : '') + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + SHEET_URL + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
+      $('settings-card').innerHTML = th + cs + sem + wg + iss + '<div class="grp">app info</div><div class="group">' + ((window.CHANGES || []).length ? prow('what’s new', window.CHANGES[0][0], 'new') : '') + r('build', BUILD) + r('source', DEMO ? 'demo snapshot' : '<a href="' + sheetUrlOf() + '" target="_blank" rel="noopener" style="color:var(--tint);text-decoration:none">google sheets ' + IC.ext + '</a>') +
         r('last synced', lastSync ? lastSync.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '—') +
         (DEMO ? '' : '<div class="task srow iss-row"><span style="flex:none;margin-right:12px">connection key</span><input class="sin iss-in" id="key-in" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc; text-align: right" value="' + esc(TOKEN) + '"><button class="iss-add" id="key-save">save</button></div>') +
         '</div>';

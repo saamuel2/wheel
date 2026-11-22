@@ -128,6 +128,7 @@ function doGet(e) {
   try { res.courses = readCourseList_(ss); } catch (err) { res.courses = []; errors.courses = String(err); }
   try { res.grades = readGrades_(ss); } catch (err) { errors.grades = String(err); }
   try { res.setup = readCourseSetup_(ss); } catch (err) { errors.setup = String(err); }
+  try { res.colors = readColors_(ss); } catch (err) { errors.colors = String(err); }
   try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
   try { var hs = homeSS_(); res.notes = readNotes_(hs); res.claude = readClaudeAsk_(hs); } catch (err) { errors.notes = String(err); }
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
@@ -172,6 +173,7 @@ function write_(parse) {
       case 'task_add':  return out_(taskAdd_(b));
       case 'task_done': return out_(taskDone_(b));
       case 'course_save': return out_(courseSave_(ss, b));
+      case 'course_add': return out_(courseAdd_(ss, b));
       default: return out_({ ok: false, error: 'unknown action' });
     }
   } catch (err) {
@@ -497,6 +499,16 @@ function gradesTab_(ss) {
   }
   return null;
 }
+function gradesSheet_(ss) {   // the grades tab, or a new term's empty one ("course/category" in A1)
+  var gt = gradesTab_(ss); if (gt) return gt;
+  var g = ss.getSheetByName('Grades'); return g && /^course\/category$/i.test(str_(g.getRange(1, 1).getValue())) ? g : null;
+}
+var COLOR_COL = 16;   // Config!P: each course's color (set when a course is added in the app)
+function readColors_(ss) {
+  var cfg = ss.getSheetByName('Config'), out = {}; if (!cfg) return out;
+  cfg.getRange(2, 1, 10, COLOR_COL).getValues().forEach(function (r) { var c = str_(r[0]).toLowerCase(), col = str_(r[COLOR_COL - 1]); if (c && /^#[0-9a-f]{6}$/i.test(col)) out[c] = col.toLowerCase(); });
+  return out;
+}
 function readBlocks_(sh) {
   var last = Math.max(sh.getLastRow(), 2);
   return blocksFromSheet_(sh.getRange(1, 1, last, 1).getValues(), sh.getRange(1, 4, last, 8).getValues());
@@ -507,14 +519,24 @@ function cfgInfo_(ss, code) {
   return c;
 }
 function setupFromBlocks_(ss, sh) {
-  return readBlocks_(sh).map(function (b) {
+  var blocks = readBlocks_(sh), have = {}; blocks.forEach(function (b) { have[b.code] = 1; });
+  // courses listed on Config without grading rules yet ("–" until they're set up)
+  var bare = []; ss.getSheetByName('Config').getRange(2, 1, 10, 4).getValues().forEach(function (x, j) {
+    var c = str_(x[0]).toLowerCase(); if (c && /^[a-z]+\d/.test(c) && !have[c]) bare.push({ code: c, layout: 'blocks', cfg: { row: j + 2, name: str_(x[1]), credits: cellOut_(x[3]) }, head: {}, cats: [], bare: true });
+  });
+  return blocks.map(function (b) {
     return { code: b.code, layout: 'blocks', cfg: cfgInfo_(ss, b.code), row: b.row, head: b.head,
       cats: b.cats.map(function (c) { var o = {}; ['name', 'type', 'weight', 'items', 'combine', 'drop', 'map', 'until', 'other'].forEach(function (k) { o[k] = cellOut_(c[k]); }); return o; }) };
-  });
+  }).concat(bare);
 }
 function blockSave_(ss, sh, b) {
   var code = str_(b.code).toLowerCase(), blocks = readBlocks_(sh), cur = blocks.filter(function (x) { return x.code === code; })[0];
-  if (!cur) return { ok: false, error: code + ' isn’t on the grades tab' };
+  if (!cur) {
+    if (!cfgInfo_(ss, code)) return { ok: false, error: code + ' isn’t a course in this semester' };
+    var lastA = 1, colA = sh.getRange(1, 1, Math.max(sh.getLastRow(), 1), 1).getValues();
+    colA.forEach(function (r, i) { if (str_(r[0])) lastA = i + 1; });
+    cur = { code: code, row: lastA === 1 ? 2 : lastA + 2, cats: [], fresh: true };
+  }
   var low = function (v) { return str_(v).toLowerCase(); }, isNum = function (v) { return v === '' || typeof v === 'number'; }, bad = [];
   var head = {}; ['grade by', 'entered as', 'final from', 'round to', 'pass at', 'drop lowest across', 'cutoffs'].forEach(function (k) { var v = b.head && b.head[k]; if (v != null && str_(v) !== '') head[k] = str_(v); });
   if (['weights', 'points'].indexOf(low(head['grade by'] || 'weights')) < 0) bad.push('grade by');
@@ -546,7 +568,8 @@ function blockSave_(ss, sh, b) {
   var nb = { code: code, head: head, cats: cats };
   try { var t = tablesFromBlocks_([nb]), r = rulesFromSheet_(t.courses, t.cats); if (r[0]) Engine.grade(r[0], [], { absences: {} }); }
   catch (err) { return { ok: false, error: 'these rules don’t compute: ' + err }; }
-  var rows = blockRows_(nb), have = 2 + cur.cats.length, need = rows.length, start = cur.row;
+  var rows = blockRows_(nb), need = rows.length, have = cur.fresh ? need : 2 + cur.cats.length, start = cur.row;
+  if (cur.fresh && sh.getMaxRows() < start + need + 1) sh.insertRowsAfter(sh.getMaxRows(), start + need + 1 - sh.getMaxRows());
   if (need > have) sh.insertRowsAfter(start + have - 1, need - have);
   else if (need < have) sh.deleteRows(start + need, have - need);
   sh.getRange(start, 1, need, 1).setValues(rows.map(function (r) { return [r[0]]; }));
@@ -560,8 +583,21 @@ function blockSave_(ss, sh, b) {
   return { ok: true };
 }
 
+function courseAdd_(ss, b) {
+  var code = str_(b.code).toLowerCase().replace(/\s+/g, ''), name = str_(b.name), cr = cellIn_(b.credits), color = str_(b.color).toLowerCase();
+  if (!/^[a-z]{1,5}\d{2,4}[a-z]?$/.test(code)) return { ok: false, error: 'course code looks like bch351' };
+  if (!name) return { ok: false, error: 'name needed' };
+  if (cr !== '' && typeof cr !== 'number') return { ok: false, error: 'credits must be a number' };
+  var cfg = ss.getSheetByName('Config'), v = cfg.getRange(2, 1, 10, 1).getValues(), row = 0;
+  for (var i = 0; i < v.length; i++) { var c = str_(v[i][0]).toLowerCase(); if (c === code) return { ok: false, error: code + ' is already a course' }; if (String(v[i][0]) === '' && !row) row = i + 2; }   // the divider row holds an invisible character, so only a truly empty cell counts
+  if (!row) return { ok: false, error: 'this semester is full (10 rows on Config)' };
+  cfg.getRange(row, 1, 1, 5).setValues([[code, name, code + ' ' + name, cr, false]]);
+  if (/^#[0-9a-f]{6}$/.test(color)) cfg.getRange(row, COLOR_COL).setValue(color);
+  if (b.cats && b.cats.length) { var gs = gradesSheet_(ss); if (gs) { var r = blockSave_(ss, gs, { code: code, head: b.head || {}, cats: b.cats }); if (!r.ok) { cfg.getRange(row, 1, 1, 5).clearContent(); cfg.getRange(row, COLOR_COL).clearContent(); return r; } } }
+  return { ok: true, code: code };
+}
 function readCourseSetup_(ss) {
-  var gt = gradesTab_(ss); if (gt) return setupFromBlocks_(ss, gt);
+  var gt = gradesSheet_(ss); if (gt) return setupFromBlocks_(ss, gt);
   var rs = ss.getSheetByName('Rules'); if (!rs) return null;
   var cfg = ss.getSheetByName('Config').getRange(2, 1, 10, 4).getValues();
   var cr = rs.getRange(RULES_COURSE_ROW, 1, RULES_COURSE_N, 20).getValues(), last = rs.getLastRow();
@@ -578,7 +614,7 @@ function readCourseSetup_(ss) {
   return out;
 }
 function courseSave_(ss, b) {
-  var gt = gradesTab_(ss); if (gt) return blockSave_(ss, gt, b);
+  var gt = gradesSheet_(ss); if (gt) return blockSave_(ss, gt, b);
   var code = str_(b.code).toLowerCase(), cur = (readCourseSetup_(ss) || []).filter(function (x) { return x.code === code; })[0];
   if (!cur) return { ok: false, error: 'course ' + code + ' not found on the Rules tab' };
   var rule = (b.rule || []).map(cellIn_), cats = b.cats || [], bad = [];
@@ -659,7 +695,7 @@ function absenceRemove_(ss, b) {
 // With a Rules tab: the grading engine (Grades.gs) does the math and explains each step.
 // Without one (older semester sheets): the v1 Config + Report formulas, unchanged.
 function readGrades_(ss) {
-  var rulesSh = ss.getSheetByName('Rules'), gt = gradesTab_(ss);
+  var rulesSh = ss.getSheetByName('Rules'), gt = gradesSheet_(ss);
   return (gt || rulesSh) && typeof Engine !== 'undefined' ? gradesFromEngine_(ss, rulesSh, gt) : readGradesV1_(ss);
 }
 
