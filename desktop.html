@@ -296,6 +296,41 @@
 
   /* settings */
   .set { max-width: 640px; display: grid; gap: 16px; }
+  .sx { display: grid; grid-template-columns: 240px minmax(0, 680px); gap: 28px; align-items: start; }
+  .sxside { position: sticky; top: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; } .sxside > * { box-sizing: border-box; width: 100%; min-width: 0; }
+  .sxq { display: flex; align-items: center; gap: 8px; background: var(--fill); border-radius: 8px; padding: 0 10px; height: 34px; color: var(--sub); }
+  .sxq:focus-within { box-shadow: 0 0 0 2px var(--tint); } .sxq input { flex: 1; min-width: 0; border: 0; background: none; outline: none; color: var(--text); font: inherit; font-size: 14px; }
+  .sxq input::-webkit-search-cancel-button { filter: grayscale(1); opacity: .6; }
+  .sxme { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+  .sxme .av { width: 44px; height: 44px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 600; color: #fff; text-transform: uppercase;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--tint) 70%, #fff), var(--tint)); }
+  .sxme .who { display: grid; gap: 2px; min-width: 0; } .sxme .who b { font-size: 15px; } .sxme .who span { font-size: 12px; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sxnav { padding: 6px; display: grid; gap: 1px; }
+  .sxnav button { display: flex; align-items: center; gap: 10px; border: 0; background: none; color: inherit; font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 7px; cursor: pointer; text-align: left; }
+  .sxnav button:hover { background: var(--fill); } .sxnav button.on { background: var(--tint); color: #fff; } html[data-theme=elegant] .sxnav button.on, html[data-theme=moody] .sxnav button.on { color: var(--bg); }
+  .sxnav .badge { margin-left: auto; font-size: 11px; font-weight: 700; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--fill); display: flex; align-items: center; justify-content: center; }
+  .sxnav button.on .badge { background: rgba(255,255,255,.25); }
+  .set .row > span.stile:first-child, .sxh .stile { flex: none; }
+  .stile { width: 24px; height: 24px; border-radius: 6px; flex: none; display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+  .sxpane { max-width: none; gap: 0; } .sxh { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; margin: 4px 0 18px; } .sxh .stile { width: 30px; height: 30px; border-radius: 8px; }
+  .sxh .stile svg { width: 18px; height: 18px; }
+  .sgl { font-size: 12px; font-weight: 600; color: var(--sub); margin: 0 0 6px 4px; } .sgrp { padding: 4px 16px; margin-bottom: 22px; } .sgrp .row { min-height: 40px; } .sgrp .prow { padding-left: 0; padding-right: 0; }
+  .sgrp .prow .stile { width: 22px; height: 22px; } .sgrp .grow { flex: 1; } .sxnone { padding: 8px 4px; } .sxact { display: flex; justify-content: flex-end; margin-top: -10px; }
+  .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+  .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
+  .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
+  .thm { border: 0; background: none; color: inherit; font: inherit; cursor: pointer; display: grid; gap: 7px; justify-items: center; padding: 0; }
+  .thv { position: relative; width: 100%; aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 0 .5px rgba(128,128,128,.45); transition: box-shadow .15s; }
+  .thv i { position: absolute; border-radius: 3px; } .thv .ts { left: 6%; top: 10%; bottom: 10%; width: 20%; } .thv .tc { left: 32%; right: 8%; top: 10%; height: 36%; } .thv .tc.t2 { top: 54%; height: 36%; }
+  .thv .tc b { position: absolute; left: 10%; top: 25%; width: 34%; height: 18%; border-radius: 3px; }
+  .thm:hover .thv { box-shadow: inset 0 0 0 .5px rgba(128,128,128,.45), 0 0 0 2px var(--fill); } .thm.on .thv { box-shadow: 0 0 0 2.5px var(--tint); }
+  .thl { font-size: 12px; color: var(--sub); } .thm.on .thl { color: var(--text); font-weight: 600; }
+  .accs { display: flex; gap: 9px; } .acc { width: 20px; height: 20px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.2); }
+  .acc.on { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px currentColor; color: var(--sub); }
+  .keys { display: flex; gap: 4px; align-items: center; color: var(--sub); font-size: 12px; }
+  kbd { font: inherit; font-size: 12px; font-weight: 600; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 5px; background: var(--fill); color: var(--text); display: inline-flex; align-items: center; justify-content: center; box-shadow: inset 0 -1px 0 rgba(0,0,0,.18); }
+  .sgrp .ntx { flex: 1; }
+  @media (max-width: 980px) { .sx { grid-template-columns: 1fr; } .sxside { position: static; } }
   .set .row { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: .5px solid var(--sep); } .set .row:first-of-type { border-top: 0; }
   .set .row > span:first-child { flex: 1; }
   .themes { display: flex; gap: 8px; }
@@ -398,7 +433,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.62 (11/22 4:20pm)';
+const BUILD = 'd1.63 (11/22 4:45pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -1417,28 +1452,93 @@ function renderAtt(v) {
 
 // ---------- tasks ----------
 // ---------- settings ----------
-function renderSettings(v) {
-  const th = [['default', 'dark'], ['light', 'light'], ['elegant', 'elegant'], ['moody', 'moody']];
-  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && /INPUT|SELECT/.test(ae.tagName) && ae.type !== 'checkbox' && v.innerHTML) return;
-  const cl = calList(), on = cl.filter(c => calOn(c.name)).length;
-  const cdSum = CD.mode === 'exam' ? 'next exam' : CD.mode === 'custom' ? (CD.title || 'custom day') + (CD.date ? ' · ' + dayLabel(fromYmd(CD.date)) : '') : 'last day of classes' + (CD.ldoc ? ' · ' + dayLabel(fromYmd(CD.ldoc)) : '');
-  const prow = (label, sum, key) => `<button class="row prow" data-act="pop" data-p="${key}"><span>${label}</span><span class="muted">${esc(sum)}</span><span class="chev">${IC.r}</span></button>`;
-  v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="set">
-    <div class="card"><div class="ct">theme</div><div class="themes">${th.map(([k, l]) => `<button class="btn${THEME === k ? ' tint' : ''}" data-act="theme" data-t="${k}">${l}</button>`).join('')}</div></div>
-    ${data && data.setup ? `<div class="card"><div class="ct">courses</div>${data.setup.map(x => `<button class="row prow" data-act="rules" data-code="${esc(x.code)}"><span><b style="color:${colorFor(x.code)}">${esc(spaceCode(x.code))}</b>&nbsp; ${esc(x.cfg ? x.cfg.name : '')}</span><span class="muted">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''}</span><span class="chev">${IC.r}</span></button>`).join('')}</div>` : ''}
-    <div class="card"><div class="ct">motion</div>${motionRows()}</div>
-    <div class="card"><div class="ct">widgets</div>
-      ${prow('greeting', (GR.rand ? 'random' : 'plain') + (GR.name ? ' · ' + GR.name : ''), 'greet')}
-      ${cl.length > 1 ? prow('calendars', on + ' of ' + cl.length + ' shown', 'cal') : ''}
-      ${prow('countdown', cdSum, 'cd')}
-      ${prow('variable', vName(SLOT), 'var')}</div>
-    <div class="card"><div class="ct">feedback</div>${notesList().map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')}
-      <div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn" data-act="note-add">add</button>${notesList().length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div></div>
-    <div class="card"><div class="ct">app info</div>
-      <div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
+// settings: laid out like mac system settings: a section list on the left, one section at a time on the right
+const SI = {   // section icons, same line style as the rest
+  appearance: '<path d="M12 3a9 9 0 1 0 0 18z" fill="currentColor"/><circle cx="12" cy="12" r="9"/>',
+  motion: '<path d="M4 12c2.5-5 5.5-5 8 0s5.5 5 8 0"/><path d="M4 18h4M16 6h4"/>',
+  widgets: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',
+  courses: '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11v5c3 2 7 2 10 0v-5"/>',
+  feedback: '<path d="M5 5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-8l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
+  shortcuts: '<rect x="3" y="7" width="18" height="11" rx="2"/><path d="M7 11h1M11 11h1M15 11h1M8 15h8"/>',
+  about: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
+  search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'
+};
+const SECS = [['appearance', 'appearance', '#5E5CE6'], ['motion', 'motion', '#FF9F0A'], ['widgets', 'widgets', '#30B0C7'], ['courses', 'courses', '#34C759'],
+  ['feedback', 'feedback', '#FF375F'], ['shortcuts', 'keyboard shortcuts', '#8E8E93'], ['about', 'about', '#636366']];
+const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
+const stile = k => { const x = SECS.find(y => y[0] === k); return `<span class="stile" style="background:${x ? x[2] : '#8E8E93'}">${sicon(k)}</span>`; };
+let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false;
+if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
+// accent: the tint color, on top of whichever theme is on
+const ACCENTS = [['', 'theme'], ['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'], ['#D2587E', 'pink'], ['#8B6FD6', 'purple']];
+let ACC = store.get('desk-accent', '');
+function applyAccent() { const h = document.documentElement; if (ACC) h.style.setProperty('--tint', ACC); else h.style.removeProperty('--tint'); }
+applyAccent();
+const THEMES = [['default', 'dark', '#000', '#1C1C1E', '#0A84FF'], ['light', 'light', '#F2F2F7', '#fff', '#007AFF'], ['elegant', 'elegant', '#E5E3DF', '#F4F3F0', '#2F6B4A'], ['moody', 'moody', '#111', '#1B1B1B', '#9DB27F']];
+const semLabel = () => { const d = new Date(SEM_START + 3 * 864e5), m = d.getMonth(); return (m >= 7 ? 'fall' : m <= 4 ? 'spring' : 'summer') + ' ' + d.getFullYear(); };
+const isMac = /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
+const kb = (...k) => k.map(x => `<kbd>${x === 'mod' ? (isMac ? '⌘' : 'ctrl') : x === 'shift' ? (isMac ? '⇧' : 'shift') : x}</kbd>`).join('');
+const SHORTCUTS = [['anywhere', [[kb('1'), '–', kb('5')], 'switch pages'], [[kb('n')], 'new assignment'], [[kb('enter')], 'new assignment'], [[kb('/')], 'search the sheet'],
+    [[kb('mod', 'z')], 'undo'], [[kb('mod', 'shift', 'z')], 'redo'], [[kb('esc')], 'close or cancel']],
+  ['dashboard', [[kb('←'), kb('→')], 'previous or next week']],
+  ['sheet', [[kb('↑'), kb('↓'), kb('←'), kb('→')], 'move between cells'], [[kb('tab'), ' ', kb('shift', 'tab')], 'next or previous cell'], [[kb('enter')], 'edit, then move down'],
+    [[kb('F2')], 'edit inside a cell'], [[kb('esc')], 'put back what was there'], [[kb('mod', 'c'), kb('mod', 'v')], 'copy and paste cells']]];
+// one flat list of every setting, for search
+function settingsIndex() {
+  const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['motion', 'motion'], ['motion', 'customize motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
+    [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
+    ((data && data.setup) || []).map(x => ['courses', spaceCode(x.code) + ' ' + (x.cfg ? x.cfg.name : '')]),
+    SHORTCUTS.flatMap(([, ...rows]) => rows.map(r => ['shortcuts', r[1]])));
+  return out;
+}
+function setSearchHtml() {
+  const q = SQ.trim().toLowerCase(), secName = k => SECS.find(x => x[0] === k)[1];
+  const hits = settingsIndex().filter(([k, l]) => l.toLowerCase().includes(q) || secName(k).includes(q));
+  return `<h2 class="sxh">results</h2>` + (hits.length ? `<div class="card sgrp">${hits.slice(0, 30).map(([k, l]) => `<button class="row prow" data-act="setsec" data-s="${k}">${stile(k)}<span class="grow">${esc(l)}</span><span class="muted">${secName(k)}</span><span class="chev">${IC.r}</span></button>`).join('')}</div>` : '<div class="muted sxnone">no results</div>');
+}
+function setPaneHtml() {
+  if (SQ.trim()) return setSearchHtml();
+  const grp = (label, inner) => `${label ? `<div class="sgl">${label}</div>` : ''}<div class="card sgrp">${inner}</div>`;
+  const sw = (attr, on) => `<label class="sw"><input type="checkbox" ${attr}${on ? ' checked' : ''}><i></i></label>`;
+  const name = SECS.find(x => x[0] === SSEC)[1];
+  let h = '';
+  if (SSEC === 'appearance') {
+    h = grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
+        <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`) +
+      grp('', `<div class="row"><span>accent color</span><div class="accs">${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c || 'conic-gradient(#3B82F6, #3FA66B, #E08A3C, #D2587E, #8B6FD6, #3B82F6)'}"></button>`).join('')}</div></div>`);
+  } else if (SSEC === 'motion') {
+    h = grp('', `<div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div><button class="row prow" data-act="mox"><span>customize</span><span class="chev${MOX ? ' dn' : ''}">${IC.r}</span></button>`) +
+      (MOX ? grp('effects', MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')) : '');
+  } else if (SSEC === 'widgets') {
+    const cl = calList();
+    h = grp('greeting', popBody('greet')) + (cl.length > 1 ? grp('calendars', popBody('cal')) : '') + grp('countdown', popBody('cd')) + grp('variable', popBody('var'));
+  } else if (SSEC === 'courses') {
+    h = data && data.setup ? grp('', data.setup.map(x => `<button class="row prow" data-act="rules" data-code="${esc(x.code)}"><i class="cdot" style="background:${colorFor(x.code)}"></i><span class="grow"><b style="color:${colorFor(x.code)}">${esc(spaceCode(x.code))}</b>&nbsp; ${esc(x.cfg ? x.cfg.name : '')}</span><span class="muted">${x.cfg && x.cfg.credits !== '' ? esc(x.cfg.credits) + ' cr' : ''}</span><span class="chev">${IC.r}</span></button>`).join('')) : grp('', '<div class="row"><span class="muted">not connected</span></div>');
+  } else if (SSEC === 'feedback') {
+    const ns = notesList();
+    h = (ns.length ? grp('open notes', ns.map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')) : '') +
+      grp('new note', `<div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn tint" data-act="note-add">add</button></div>`) +
+      (ns.length ? `<div class="sxact"><button class="btn" data-act="note-copy">copy list</button></div>` : '');
+  } else if (SSEC === 'shortcuts') {
+    h = SHORTCUTS.map(([g, ...rows]) => grp(g, rows.map(([keys, l]) => `<div class="row"><span>${l}</span><span class="keys">${keys.join('')}</span></div>`).join(''))).join('');
+  } else {
+    h = grp('', `<div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${SHEET_URL}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
-      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '—'}</span><button class="btn sm" data-act="sync">refresh</button></div>
-      <div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div></div></div>`;
+      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '–'}</span><button class="btn sm" data-act="sync">refresh</button></div>`) +
+      grp('connection', `<div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>`);
+  }
+  return `<h2 class="sxh">${stile(SSEC)}${name}</h2>` + h;
+}
+function renderSettings(v) {
+  const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && ae.tagName === 'INPUT' && !/checkbox|date/.test(ae.type) && v.innerHTML) return;
+  const cs = (data && data.setup) || [], cr = cs.reduce((s, x) => s + (x.cfg && +x.cfg.credits || 0), 0), nm = String(GR.name || '').trim();
+  v.innerHTML = `<div class="head"><h1>settings</h1></div><div class="sx">
+    <div class="sxside">
+      <label class="sxq">${sicon('search', 14)}<input id="set-q" type="search" autocomplete="off" spellcheck="false" aria-label="search settings" value="${esc(SQ)}"></label>
+      <button class="card sxme" data-act="setsec" data-s="widgets"><span class="av">${nm ? esc(nm[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(nm || '–')}</b><span>${semLabel()}${cs.length ? ' · ' + cs.length + ' courses' + (cr ? ' · ' + cr + ' cr' : '') : ''}</span></span></button>
+      <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${!SQ.trim() && SSEC === k ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>`).join('')}</div>
+    </div>
+    <div class="sxpane set" id="sxpane">${setPaneHtml()}</div></div>`;
 }
 // feedback: one list with the phone, kept on the sheet's Notes tab
 let NOTE_NEW = [], NOTE_RM = new Set();
@@ -1477,16 +1577,18 @@ function openPop(k, from) { POP = k; let w = $('popw'); if (!w) { w = document.c
   else { pop.style.left = (innerWidth - pop.offsetWidth) / 2 + 'px'; pop.style.top = '18vh'; }
   pop.style.animation = 'none'; void pop.offsetWidth; pop.style.animation = ''; }
 function closePop() { POP = null; const w = $('popw'); if (w) w.classList.remove('on'); renderAll(); }
-function renderPop() {
-  const box = $('pop'); if (!box || !POP) return;
+function popBody(k) {
   const opt = (val, l) => `<option value="${val}"${CD.mode === val ? ' selected' : ''}>${l}</option>`;
-  const body = POP === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
+  return k === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
       <div class="row"><span>name</span><input class="txt" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div>`
-    : POP === 'var' ? VOPTS.map(([k, l]) => `<button class="row prow" data-act="setslot" data-v="${k}"><span>${l}</span><span class="tick">${SLOT === k ? TICK : ''}</span></button>`).join('')
-    : POP === 'cal' ? calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')
+    : k === 'var' ? VOPTS.map(([k, l]) => `<button class="row prow" data-act="setslot" data-v="${k}"><span>${l}</span><span class="tick">${SLOT === k ? TICK : ''}</span></button>`).join('')
+    : k === 'cal' ? calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')
     : `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
       (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
       (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
+}
+function renderPop() {
+  const box = $('pop'); if (!box || !POP) return; const body = popBody(POP);
   box.innerHTML = `<div class="pophd"><span>${({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable' })[POP]}</span><button class="link" data-act="popdone">done</button></div><div class="set popset">${body}</div>`;
 }
 // ===================== events =====================
@@ -1516,6 +1618,9 @@ document.addEventListener('click', e => {
     case 'close': return closeDrawer();
     case 'pop': return openPop(t.dataset.p, t);
     case 'popdone': return closePop();
+    case 'setsec': SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; MOX = MOX || false; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); renderAll(); $('main').scrollTop = 0; return;
+    case 'mox': MOX = !MOX; return renderAll();
+    case 'accent': ACC = t.dataset.c || ''; store.set('desk-accent', ACC); applyAccent(); return renderAll();
     case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
     case 'note-add': return addNote();
     case 'note-rm': return rmNote(t.dataset.k);
@@ -1577,6 +1682,7 @@ document.addEventListener('input', e => {
   if (e.target.dataset && e.target.dataset.re && RE) { setRe(e.target.dataset.re, e.target.value); return; }
   const t = e.target;
   if (t.id === 'sq') { SF.q = t.value; saveSF(); renderAll(); return; }
+  if (t.id === 'set-q') { SQ = t.value; const p = $('sxpane'); if (p) p.innerHTML = setPaneHtml(); document.querySelectorAll('.sxnav button').forEach(b => b.classList.toggle('on', !SQ.trim() && b.dataset.s === SSEC)); return; }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; return; }
   if (t.dataset.gr === 'name') { GR.name = t.value; store.set('wheel-greet', GR); GP.key = ''; return; }
   if (t.dataset.wi != null && WI) { const it = WI.items[+t.dataset.wi], v = t.value.trim();
