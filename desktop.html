@@ -135,7 +135,8 @@
   input.dtin { border: 0; background: none; color: inherit; font-family: inherit; padding: 0; margin: 0; width: 92px; height: 26px; outline: none; border-radius: 6px; } input.dtin:focus { background: var(--fill); padding-left: 4px; } input.dtin.bad { color: var(--red); }
   .grid tr.row.late .dtxt { color: var(--red); font-weight: 700; }
   .dcell input.dpick { position: absolute; left: 6px; top: 3px; width: 22px; height: 24px; opacity: 0; padding: 0; border: 0; z-index: 1; }
-  .fchip .g.test { color: var(--tint); font-weight: 700; }
+  .fchip .g.test { color: var(--tint); font-weight: 700; } .fchip .g.up { color: color-mix(in srgb, #30D158 75%, var(--text)); } .fchip .g.down { color: color-mix(in srgb, #FF453A 75%, var(--text)); }
+  .fchip .g { transition: color .2s; }
   .gl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 8px; }
   .gl button { display: flex; align-items: baseline; gap: 8px; border: 0; background: var(--card2); border-radius: 8px; padding: 8px 8px; text-align: left; min-width: 0; }
   .gl .dl { font-weight: 700; font-size: 17px; min-width: 24px; } .gl .cn { font-size: 12px; font-weight: 700; white-space: nowrap; } .gl .cp { font-size: 11px; color: var(--sub); margin-left: auto; }
@@ -393,7 +394,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.55 (11/22 2:10pm)';
+const BUILD = 'd1.56 (11/22 2:20pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -478,7 +479,7 @@ function fmtN(v, dec) { return dec === 2 ? f2(v) : Number(v).toFixed(dec); }
 function countUp() {
   document.querySelectorAll('.cnt[data-ck]').forEach(el => {
     const k = el.dataset.ck, v = +el.dataset.cv, dec = +el.dataset.cd, was = CNT[k]; CNT[k] = v;
-    const from = was == null ? (COUNT0 ? 0 : null) : was;
+    const from = was == null ? (COUNT0 && !/^(cp-|wk|chip-)/.test(k) ? 0 : null) : was;
     if (!mo('count') || from == null || Math.abs(from - v) < 1e-9) return;
     const t0 = performance.now(), dur = from === 0 && was == null ? 800 : 650;
     const step = now => { if (!el.isConnected) { const n = document.querySelector(`.cnt[data-ck="${CSS.escape(k)}"]`); if (n && n !== el) { el = n; } else return; }
@@ -608,7 +609,7 @@ function engineItems(list) { return list.map(a => ({ name: a.n, cls: a.c, type: 
 function absences() { const o = {}; ((data && data.attendance) || []).forEach(x => o[String(x.code).toLowerCase()] = x.dates.length); return o; }
 // grade testing: grades typed in the sheet's "to grade" view are only "what if" until you save them
 let TEST = {}, STAY = new Set();   // TEST: grade being typed (preview) · STAY: graded here, keep listed until you leave "to grade"
-const testing = () => VIEW === 'sheet' && SF.f === 'grade';
+const testing = () => VIEW === 'sheet';
 function live() {
   const tk = testing() ? JSON.stringify(TEST) : '';
   if (LIVE && LIVE._tk === tk) return LIVE;
@@ -623,6 +624,13 @@ function live() {
   return (LIVE = { courses, gpa: g.courses.some(c => c.rule) ? Engine.gpa(courses) : g.gpa, engine: g.engine, _tk: tk });
 }
 const gradeOf = code => { const L = live(); return L && L.courses.find(c => c.code === code); };
+// the same grades without anything still being typed, to tell whether a typed grade helps or hurts
+let LIVE0 = null;
+function liveBase() {
+  if (!testing() || !Object.keys(TEST).length) return live();
+  const key = JSON.stringify(data.assignments.map(a => a.g)); if (LIVE0 && LIVE0._k === key) return LIVE0;
+  const keep = TEST, keepL = LIVE; TEST = {}; LIVE = null; const L = live(); TEST = keep; LIVE = keepL; return (LIVE0 = Object.assign({}, L, { _k: key }));
+}
 
 // ===================== actions =====================
 let toastT = null, undoFn = null;
@@ -1069,7 +1077,10 @@ function renderSheet(v) {
   list.sort((x, y) => { if (byCls) return String(x.c).localeCompare(String(y.c)) || (x.t - y.t); const p = key(x), q = key(y); return (p < q ? -1 : p > q ? 1 : 0) * SF.dir || (x.t - y.t) || String(x.c).localeCompare(y.c); });
   const classes = [...new Set(A.map(a => a.c).filter(c => c && !isExtra(c)))].sort();
   const L = live(), tst = testing(), nTest = tst ? A.filter(a => TEST[kOf(a)] != null).length : 0;
-  const chip = c => { const g = L && L.courses.find(x => x.code === c); return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g${nTest && A.some(a => a.c === c && TEST[kOf(a)] != null) ? ' test' : ''}">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + f2(g.raw) : 'no grades') : ''}</span></button>`; };
+  const B = nTest ? liveBase() : L;
+  const chip = c => { const g = L && L.courses.find(x => x.code === c), b = B && B.courses.find(x => x.code === c), typing = nTest && A.some(a => a.c === c && TEST[kOf(a)] != null);
+    const dir = typing && g && b && g.raw != null && b.raw != null ? (g.raw > b.raw + 0.005 ? ' up' : g.raw < b.raw - 0.005 ? ' down' : '') : '';
+    return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g${typing ? ' test' : ''}${dir}">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + cnt('chip-' + c, g.raw, 2) : 'no grades') : ''}</span></button>`; };
   const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : [], [['del', '', 40]]);
   const colg = '<colgroup>' + cols.map(c => `<col${c[2] ? ` style="width:${c[2]}px"` : ''}>`).join('') + '</colgroup>';
   const th = cols.map(c => `<th class="${c[1] ? 's' : ''}${SF.sort === c[0] && c[1] ? ' on' : ''}${c[0] === 'done' ? ' w36' : ''}" ${c[1] ? `data-act="sort" data-s="${c[0]}"` : ''}>${c[1]}${SF.sort === c[0] && c[1] ? (SF.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('');
@@ -1709,7 +1720,8 @@ document.addEventListener('keydown', e => {
       gridFocus(rows[r], col != null ? col : ci()); if (col != null) GNAV.col = null; return; }
     case 'Escape':   // put back what was there and stay on the cell
       done(); GNAV.mode = 'nav';
-      if (isText) { if (t.value !== t.defaultValue) t.value = t.defaultValue; t.classList.remove('bad'); t.select(); }
+      if (isText) { if (t.value !== t.defaultValue) t.value = t.defaultValue; t.classList.remove('bad'); t.select();
+        if (t.dataset.f === 'g') { const a0 = byIdx(t.closest('tr.row').dataset.i); if (a0 && TEST[kOf(a0)] != null) { delete TEST[kOf(a0)]; changed(); } } }
       else if (t.tagName === 'SELECT') { const o = Array.from(t.options).find(x => x.defaultSelected); if (o) o.selected = true; }
       return;
     case 'F2': if (isText) { done(); GNAV.mode = 'edit'; const n = t.value.length; t.setSelectionRange(n, n); } return;
