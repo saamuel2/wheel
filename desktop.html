@@ -334,6 +334,7 @@
   .sxpane .txt { height: 30px; padding: 0 10px; font-size: 13px; border-radius: 7px; } .sxpane select.txt { padding-right: 28px; } .sxq { height: 30px; }
   .sgrp .prow + .row { border-top: .5px solid var(--sep); }
   .popset .nwd { font-size: 12px; font-weight: 600; color: var(--sub); padding: 10px 16px 2px; } .popset .row.nwx { height: auto; min-height: 30px; padding-top: 5px; padding-bottom: 5px; } .popset .nwx span { white-space: normal; line-height: 1.3; }
+  .termbar[hidden] { display: none !important; }
   .termbar { position: sticky; top: -32px; margin: -32px -32px 20px; padding: 10px 32px; z-index: 6; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--sub);
     background: color-mix(in srgb, var(--tint) 12%, var(--bg)); border-bottom: .5px solid var(--sep); } .termbar b { color: var(--text); } .termbar .btn { margin-left: auto; }
   .rcard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; } .rstat { padding: 14px 16px; display: grid; gap: 4px; } .rstat span { font-size: 12px; color: var(--sub); font-weight: 600; } .rstat b { font-size: 26px; font-weight: 700; }
@@ -459,7 +460,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.68 (11/22 5:40pm)';
+const BUILD = 'd1.69 (11/22 5:25pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
