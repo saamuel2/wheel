@@ -9,7 +9,9 @@
 
 // ====== SETTINGS ======
 var SHEET_ID   = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';   // fall 2026: used only when the home sheet can't be read
-var HOME_ID    = '19dC2hjuPzw-USwoIIA39WP76OMFTIDdsoyB9ACfRLpA';   // "assignments home": Semesters (every term) + GPA (finished courses)
+var HOME_ID    = '19dC2hjuPzw-USwoIIA39WP76OMFTIDdsoyB9ACfRLpA';
+var TEMPLATE_ID = '1T-K5Ld4sishvvzBBASMTBEpUvgGCUD7OO7JEoPcY7NY';   // "assignments template": every new semester is a copy of it
+var APP_FOLDER_ID = '1837DdBvueT2SiSIaMz3VsiYqhw3rEiNb';             // Drive folder "assignments app"   // "assignments home": Semesters (every term) + GPA (finished courses)
 var CAL_ID     = 'sjstrimp@ncsu.edu';      // your main calendar (always included)
 // "next up" shows every calendar that's checked in Google Calendar's sidebar. To limit it, add a script property
 // CALENDARS with the calendar names to include, separated by commas.
@@ -26,8 +28,47 @@ function readTerms_() {
     var id = str_(r[0]); if (!id) return;
     out.push({ id: id, name: str_(r[1]) || id, sheet: str_(r[2]), start: ymdOut_(r[3]), ldoc: ymdOut_(r[4]), exams: ymdOut_(r[5]), status: str_(r[6]).toLowerCase(), gpaTerm: str_(r[7]) });
   });
+  // current = the latest term with a sheet whose first day has come (a new term takes over on its first day)
+  var today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd'), cur = null;
+  out.forEach(function (t) { if (t.sheet && t.start && t.start <= today && (!cur || t.start > cur.start)) cur = t; });
+  if (!cur) out.forEach(function (t) { if (t.status === 'current') cur = t; });
+  out.forEach(function (t) { if (t === cur) t.status = 'current'; else if (t.status === 'current') t.status = ''; });
   try { cache.put('terms_v1', JSON.stringify(out), 120); } catch (x) {}
   return out;
+}
+// new semester: copy the template, add its week dividers, list it on the home sheet
+function termIdFor_(name, taken) {
+  var m = /^(fall|spring|summer|winter)\s*(\d?)\s+(\d{4})$/i.exec(name.trim()), base;
+  if (m) base = m[1].charAt(0).toLowerCase() + (m[2] || '') + m[3].slice(2);
+  else base = name.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 12) || 'term';
+  var id = base, n = 2; while (taken.indexOf(id) > -1) id = base + '-' + n++;
+  return id;
+}
+function dividerName_(label) { var pad = Math.max(3, Math.round((50 - label.length) / 2)); return Array(pad + 1).join('─') + ' ' + label + ' ' + Array(pad + 1).join('─'); }
+function termNew_(b) {
+  var name = str_(b.name).toLowerCase(), start = str_(b.start), ldoc = str_(b.ldoc), exams = str_(b.exams);
+  if (!name) return { ok: false, error: 'name needed' };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(ldoc)) return { ok: false, error: 'dates needed' };
+  var list = readTerms_(); if (list.some(function (t) { return t.name.toLowerCase() === name; })) return { ok: false, error: 'that semester already exists' };
+  var id = termIdFor_(name, list.map(function (t) { return t.id; }));
+  var copy = SpreadsheetApp.openById(TEMPLATE_ID).copy(name), sid = copy.getId(), moved = false;
+  // (filing it into the assignments app folder needs Drive access the backend doesn't have; it lands in My Drive for now)
+  // week dividers: one row dated the Sunday after each week, then the end of the term
+  var ymdD = function (s) { var p = s.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); };
+  var s0 = ymdD(start); s0.setDate(s0.getDate() - s0.getDay());
+  var last = ymdD(exams || ldoc), rows = [], wk = 1;
+  for (var d = new Date(s0); ; wk++) {
+    var end = new Date(d); end.setDate(end.getDate() + 7);
+    if (end > last) { rows.push(['', end, dividerName_('end of ' + name), '\u200e ', '', '', '']); break; }
+    rows.push(['', end, dividerName_('end of week ' + wk), '\u200e ', '', '', '']); d = end;
+    if (wk > 40) break;
+  }
+  var ash = copy.getSheetByName('Assignments'); ash.getRange(3, 1, rows.length, 7).setValues(rows);
+  var home = SpreadsheetApp.openById(HOME_ID).getSheetByName('Semesters');
+  var gpaTerm = (/^(fall|spring|summer|winter)/i.exec(name) ? name.charAt(0).toUpperCase() : name.slice(0, 3).toUpperCase()) + ((/(\d{4})$/.exec(name) || ['', ''])[1].slice(2));
+  home.appendRow([id, name, sid, start, ldoc, exams, '', gpaTerm]);
+  CacheService.getScriptCache().remove('terms_v1');
+  return { ok: true, term: id, sheet: sid, moved: moved, terms: readTerms_() };
 }
 // the term a request asks for (?term=f26), else the one marked current; terms without a sheet are history only
 function pickTerm_(id) {
@@ -104,6 +145,7 @@ function write_(parse) {
     lock.waitLock(20000);
     var b = parse();
     if (!token_() || b.token !== token_()) return out_({ ok: false, error: 'bad token' });
+    if (b.action === 'term_new') return out_(termNew_(b));
     var tk = pickTerm_(b.term).term;
     if (tk.id && !tk.sheet) return out_({ ok: false, error: 'this term has no sheet' });
     var ss = termSheet_(tk);

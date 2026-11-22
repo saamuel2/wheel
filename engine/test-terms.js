@@ -8,7 +8,7 @@ const GPA = [['CH 221', 'Orgo', 'F25', 3, 94, 'A', 4, 12]];
 const home = { getSheetByName: n => n === 'Semesters' ? { getLastRow: () => SEM.length + 1, getRange: (r, c, nr, nc) => range(SEM) } : n === 'GPA' ? { getLastRow: () => 2, getRange: () => range(GPA) } : null };
 const ctx = vm.createContext({ console, JSON, Date, Math, String, Number, Object, Array, isNaN,
   PropertiesService: { getScriptProperties: () => ({ getProperty: () => 'tok' }) },
-  CacheService: { getScriptCache: () => ({ get: () => null, put: () => {} }) },
+  CacheService: { getScriptCache: () => ({ get: () => null, put: () => {}, remove: () => {} }) },
   Utilities: { formatDate: d => d.toISOString().slice(0, 10) },
   LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
   ContentService: { createTextOutput: t => ({ setMimeType: () => t }), MimeType: { JSON: 1 } },
@@ -22,3 +22,13 @@ const r = JSON.parse(vm.runInContext('doGet({ parameter: { token: "tok", term: "
 ok(r.historyOnly && r.term === 'f25' && r.history.length === 1 && r.terms.length === 3, 'history-only term returns gpa history + term list');
 opened.length = 0; try { vm.runInContext('doGet({ parameter: { token: "tok", term: "s27" } })', ctx); } catch (e) { } ok(opened.includes('SHEETS27'), 'term=s27 opens spring sheet');
 const w = JSON.parse(vm.runInContext('doPost({ postData: { contents: JSON.stringify({ token: "tok", term: "f25", action: "done" }) } })', ctx)); ok(w.ok === false, 'writes to a history-only term are refused');
+// new semester
+ok(vm.runInContext('termIdFor_("spring 2027", ["f26"])', ctx) === 's27' && vm.runInContext('termIdFor_("summer 1 2027", [])', ctx) === 's127' && vm.runInContext('termIdFor_("spring 2027", ["s27"])', ctx) === 's27-2', 'term ids: s27, s127, s27-2');
+let written = null, appended = null;
+ctx.SpreadsheetApp.openById = id => id === '19dC2hjuPzw-USwoIIA39WP76OMFTIDdsoyB9ACfRLpA' ? { getSheetByName: n => n === 'Semesters' ? { getLastRow: () => SEM.length + 1, getRange: () => range(SEM), appendRow: r => { appended = r; } } : null }
+  : { copy: n => ({ getId: () => 'NEWSHEET', getSheetByName: () => ({ getRange: (r, c, nr, nc) => ({ setValues: v => { written = v; } }) }) }) };
+ctx.DriveApp = { getFileById: () => ({ moveTo() {} }), getFolderById: () => ({}) };
+const nt = vm.runInContext('termNew_({ name: "Spring 2028", start: "2028-01-06", ldoc: "2028-04-21", exams: "2028-05-02" })', ctx);
+ok(nt.ok && nt.term === "s28" && appended[2] === "NEWSHEET" && appended[7] === "S28", 'new semester copies the template, lists it as s28 / S28');
+ok(written.length === 18 && /end of week 1 /.test(written[0][2]) && /end of spring 2028/.test(written[17][2]) && written[0][1].getDay() === 0, 'week dividers: 17 weeks + end of spring 2028, dated Sundays (' + written.length + ')');
+ok(vm.runInContext('termNew_({ name: "fall 2026", start: "2026-08-19", ldoc: "2026-12-08" })', ctx).ok === false, 'refuses a duplicate name');

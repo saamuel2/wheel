@@ -334,7 +334,7 @@
   .sxpane .txt { height: 30px; padding: 0 10px; font-size: 13px; border-radius: 7px; } .sxpane select.txt { padding-right: 28px; } .sxq { height: 30px; }
   .sgrp .prow + .row { border-top: .5px solid var(--sep); }
   .popset .nwd { font-size: 12px; font-weight: 600; color: var(--sub); padding: 10px 16px 2px; } .popset .row.nwx { height: auto; min-height: 30px; padding-top: 5px; padding-bottom: 5px; } .popset .nwx span { white-space: normal; line-height: 1.3; }
-  .termbar[hidden] { display: none !important; }
+  .termbar[hidden] { display: none !important; } .sxact .btn:disabled { opacity: .45; cursor: default; }
   .termbar { position: sticky; top: -32px; margin: -32px -32px 20px; padding: 10px 32px; z-index: 6; display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--sub);
     background: color-mix(in srgb, var(--tint) 12%, var(--bg)); border-bottom: .5px solid var(--sep); } .termbar b { color: var(--text); } .termbar .btn { margin-left: auto; }
   .rcard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; } .rstat { padding: 14px 16px; display: grid; gap: 4px; } .rstat span { font-size: 12px; color: var(--sub); font-weight: 600; } .rstat b { font-size: 26px; font-weight: 700; }
@@ -460,7 +460,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.69 (11/22 5:25pm)';
+const BUILD = 'd1.70 (11/22 6:05pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -869,6 +869,19 @@ function go(v, fade) {
   Object.keys(CNT).forEach(k => delete CNT[k]); COUNT0 = true; renderAll(); COUNT0 = false; $('main').scrollTop = 0;
   if (v === 'grades' && mo('donut')) drawDonuts();
   placePill();
+}
+// next semester's likely name: spring after fall, fall after spring/summer
+function guessTermName() {
+  const c = termCur() || termNow(), m = c && /^(fall|spring|summer)\s+(\d{4})$/.exec(c.name); if (!m) return '';
+  return m[1] === 'fall' ? 'spring ' + (+m[2] + 1) : 'fall ' + m[2];
+}
+function newTerm() {
+  if (!NEWT || NEWT.busy) return; const body = { action: 'term_new', name: NEWT.name.trim(), start: NEWT.start, ldoc: NEWT.ldoc, exams: NEWT.exams };
+  if (!body.name || !body.start || !body.ldoc) return;
+  NEWT.busy = true; renderAll();
+  if (DEMO) { const id = 'demo' + Date.now(); data.terms.push({ id, name: body.name, sheet: 'demo', status: '', start: body.start, ldoc: body.ldoc, gpaTerm: '' }); NEWT = null; toast('created ' + body.name); return switchTerm(id); }
+  post(body).then(j => { NEWT = null; if (j.terms) data.terms = j.terms; toast('created ' + body.name); switchTerm(j.term); })
+    .catch(e => { if (NEWT) { NEWT.busy = false; NEWT.err = String(e.message || e) === 'dates needed' ? 'first day and last day of classes are needed' : String(e.message || e); } renderAll(); });
 }
 function termBar() { const b = $('termbar'); if (!b) return; const on = viewingPast(); b.hidden = !on; if (on) b.innerHTML = `<span>viewing <b>${esc(termNow().name)}</b></span><button class="btn sm" data-act="term-back">back to ${esc(termCur().name)}</button>`; }
 function renderAll() {
@@ -1524,7 +1537,7 @@ const themed = c => (TMAP[THEME] && TMAP[THEME][c]) || c;
 const inkOn = c => { const n = parseInt(c.slice(1), 16), l = (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; return l > .62 ? 'rgba(0,0,0,.72)' : '#fff'; };
 const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
 const stile = k => { const x = SECS.find(y => y[0] === k), c = themed(x ? x[2] : '#A6A6B1'); return `<span class="stile" style="background:${c};color:${inkOn(c)}">${sicon(k)}</span>`; };
-let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false, REPORT = null;
+let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false, REPORT = null, NEWT = null;   // NEWT: the new-semester form while it's open
 if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
 // accent: the tint color, on top of whichever theme is on
 const ACCENTS = [['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'], ['#D2587E', 'pink'], ['#8B6FD6', 'purple']];
@@ -1544,7 +1557,7 @@ const SHORTCUTS = [['anywhere', [[kb('1'), '–', kb('5')], 'switch pages'], [[k
 // one flat list of every setting, for search
 function settingsIndex() {
   const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['motion', 'motion'], ['motion', 'all motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
-    [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['semesters', 'semesters'], ['semesters', 'report card'], ['about', 'what’s new'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
+    [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['semesters', 'semesters'], ['semesters', 'new semester'], ['semesters', 'report card'], ['about', 'what’s new'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
     ((data && data.setup) || []).map(x => ['courses', spaceCode(x.code) + ' ' + (x.cfg ? x.cfg.name : '')]),
     SHORTCUTS.flatMap(([, ...rows]) => rows.map(r => ['shortcuts', r[1]])));
   return out;
@@ -1580,9 +1593,15 @@ function setPaneHtml() {
   } else if (SSEC === 'semesters') {
     const T = termList(), on = data && data.term, md2 = y => y ? md(fromYmd(y)) : '';
     if (REPORT) { const t = T.find(x => x.id === REPORT); if (t) return `<div class="rehd2"><button class="iconbtn" data-act="report-x" aria-label="back">${IC.l}</button><h2 class="sxh">${esc(t.name)}</h2><span class="muted" style="font-size:15px">report card</span></div>` + reportHtml(t); }
+    if (NEWT) { const f = (k, label, type) => `<div class="row"><span>${label}</span><input class="txt" ${type === 'date' ? 'type="date"' : 'maxlength="30" autocomplete="off" spellcheck="false"'} data-nt="${k}" data-k="nt-${k}" value="${esc(NEWT[k] || '')}"></div>`;
+      const ready = NEWT.name && NEWT.start && NEWT.ldoc && !NEWT.busy;
+      return `<div class="rehd2"><button class="iconbtn" data-act="nt-x" aria-label="back">${IC.l}</button><h2 class="sxh">new semester</h2></div>` +
+        grp('', f('name', 'name') + f('start', 'first day', 'date') + f('ldoc', 'last day of classes', 'date') + f('exams', 'last exam day', 'date')) +
+        `<div class="sxact" style="margin-top:0">${NEWT.err ? `<span class="reerr" style="margin-right:auto">${esc(NEWT.err)}</span>` : ''}<button class="btn tint" data-act="nt-go" id="nt-go"${ready ? '' : ' disabled'}>${NEWT.busy ? 'creating…' : 'create'}</button></div>`; }
     h = T.length ? grp('', T.slice().reverse().map(t => { const sub = t.status === 'current' ? 'current' : t.status === 'finished' ? 'finished' : t.start ? md2(t.start) + (t.ldoc ? ' – ' + md2(t.ldoc) : '') : '';
         return `<button class="row prow" data-act="term" data-id="${esc(t.id)}"><span class="grow">${esc(t.name)}</span><span class="muted">${esc(sub)}</span><span class="tick">${t.id === on ? TICK : ''}</span>${!t.sheet ? `<span class="chev">${IC.r}</span>` : ''}</button>`; }).join(''))
       : grp('', '<div class="row"><span class="muted">–</span></div>');
+    h += `<div class="sxact" style="margin-top:0"><button class="btn tint" data-act="nt-open">${IC.plus} new semester</button></div>`;
   } else if (SSEC === 'feedback') {
     const ns = notesList();
     h = (ns.length ? grp('open notes', ns.map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')) : '') +
@@ -1714,10 +1733,13 @@ document.addEventListener('click', e => {
     case 'popdone': return closePop();
     case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; openPop('asg', t); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
-    case 'setsec': REPORT = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
+    case 'setsec': REPORT = null; NEWT = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
     case 'term': { const tm = termList().find(x => x.id === t.dataset.id); if (!tm) return; if (!tm.sheet) { REPORT = tm.id; return renderAll(); } if (tm.id !== (data && data.term)) switchTerm(tm.id); return; }
     case 'report-x': REPORT = null; return renderAll();
+    case 'nt-open': NEWT = { name: guessTermName(), start: '', ldoc: '', exams: '' }; return renderAll();
+    case 'nt-x': NEWT = null; return renderAll();
+    case 'nt-go': return newTerm();
     case 'term-back': { const c = termCur(); if (c) switchTerm(c.id); return; }
     case 'accent': ACC = t.dataset.c || ''; store.set('desk-accent', ACC); applyAccent(); return renderAll();
     case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
@@ -1782,6 +1804,7 @@ document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'sq') { SF.q = t.value; saveSF(); renderAll(); return; }
   if (t.id === 'acc-any') { ACC = t.value; applyAccent(); return; }
+  if (t.dataset.nt && NEWT) { NEWT[t.dataset.nt] = t.value; NEWT.err = ''; const g = $('nt-go'); if (g) g.disabled = !(NEWT.name.trim() && NEWT.start && NEWT.ldoc); return; }
   if (t.id === 'set-q' && VIEW === 'course') { SQ = t.value; go('settings', false); const q = $('set-q'); if (q) { q.focus(); q.setSelectionRange(SQ.length, SQ.length); } return; }
   if (t.id === 'set-q') { SQ = t.value; const p = $('sxpane'); if (p) p.innerHTML = setPaneHtml(); document.querySelectorAll('.sxnav button').forEach(b => b.classList.toggle('on', !SQ.trim() && b.dataset.s === SSEC)); return; }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; return; }
