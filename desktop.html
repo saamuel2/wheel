@@ -135,7 +135,7 @@
   input.dtin { border: 0; background: none; color: inherit; font-family: inherit; padding: 0; margin: 0; width: 92px; height: 26px; outline: none; border-radius: 6px; } input.dtin:focus { background: var(--fill); padding-left: 4px; } input.dtin.bad { color: var(--red); }
   .grid tr.row.late .dtxt { color: var(--red); font-weight: 700; }
   .dcell input.dpick { position: absolute; left: 6px; top: 3px; width: 22px; height: 24px; opacity: 0; padding: 0; border: 0; z-index: 1; }
-  .fchip .g.test { color: var(--tint); font-weight: 700; } .fchip .g.up { color: color-mix(in srgb, #30D158 75%, var(--text)); } .fchip .g.down { color: color-mix(in srgb, #FF453A 75%, var(--text)); }
+  .fchip .g.test { color: var(--tint); font-weight: 700; } .fchip .g.up { color: color-mix(in srgb, #4FA36A 45%, var(--sub)); } .fchip .g.down { color: color-mix(in srgb, #C0645A 45%, var(--sub)); }
   .fchip .g { transition: color .2s; }
   .gl { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 8px; }
   .gl button { display: flex; align-items: baseline; gap: 8px; border: 0; background: var(--card2); border-radius: 8px; padding: 8px 8px; text-align: left; min-width: 0; }
@@ -395,7 +395,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.57 (11/22 2:30pm)';
+const BUILD = 'd1.58 (11/22 2:35pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
