@@ -1,0 +1,46 @@
+# Term template ("assignments template"): a spreadsheet whose own script holds only Stubs.gs (calling the shared
+# engine library) plus the fall 2026 sheet's other script files. New semesters are copies of it.
+# First run (backend/lib/template-id.txt empty) creates the spreadsheet + script and prints both ids.
+name: term template
+on:
+  push:
+    branches: [main]
+    paths: ['backend/lib/Stubs.gs', 'backend/lib/template-id.txt']
+  workflow_dispatch:
+jobs:
+  template:
+    runs-on: ubuntu-24.04
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+      SHEET_SCRIPT_ID: ${{ secrets.SHEET_SCRIPT_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - if: env.CLASPRC_JSON != ''
+        run: |
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          npm i -g @google/clasp@2.4.2
+          set -o pipefail
+          lib=$(tr -d ' \n' < backend/lib/engine-id.txt)
+          sid=$(tr -d ' \n' < backend/lib/template-id.txt 2>/dev/null || true)
+          # the fall sheet's other files (sorting, emails…), minus the old full Grades file
+          src=$(mktemp -d); cd "$src"; echo "{\"scriptId\":\"$SHEET_SCRIPT_ID\"}" > .clasp.json; clasp pull; ls; cd "$GITHUB_WORKSPACE"
+          dir=$(mktemp -d); cd "$dir"
+          if [ -z "$sid" ]; then
+            clasp create --type sheets --title "assignments template" 2>&1 | tee create.log
+            cat .clasp.json; echo
+            sid=$(node -e "console.log(require('./.clasp.json').scriptId)")
+            echo "TEMPLATE_SCRIPT_ID=$sid"
+            grep -o 'https://drive.google.com/open?id=[A-Za-z0-9_-]*' create.log || true
+          else
+            echo "{\"scriptId\":\"$sid\"}" > .clasp.json; clasp pull
+          fi
+          for f in "$src"/*.js; do b=$(basename "$f"); case "$b" in Grades.js) ;; *) cp "$f" .;; esac; done
+          cp "$GITHUB_WORKSPACE/backend/lib/Stubs.gs" Stubs.js
+          cat > appsscript.json <<JSON
+          {"timeZone":"America/New_York","exceptionLogging":"STACKDRIVER","runtimeVersion":"V8",
+           "dependencies":{"libraries":[{"userSymbol":"GradesLib","libraryId":"$lib","version":"0","developmentMode":true}]}}
+          JSON
+          ls
+          clasp push --force 2>&1 | tee push.log
+          if grep -q "Push failed" push.log; then echo "::error::push failed"; exit 1; fi
+          echo "template script id: $sid"
