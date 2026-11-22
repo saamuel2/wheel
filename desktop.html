@@ -395,7 +395,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.60 (11/22 3:00pm)';
+const BUILD = 'd1.61 (11/22 3:10pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0/edit';
@@ -663,6 +663,7 @@ function saveToastGrade() {
   if (same(a.g, g) && same(a.o, o)) return;
   const prev = Object.assign({}, a), match = { n: a.n, c: a.c };
   a.g = g; a.o = o; setOv(prev, { g, o }); changed();
+  HIST.undo.push([{ r: a.r, n: a.n, c: a.c, f: 'g', from: prev.g, to: g }, { r: a.r, n: a.n, c: a.c, f: 'o', from: prev.o, to: o }]); HIST.redo = [];
   post({ action: 'edit', row: a.r, match, fields: { grade: g, outOf: o == null ? '' : o } })
     .catch(() => { Object.assign(a, prev); setOv(prev, { g: prev.g, o: prev.o }); changed(); toast('couldn’t save the grade'); });
 }
@@ -682,6 +683,7 @@ function deleteAssignment(a) {
 }
 function toggleDone(a) {
   const to = !a.d; a.d = to; if (VIEW === 'sheet') STAY.add(kOf(a)); setOv(a, { d: to }); changed();
+  histPush({ kind: 'done', r: a.r, n: a.n, c: a.c, from: !to, to });
   if (to) { const i = data.assignments.indexOf(a); document.querySelectorAll(`[data-i="${i}"] .chk, .chk[data-i="${i}"]`).forEach(c => { c.classList.add('ckpop');
       if (mo('burst')) { const b = document.createElement('span'); b.className = 'burst'; b.style.setProperty('--c', colorFor(a.c)); c.appendChild(b); setTimeout(() => b.remove(), 650); } }); }
   let undone = false;
@@ -732,7 +734,9 @@ function histApply(dir) {
   try {
     (dir === 'undo' ? g.slice().reverse() : g).forEach(e => {
       const A = data.assignments, cur = A.find(x => x.r === e.r && x.n === e.n && x.c === e.c) || A.find(x => x.r === e.r); if (!cur) return;
-      const target = dir === 'undo' ? e.from : e.to; saveCell(cur, e.f, cellRaw(e.f, target), NOEL);
+      const target = dir === 'undo' ? e.from : e.to;
+      if (e.kind === 'done') { if (!!cur.d !== !!target) toggleDone(cur); return; }
+      saveCell(cur, e.f, cellRaw(e.f, target), NOEL);
       if (e.f === 'n') e.n = cur.n; if (e.f === 'c') e.c = cur.c;
     });
   } finally { HIST.replaying = false; }
@@ -1741,7 +1745,12 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && (t.id === 'td-new' || t.id === 'td-due')) { e.preventDefault(); addTodo(); return; }
   if (e.key === 'Enter' && t.id === 'note-in') { e.preventDefault(); addNote(); return; }
   if (e.key === 'Enter' && t.classList && t.classList.contains('cell') && t.closest('tr.row')) { e.preventDefault(); t.blur(); return; }
+  // ctrl/cmd+z (shift for redo) undoes the last change anywhere: a cell, a grade, a check-off
+  if ((e.metaKey || e.ctrlKey) && !e.altKey && !typing && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) { e.preventDefault(); histApply(e.key === 'y' || e.shiftKey ? 'redo' : 'undo'); return; }
   if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  const busy = POP || $('drawer').classList.contains('on') || $('toast').contains(t);
+  if (e.key === 'Enter' && !busy && !(t.closest && t.closest('button, a, [data-act], label'))) { e.preventDefault(); if (SF.gs) { SF.gs = false; saveSF(); $('v-sheet').innerHTML = ''; fitGs(); } startAdd(); return; }
+  if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && VIEW === 'dash' && !busy) { e.preventDefault(); weekOff += e.key === 'ArrowRight' ? 1 : -1; renderAll(); return; }
   const views = ['dash', 'sheet', 'grades', 'att', 'settings'];
   if (/^[1-5]$/.test(e.key)) { go(views[+e.key - 1]); return; }
   if (e.key === 'n') { e.preventDefault(); startAdd(); }
