@@ -24,6 +24,7 @@
  *     assume: 100,                    // ungraded items count as this
  *     cap,                            // extra/flat: most it adds · bonus: most per target item
  *     to: ['EX','FI'],                // bonus: added to the target item due on/after the bonus (by due date)
+ *     itemRound: 0,                   // round each item's % to N decimals before its score map / curve
  *     pick: 'lowest',                 // bonus: added to the lowest graded target item instead
  *     free: 3, per: 20                // attendance: free absences, % lost per absence after that
  *   }]
@@ -181,6 +182,7 @@ var Engine = (function () {
   }
   function bin(cat, label, pct, trace) {
     var b = cat.rule.bin; if (!b || !isNum(pct)) return pct;
+    if (isNum(cat.rule.itemRound)) { var rp = roundHalfUp(pct, cat.rule.itemRound); if (rp !== pct) trace.push(label + ': ' + fmt(pct) + '% rounds to ' + rp + '%'); pct = rp; }   // e.g. 79.5 → 80 before the curve
     var curve = b.curves && b.curves[norm(label)];                      // this item has its own curve (e.g. one per exam)
     var L = letterFor(pct, curve || b.cutoffs || STD_CUTOFFS), vals = b.values || DEFAULT_SCALE, v = L ? vals[L] : null;
     trace.push(label + ': ' + fmt(pct) + '%' + (curve ? ' (curved)' : '') + (L && /^t\d+$/.test(L) ? '' : ' → ' + (L || '?')) + ' → ' + fmt(v));

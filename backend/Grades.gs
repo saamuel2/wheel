@@ -25,6 +25,7 @@
  *     assume: 100,                    // ungraded items count as this
  *     cap,                            // extra/flat: most it adds · bonus: most per target item
  *     to: ['EX','FI'],                // bonus: added to the target item due on/after the bonus (by due date)
+ *     itemRound: 0,                   // round each item's % to N decimals before its score map / curve
  *     pick: 'lowest',                 // bonus: added to the lowest graded target item instead
  *     free: 3, per: 20                // attendance: free absences, % lost per absence after that
  *   }]
@@ -182,6 +183,7 @@ var Engine = (function () {
   }
   function bin(cat, label, pct, trace) {
     var b = cat.rule.bin; if (!b || !isNum(pct)) return pct;
+    if (isNum(cat.rule.itemRound)) { var rp = roundHalfUp(pct, cat.rule.itemRound); if (rp !== pct) trace.push(label + ': ' + fmt(pct) + '% rounds to ' + rp + '%'); pct = rp; }   // e.g. 79.5 → 80 before the curve
     var curve = b.curves && b.curves[norm(label)];                      // this item has its own curve (e.g. one per exam)
     var L = letterFor(pct, curve || b.cutoffs || STD_CUTOFFS), vals = b.values || DEFAULT_SCALE, v = L ? vals[L] : null;
     trace.push(label + ': ' + fmt(pct) + '%' + (curve ? ' (curved)' : '') + (L && /^t\d+$/.test(L) ? '' : ' → ' + (L || '?')) + ' → ' + fmt(v));
@@ -373,6 +375,7 @@ function rulesFromSheet_(courses, categories) {
     if (num_(row[12]) != null) c.per = num_(row[12]);
     var rep = clean_(row[13]); if (rep) c.replace = { from: rep };
     if (/^low/i.test(clean_(row[14]))) c.pick = 'lowest';
+    if (num_(row[15]) != null) c.itemRound = num_(row[15]);
     if (c.kind === 'bonus' && !c.to) c.kind = 'extra';
     r.categories.push(c);
   });
@@ -498,7 +501,7 @@ function tablesFromBlocks_(blocks) {
     b.cats.forEach(function (c) {
       var o = kv_(c.other);
       cats.push([b.code, c.name, c.type, c.weight, c.items, c.drop, c.combine || 'average', c.map, o['to'] || '', o['up to'] || '', c.until,
-        o['free absences'] || '', o['per absence'] || '', o['replaced by'] || '', o['which'] || '']);
+        o['free absences'] || '', o['per absence'] || '', o['replaced by'] || '', o['which'] || '', o['round to'] != null ? o['round to'] : '']);
     });
   });
   return { courses: courses, cats: cats };
