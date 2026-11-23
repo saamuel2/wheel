@@ -380,6 +380,12 @@
   .ptile.sm { width: 24px; height: 24px; border-radius: 6px; font-size: 14px; margin: 0; }
   .scard .ptile { transition: transform .4s cubic-bezier(.34,1.8,.6,1); } .scard:hover .ptile { transform: scale(1.08) rotate(-4deg); }
   .kbh { margin-top: 6px; } .sgl.sub { font-weight: 500; } .rcname { font-size: 15px; } .news .row { height: auto !important; } .news { max-height: 460px; overflow: auto; } .news .nwd { padding: 10px 0 2px; font-size: 12px; font-weight: 600; color: var(--sub); } .news .row.nwx { min-height: 32px; border-top: 0; padding: 4px 0; }
+  .srw { display: grid; gap: 20px; margin-bottom: 22px; align-items: stretch; } .scell { display: flex; flex-direction: column; min-width: 0; } .scell > .card { flex: 1; margin-bottom: 0; }
+  .egrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 28px; } .egrid .row { border-top: .5px solid var(--sep); } .egrid .row:nth-child(-n+3) { border-top: 0; }
+  .fbrow { min-height: 320px; } .fbrow .scell.scroll { position: relative; } .fbrow .scell.scroll > .card { position: absolute; inset: 22px 0 0; overflow: auto; } .fbrow .nnew { gap: 8px; } .fbrow .scell:first-child .card { display: flex; flex-direction: column; } .fbrow .nnew { margin-top: auto; }
+  .sgl { height: 16px; } .wcard.tchart { display: flex; flex-direction: column; } .tchart .twrap { flex: 1; display: flex; align-items: center; }
+  .gkeys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: .5px solid var(--sep); margin-top: 8px; padding-top: 10px; } .gkeys div { display: grid; gap: 2px; } .gkeys span { font-size: 12px; color: var(--sub); } .gkeys b { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  html[data-theme=elegant] .gkeys b, html[data-theme=moody] .gkeys b { font-family: var(--serif); font-weight: 500; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -500,7 +506,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.74 (11/23 11:50am)';
+const BUILD = 'd1.75 (11/23 12:20pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1617,16 +1623,17 @@ function setPaneHtml() {
   const grp = (label, inner) => `${label ? `<div class="sgl">${label}</div>` : ''}<div class="card sgrp">${inner}</div>`;
   const sw = (attr, on) => `<label class="sw"><input type="checkbox" ${attr}${on ? ' checked' : ''}><i></i></label>`;
   const cols = (...c) => `<div class="scols">${c.filter(Boolean).map(x => `<div class="scol">${x}</div>`).join('')}</div>`;
+  const rw = (tpl, ...c) => `<div class="srw" style="grid-template-columns:${tpl}">${c.filter(Boolean).map(x => `<div class="scell">${x}</div>`).join('')}</div>`;
   let h = '';
   if (SSEC === 'appearance') {
-    h = cols(grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
-        <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`), grp('accent', `<div class="row"><span>accent color</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
-        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div>`)) + motionHtml();
+    h = rw('minmax(0,2fr) minmax(0,1fr)', grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
+        <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`), grp('accent and motion', `<div class="row"><span>accent color</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
+        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div><div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div>`)) + motionHtml();
   }
-  function motionHtml() { return `<div class="scols mo2"><div class="scol">${grp('motion', `<div class="row"><span>all motion</span>${sw('data-mo="all"', MO.all)}</div>`)}</div><div class="scol">${grp('effects', `<div class="c2">${MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')}</div>`)}</div></div>`; }
+  function motionHtml() { return rw('1fr', grp('effects', `<div class="egrid">${MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')}</div>`)); }
   if (SSEC === 'appearance') { /* built above */ } else if (SSEC === 'widgets') {
     const cl = calList();
-    h = cols(grp('greeting', popBody('greet')) + grp('countdown', popBody('cd')), (cl.length > 1 ? grp('calendars', popBody('cal')) : '') + grp('variable', popBody('var')));
+    h = rw('1fr 1fr', grp('greeting', popBody('greet')), grp('countdown', popBody('cd'))) + rw('1fr 1fr', cl.length > 1 ? grp('calendars', popBody('cal')) : '', grp('variable', popBody('var')));
   } else if (SSEC === 'courses') {
     if (NEWC) return newCourseHtml();
     h = data && data.setup ? `<div class="scards">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
@@ -1644,16 +1651,16 @@ function setPaneHtml() {
     h = `<div class="sxtwo"><div class="scol">${gpaWidget()}</div><div class="scol">${reportWidget()}</div></div>` + semCards() + semTable();
   } else if (SSEC === 'feedback') {
     const ns = notesList();
-    h = cols(ns.length ? grp('open notes', ns.map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')) : '',
-      grp('new note', `<div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn tint" data-act="note-add">add</button></div>`) +
-      (ns.length ? `<div class="sxact"><button class="btn" data-act="note-copy">copy list</button></div>` : ''), (window.CHANGES || []).length ? grp('what’s new', `<div class="news">${newsHtml()}</div>`) : '');
+    h = `<div class="srw fbrow" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><div class="scell">${grp('notes', ns.map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('') +
+        `<div class="row nnew"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1" aria-label="new note"><button class="btn tint" data-act="note-add">add</button>${ns.length ? '<button class="btn" data-act="note-copy">copy list</button>' : ''}</div>`)}</div>` +
+      ((window.CHANGES || []).length ? `<div class="scell scroll">${grp('what’s new', `<div class="news">${newsHtml()}</div>`)}</div>` : '') + '</div>';
   } else if (SSEC === 'shortcuts') {
     h = '';
   } else {
     const kb = () => cols(...SHORTCUTS.map(([g, ...rows]) => grp(g, rows.map(([keys, l]) => `<div class="row"><span>${l}</span><span class="keys">${keys.join('')}</span></div>`).join(''))));
-    h = cols(grp('app', `<div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
+    h = rw('1fr 1fr', grp('app', `<div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${sheetUrl()}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
-      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '–'}</span><button class="btn sm" data-act="sync">refresh</button></div>`), grp('connection', `<div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>`)) + `<div class="sgl kbh">keyboard shortcuts</div>` + kb().replace(/<div class="sgl">/g, '<div class="sgl sub">');
+      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '–'}</span><button class="btn sm" data-act="sync">refresh</button></div>`), grp('connection', `<div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>`)) + rw('1fr 1fr 1fr', ...SHORTCUTS.map(([g, ...rows]) => grp(g === 'anywhere' ? 'keyboard shortcuts' : g, rows.map(([keys, l]) => `<div class="row"><span>${l}</span><span class="keys">${keys.join('')}</span></div>`).join(''))));
   }
   return h;
 }
@@ -1698,7 +1705,7 @@ function gpaSeries() {
     let pts = 0, hrs = 0, pts2 = 0;
     if (t.id === (data && data.term) && L && !data.historyOnly) L.courses.forEach(c => { const cr = +c.credits; if (cr > 0 && c.gp != null && !c.passFail) { pts += c.gp * cr; pts2 += Math.min(c.gp, 4) * cr; hrs += cr; } });
     else termReport(t).rows.forEach(r => { if (r.hours > 0 && r.gp != null && r.gp !== '') { pts += r.gp * r.hours; pts2 += Math.min(r.gp, 4) * r.hours; hrs += r.hours; } });
-    if (!hrs) return; P += pts; H += hrs; P2 += pts2; out.push({ name: t.name, id: t.id, term: pts / hrs, overall: P / H, unw: P2 / H, live: t.id === (data && data.term) });
+    if (!hrs) return; P += pts; H += hrs; P2 += pts2; out.push({ hours: H, name: t.name, id: t.id, term: pts / hrs, overall: P / H, unw: P2 / H, live: t.id === (data && data.term) });
   });
   return out;
 }
@@ -1722,7 +1729,8 @@ function gpaWidget() {
       ${S.map((x, i) => `<text x="${X(i)}" y="${Hh - 8}" class="tax" text-anchor="middle">${esc(x.name)}</text>`).join('')}
       <line class="tcross" x1="0" x2="0" y1="${top}" y2="${Hh - bot}"/>${lines}
       ${labs.map(o => `<text x="${W - r + 10}" y="${o.y + 4}" class="tval">${o.v.toFixed(2)}</text>`).join('')}${hits}</svg>
-      <div class="ttip"></div></div></div>`;
+      <div class="ttip"></div></div>
+    <div class="gkeys">${[['overall', last.overall.toFixed(3)], ['unweighted', last.unw.toFixed(3)], ['hours', String(last.hours)], [last.live ? 'this term' : last.name, last.term.toFixed(3)]].map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}</b></div>`).join('')}</div></div>`;
 }
 function reportWidget() {
   const T = termList(), on = data && data.term, t = T.find(x => x.id === (RCSEL || on)) || T.find(x => x.id === on);
