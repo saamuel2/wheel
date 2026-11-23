@@ -330,7 +330,7 @@
   .sx.wide { grid-template-columns: 240px minmax(0, 1fr); } .rehd2 { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; } .rehd2 .sxh { margin: 0; } .rehd2 .tools { margin-left: auto; display: flex; gap: 8px; align-items: center; }
   .scards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; } .scname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
   .scard { position: relative; display: grid; justify-items: start; gap: 2px; padding: 16px; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; overflow: hidden; transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast); }
-  .scard::before { content: ''; position: absolute; inset: 0 0 auto; height: 3px; background: var(--c); } .scard:hover { box-shadow: inset 0 0 0 1.5px var(--c); }
+  .scard:hover { box-shadow: inset 0 0 0 1.5px var(--c); }
   .scard .stile { width: 30px; height: 30px; border-radius: 8px; margin-bottom: 10px; } .scard .stile svg { width: 17px; height: 17px; }
   .sccode { font-size: 17px; font-weight: 700; color: var(--c); } .scname { font-size: 14px; } .scmeta { font-size: 12px; color: var(--sub); margin-top: 6px; }
   .scard .chev { position: absolute; right: 14px; top: 20px; color: var(--sub); }
@@ -375,6 +375,11 @@
   .tcross { opacity: 0; transition: transform .42s cubic-bezier(.34,1.45,.64,1), opacity .2s; } .twrap.hov .tcross { opacity: 1; }
   .ttip { opacity: 0; transform: translateY(4px) scale(.96); transition: left .42s cubic-bezier(.34,1.45,.64,1), opacity .18s, transform .3s cubic-bezier(.34,1.6,.64,1); } .twrap.hov .ttip { opacity: 1; transform: none; }
   @media (max-width: 1180px) { .sxtwo { grid-template-columns: 1fr; } .semcards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .ptile { width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; line-height: 1; flex: none; margin-bottom: 12px;
+    background: color-mix(in srgb, var(--pc) 22%, var(--card2)); box-shadow: inset 0 0 0 .5px color-mix(in srgb, var(--pc) 45%, transparent); }
+  .ptile.sm { width: 24px; height: 24px; border-radius: 6px; font-size: 14px; margin: 0; }
+  .scard .ptile { transition: transform .4s cubic-bezier(.34,1.8,.6,1); } .scard:hover .ptile { transform: scale(1.08) rotate(-4deg); }
+  .kbh { margin-top: 6px; } .sgl.sub { font-weight: 500; } .rcname { font-size: 15px; } .news .row { height: auto !important; } .news { max-height: 460px; overflow: auto; } .news .nwd { padding: 10px 0 2px; font-size: 12px; font-weight: 600; color: var(--sub); } .news .row.nwx { min-height: 32px; border-top: 0; padding: 4px 0; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -495,7 +500,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.73 (11/23 11:20am)';
+const BUILD = 'd1.74 (11/23 11:50am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1390,7 +1395,7 @@ function reState() {
 let COURSE = store.get('desk-course', null);
 function reFrom(code) {
   const x = (data && data.setup || []).find(y => y.code === code); if (!x || x.layout !== 'blocks') return null;
-  const R = { code, cfg: { name: x.cfg ? x.cfg.name : '', credits: x.cfg ? x.cfg.credits : '' }, head: Object.assign({}, x.head), cut: cutParse(x.head.cutoffs),
+  const R = { code, cfg: { name: x.cfg ? x.cfg.name : '', full: x.cfg ? x.cfg.full || '' : '', credits: x.cfg ? x.cfg.credits : '' }, head: Object.assign({}, x.head), cut: cutParse(x.head.cutoffs),
     cats: x.cats.map(c => Object.assign({}, c, { opt: kvParse(c.other), combine: String(c.combine || 'average').toLowerCase() })), saving: false, err: '' };
   ['grade by', 'entered as'].forEach(k => { R.head[k] = String(R.head[k] || (k === 'grade by' ? 'weights' : 'percent')).toLowerCase(); });
   const keep = RE; RE = R; R.orig = JSON.stringify(reState()); RE = keep; return R;
@@ -1451,7 +1456,7 @@ function renderCourse(v) {
       <div class="tools"><span id="re-err" class="reerr"></span><button class="btn" id="re-revert" data-act="re-revert" hidden>revert</button><button class="btn tint" id="re-save" data-act="re-save" disabled>save</button></div></div>
     <div class="kv re-prev" id="re-prev"></div>
     <div class="cgrid">
-      <div class="card"><div class="ct">basics</div><div class="regrid">${f('name', inp('cfg.name', R.cfg.name))}${f('credit hours', inp('cfg.credits', R.cfg.credits))}${f('course code', `<span class="muted" style="padding:8px 0">${esc(R.code)}</span>`)}</div></div>
+      <div class="card"><div class="ct">basics</div><div class="regrid">${f('name', inp('cfg.name', R.cfg.name))}${f('full name', inp('cfg.full', R.cfg.full))}${f('credit hours', inp('cfg.credits', R.cfg.credits))}${f('course code', `<span class="muted" style="padding:8px 0">${esc(R.code)}</span>`)}</div></div>
       <div class="card"><div class="ct">grading</div><div class="regrid">${f('grade by', sel('head.grade by', R.head['grade by'], ['weights', 'points']))}${f('entered as', sel('head.entered as', R.head['entered as'], ['percent', 'points']))}${f('final from', sel('head.final from', R.head['final from'] || 'percent', ['percent', 'grade points']))}
         ${f('round to', inp('head.round to', R.head['round to']))}${f('pass at', inp('head.pass at', R.head['pass at']))}${f('drop lowest across', inp('head.drop lowest across', R.head['drop lowest across']))}</div></div>
     </div>
@@ -1570,15 +1575,15 @@ const SI = {   // section icons, same line style as the rest
   semesters: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'
 };
-const SECS = [['appearance', 'appearance', '#c2c7f8'], ['motion', 'motion', '#fbe0a3'], ['widgets', 'widgets', '#91e3d6'],
-  ['feedback', 'feedback', '#f6b8c9'], ['shortcuts', 'keyboard shortcuts', '#9ed2f6'], ['about', 'about', '#e4b39b'], ['semesters', 'semesters', '#bfe6ef'], ['courses', 'courses', '#b2e2b6']];   // course colors, toned per theme like the courses are
+const SECS = [['appearance', 'appearance', '#c2c7f8'], ['widgets', 'widgets', '#91e3d6'],
+  ['feedback', 'feedback', '#f6b8c9'], ['about', 'about', '#e4b39b'], ['semesters', 'semesters', '#bfe6ef'], ['courses', 'courses', '#b2e2b6']];   // course colors, toned per theme like the courses are
 const themed = c => (TMAP[THEME] && TMAP[THEME][c]) || c;
 const inkOn = c => { const n = parseInt(c.slice(1), 16), l = (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; return l > .62 ? 'rgba(0,0,0,.72)' : '#fff'; };
 const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
 const stile = k => { const x = SECS.find(y => y[0] === k), c = themed(x ? x[2] : '#A6A6B1'); return `<span class="stile" style="background:${c};color:${inkOn(c)}">${sicon(k)}</span>`; };
 let RCSEL = null;   // the semester shown in the report card (null = the open one)
 let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false, REPORT = null, NEWT = null, NEWC = null;   // NEWC: the new-course steps while they're open   // NEWT: the new-semester form while it's open
-if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
+if (SSEC === 'motion') SSEC = 'appearance'; if (SSEC === 'shortcuts') SSEC = 'about'; if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
 // accent: the tint color, on top of whichever theme is on
 const ACCENTS = [['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'], ['#D2587E', 'pink'], ['#8B6FD6', 'purple']];
 let ACC = store.get('desk-accent', '');
@@ -1616,16 +1621,16 @@ function setPaneHtml() {
   if (SSEC === 'appearance') {
     h = cols(grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
         <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`), grp('accent', `<div class="row"><span>accent color</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
-        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div>`));
-  } else if (SSEC === 'motion') {
-    h = `<div class="scols mo2"><div class="scol">${grp('motion', `<div class="row"><span>all motion</span>${sw('data-mo="all"', MO.all)}</div>`)}</div><div class="scol">${grp('effects', `<div class="c2">${MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')}</div>`)}</div></div>`;
-  } else if (SSEC === 'widgets') {
+        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div>`)) + motionHtml();
+  }
+  function motionHtml() { return `<div class="scols mo2"><div class="scol">${grp('motion', `<div class="row"><span>all motion</span>${sw('data-mo="all"', MO.all)}</div>`)}</div><div class="scol">${grp('effects', `<div class="c2">${MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')}</div>`)}</div></div>`; }
+  if (SSEC === 'appearance') { /* built above */ } else if (SSEC === 'widgets') {
     const cl = calList();
     h = cols(grp('greeting', popBody('greet')) + grp('countdown', popBody('cd')), (cl.length > 1 ? grp('calendars', popBody('cal')) : '') + grp('variable', popBody('var')));
   } else if (SSEC === 'courses') {
     if (NEWC) return newCourseHtml();
     h = data && data.setup ? `<div class="scards">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
-        return `<button class="card scard" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}"><span class="stile" style="background:${col};color:${inkOn(col)}">${sicon('courses')}</span>
+        return `<button class="card scard" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}">${picTile(x.code, x.cfg && x.cfg.name)}
           <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
           <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', x.bare ? 'grading not set up' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
           ${data.historyOnly ? '' : `<button class="card scard scnew" data-act="nc-open"><span class="stile">${IC.plus}</span><span class="sccode">new course</span></button>`}</div>`
@@ -1641,13 +1646,14 @@ function setPaneHtml() {
     const ns = notesList();
     h = cols(ns.length ? grp('open notes', ns.map(n => `<div class="row"><span class="ntx">${esc(n.x)}</span><button class="btn sm" data-act="note-rm" data-k="${esc(noteKey(n))}">remove</button></div>`).join('')) : '',
       grp('new note', `<div class="row"><input class="txt" id="note-in" data-k="note-in" maxlength="300" autocomplete="off" style="flex:1"><button class="btn tint" data-act="note-add">add</button></div>`) +
-      (ns.length ? `<div class="sxact"><button class="btn" data-act="note-copy">copy list</button></div>` : ''));
+      (ns.length ? `<div class="sxact"><button class="btn" data-act="note-copy">copy list</button></div>` : ''), (window.CHANGES || []).length ? grp('what’s new', `<div class="news">${newsHtml()}</div>`) : '');
   } else if (SSEC === 'shortcuts') {
-    h = cols(...SHORTCUTS.map(([g, ...rows]) => grp(g, rows.map(([keys, l]) => `<div class="row"><span>${l}</span><span class="keys">${keys.join('')}</span></div>`).join(''))));
+    h = '';
   } else {
-    h = cols(grp('app', `${(window.CHANGES || []).length ? `<button class="row prow" data-act="pop" data-p="new"><span class="grow">what’s new</span><span class="muted">${esc(window.CHANGES[0][0])}</span><span class="chev">${IC.r}</span></button>` : ''}<div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
+    const kb = () => cols(...SHORTCUTS.map(([g, ...rows]) => grp(g, rows.map(([keys, l]) => `<div class="row"><span>${l}</span><span class="keys">${keys.join('')}</span></div>`).join(''))));
+    h = cols(grp('app', `<div class="row"><span>build</span><span class="muted">${BUILD}</span></div>
       <div class="row"><span>source</span>${DEMO ? '<span class="muted">demo snapshot</span>' : `<a href="${sheetUrl()}" target="_blank" rel="noopener">google sheets ${IC.ext}</a>`}</div>
-      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '–'}</span><button class="btn sm" data-act="sync">refresh</button></div>`), grp('connection', `<div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>`));
+      <div class="row"><span>last synced</span><span class="muted">${lastSync ? fmtT(lastSync) : '–'}</span><button class="btn sm" data-act="sync">refresh</button></div>`), grp('connection', `<div class="row"><span>connection key</span><input class="txt" id="key-in" type="text" spellcheck="false" autocapitalize="off" data-1p-ignore data-lpignore="true" style="-webkit-text-security: disc" value="${esc(KEY)}" autocomplete="off"><button class="btn" data-act="savekey">save</button></div>`)) + `<div class="sgl kbh">keyboard shortcuts</div>` + kb().replace(/<div class="sgl">/g, '<div class="sgl sub">');
   }
   return h;
 }
@@ -1657,7 +1663,7 @@ function setSideHtml() {
   const P = data && data.profile, full = String((P && P.name) || nm).toLowerCase();
   return `<div class="card sxme"><span class="av">${P && P.photo ? `<img src="${esc(P.photo)}" alt="" referrerpolicy="no-referrer">` : full ? esc(full[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(full || '–')}</b><span>${esc(semLabel())}${cr ? ' · ' + cr + ' hours' : ''}</span></span></div>
       <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${cur(k) ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>` +
-        (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><span class="stile" style="background:${colorFor(x.code)};color:${inkOn(colorFor(x.code))}">${sicon('courses')}</span><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
+        (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}">${picTile(x.code, x.cfg && x.cfg.name, 'sm')}<span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
 }
 // ---------- looking back ----------
 const termIdx = t => termList().indexOf(t);
@@ -1681,8 +1687,7 @@ function reportFromL(t, L) {
   if (!L) return '<div class="muted sxnone">–</div>';
   const off = {}; termReport(t).rows.forEach(r => { if (r.letter) off[String(r.code).replace(/\s+/g, '').toLowerCase()] = r.letter; });   // official letters, once a term is finished
   const C = L.courses, cr = C.reduce((a, c) => a + (+c.credits > 0 ? +c.credits : 0), 0);
-  return `<div class="rcard"><div class="card rstat"><span>term gpa</span><b>${L.gpa != null ? Number(L.gpa).toFixed(3) : '–'}</b></div><div class="card rstat"><span>credits</span><b>${cr || '–'}</b></div><div class="card rstat"><span>courses</span><b>${C.length || '–'}</b></div></div>` +
-    `<div class="card sgrp">${C.map(c => { const k = t.id + ':' + c.code, o = RCOPEN[k], col = colorFor(c.code), let_ = off[c.code] || c.letter || '–';
+  return `<div class="card sgrp">${C.map(c => { const k = t.id + ':' + c.code, o = RCOPEN[k], col = colorFor(c.code), let_ = off[c.code] || c.letter || '–';
       return `<button class="row prow" data-act="rc-x" data-k="${esc(k)}"><b class="rcode" style="color:${col}">${esc(spaceCode(c.code))}</b><span class="grow">${esc(c.name || '')}</span><span class="muted">${c.raw != null ? f2(c.raw) : '–'}</span><b class="rlet">${esc(let_)}</b><span class="chev${o ? ' dn' : ''}">${IC.r}</span></button>` +
         (o ? `<div class="rcats">${(c.cats || []).filter(x => x.kind === 'normal' || x.pct != null).map(x => `<div class="row"><span class="grow">${esc(x.name)}</span><span class="muted">${x.share ? Math.round(x.share * 100) + '%' : ''}</span><span class="muted">${x.graded != null ? x.graded + (x.poss ? ' of ' + x.poss : '') : ''}</span><b class="rlet">${x.pct != null ? f2(x.pct) : '–'}</b></div>`).join('') || '<div class="row"><span class="muted">–</span></div>'}</div>` : ''); }).join('')}</div>`;
 }
@@ -1704,8 +1709,8 @@ function gpaWidget() {
   const head = `<div class="sgl">gpa</div>`;
   if (S.length < 1) return head + '<div class="card sgrp wcard"><div class="row"><span class="muted">–</span></div></div>';
   const W = 500, Hh = 290, l = 34, r = 52, top = 14, bot = 30, vals = S.flatMap(x => [x.term, x.overall, x.unw]);
-  const lo = Math.min(3, Math.floor((Math.min(...vals) - .1) * 4) / 4), hi = 4.333, n = S.length, X = i => n === 1 ? (l + W - r) / 2 : l + i * (W - l - r) / (n - 1), Y = v => top + (hi - v) / (hi - lo) * (Hh - top - bot);
-  const grid = []; for (let g = Math.ceil(lo * 2) / 2; g <= 4.0001; g += .5) grid.push(`<line x1="${l}" x2="${W - r}" y1="${Y(g)}" y2="${Y(g)}" class="tgrid"/><text x="${l - 8}" y="${Y(g) + 4}" class="tax" text-anchor="end">${g.toFixed(1)}</text>`);
+  const lo = Math.min(3.6, Math.floor((Math.min(...vals) - .05) * 5) / 5), hi = Math.max(4.4, Math.ceil((Math.max(...vals) + .05) * 5) / 5), n = S.length, X = i => n === 1 ? (l + W - r) / 2 : l + i * (W - l - r) / (n - 1), Y = v => top + (hi - v) / (hi - lo) * (Hh - top - bot);
+  const gs = hi - lo > 1.2 ? .4 : .2, grid = []; for (let g = Math.ceil(lo / gs - 1e-9) * gs; g <= hi + 1e-9; g += gs) grid.push(`<line x1="${l}" x2="${W - r}" y1="${Y(g)}" y2="${Y(g)}" class="tgrid"/><text x="${l - 8}" y="${Y(g) + 4}" class="tax" text-anchor="end">${g.toFixed(1)}</text>`);
   const lines = ser.map(([k, , c, dash]) => `<polyline fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${dash ? ` stroke-dasharray="${dash}"` : ''} points="${S.map((x, i) => X(i) + ',' + Y(x[k])).join(' ')}"/>` +
     S.map((x, i) => `<circle class="tdot" data-i="${i}" cx="${X(i)}" cy="${Y(x[k])}" r="4.5" fill="${c}" stroke="var(--card)" stroke-width="2"/>`).join('')).join('');
   const last = S[n - 1], labs = ser.map(([k, , c]) => ({ v: last[k], y: Y(last[k]), c })).sort((a, b) => a.y - b.y);
@@ -1725,7 +1730,7 @@ function reportWidget() {
   if (!t) return head + '<div class="card sgrp wcard"><div class="row"><span class="muted">–</span></div></div>';
   const isOpen = t.id === on && !(data && data.historyOnly);
   const body = isOpen ? reportFromL(t, live()) : t.sheet ? sheetReportHtml(t) : reportHtml(t);
-  return head + `<div class="card sgrp wcard rcw"><div class="row rchd"><select class="txt rcsel" data-rc aria-label="semester">${T.slice().reverse().map(x => `<option value="${esc(x.id)}"${x.id === t.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select><span class="grow"></span>${t.id !== on && t.sheet ? `<button class="btn sm" data-act="term-open" data-id="${esc(t.id)}">open semester</button>` : t.id === on ? '<span class="muted">open now</span>' : ''}</div>${body}</div>`;
+  return head + `<div class="card sgrp wcard rcw"><div class="row rchd"><b class="rcname">${esc(t.name)}</b><span class="grow"></span>${t.id !== on && t.sheet ? `<button class="btn sm" data-act="term-open" data-id="${esc(t.id)}">open semester</button>` : t.id === on ? '<span class="muted">open now</span>' : ''}</div>${body}</div>`;
 }
 function semCards() {
   const T = termList(), S = gpaSeries(), on = data && data.term, sel = RCSEL || on, md2 = y => y ? md(fromYmd(y)) : '';
@@ -1758,8 +1763,7 @@ document.addEventListener('mouseover', e => {
 document.addEventListener('mouseout', e => { const wrap = e.target.closest && e.target.closest('.twrap'); if (!wrap || wrap.contains(e.relatedTarget)) return; wrap.classList.remove('hov'); wrap.querySelectorAll('.tdot.on').forEach(d => d.classList.remove('on')); });
 function reportHtml(t) {
   const R = termReport(t);
-  return `<div class="rcard"><div class="card rstat"><span>term gpa</span><b>${R.gpa != null ? R.gpa.toFixed(3) : '–'}</b></div><div class="card rstat"><span>credits</span><b>${R.total || '–'}</b></div><div class="card rstat"><span>courses</span><b>${R.rows.length || '–'}</b></div></div>` +
-    (R.rows.length ? `<div class="card sgrp">${R.rows.map(r => `<div class="row"><b class="rcode" style="color:${colorFor(r.code)}">${esc(spaceCode(r.code))}</b><span class="grow">${esc(r.name)}</span><span class="muted">${r.hours > 0 ? r.hours + ' cr' : ''}</span><b class="rlet">${esc(r.letter || '–')}</b></div>`).join('')}</div>` : '');
+  return (R.rows.length ? `<div class="card sgrp">${R.rows.map(r => `<div class="row"><b class="rcode" style="color:${colorFor(r.code)}">${esc(spaceCode(r.code))}</b><span class="grow">${esc(r.name)}</span><span class="muted">${r.hours > 0 ? r.hours + ' cr' : ''}</span><b class="rlet">${esc(r.letter || '–')}</b></div>`).join('')}</div>` : '');
 }
 // ---------- new course: course → credits and color → how it's graded → review ----------
 const NC_TPL = [
@@ -1770,6 +1774,13 @@ const NC_TPL = [
   ['pf', 'pass / fail', { 'grade by': 'weights', 'pass at': 70 }, [['coursework', 'CW', 100, '', '']]],
   ['blank', 'blank', { 'grade by': 'weights' }, []],
   ['later', 'set up later', null, null]];
+const PIC_WORDS = [[/teach/, '🍎'], [/anat|phys(iol)?\b/, '🫀'], [/plant|bot/, '🌱'], [/bioinf|comput|program|cod/, '💻'], [/ethic|phil/, '⚖️'], [/gene|molgen/, '🧬'], [/biochem/, '🧪'], [/micro/, '🦠'], [/stat/, '📊'], [/calc|math/, '📐'], [/writ|engl|essay/, '✍️'], [/music|band/, '🎵'], [/chem/, '⚗️'], [/lab/, '🔬'], [/well|resil/, '🧘'], [/honor|forum/, '🎓'], [/wolf|village|ra\b/, '🏠'], [/neuro|psych/, '🧠'], [/eco|enviro/, '🌍'], [/hist/, '🏛️']];
+const PIC_SUBJ = { bch: '🧪', ch: '⚗️', bio: '🧫', gn: '🧬', pb: '🌱', phi: '⚖️', e: '💻', csc: '💻', ma: '📐', st: '📊', eng: '✍️', mus: '🎵', hon: '🎓', psy: '🧠', mb: '🦠', bsc: '🍎', lsc: '🔬', hesf: '🧘', wv: '🏠' };
+function coursePic(code, name) {
+  const n = String(name || '').toLowerCase(), hit = PIC_WORDS.find(([re]) => re.test(n)); if (hit) return hit[1];
+  const subj = (/^[a-z]+/.exec(String(code || '').toLowerCase()) || [''])[0]; return PIC_SUBJ[subj] || '📘';
+}
+const picTile = (code, name, cls) => { const c = colorFor(code); return `<span class="ptile${cls ? ' ' + cls : ''}" style="--pc:${c}">${coursePic(code, name)}</span>`; };
 function nextColor() { const used = new Set(((data && data.setup) || []).map(x => colorFor(x.code))); return SPARE.find(c => !used.has(themed(c))) || SPARE[0]; }
 function ncValid(st) { const N = NEWC;
   if (st === 1) return /^[a-z]{1,5}\d{2,4}[a-z]?$/.test(N.code) && !!N.name.trim() && !((data && data.setup) || []).some(x => x.code === N.code);
@@ -1780,7 +1791,7 @@ function newCourseHtml() {
   const N = NEWC, st = N.step, sw = SPARE.map(c => `<button class="acc${N.color === c ? ' on' : ''}" data-act="nc-color" data-c="${c}" style="background:${themed(c)}" aria-label="color"></button>`).join('');
   const f = (k, label, extra) => `<div class="row"><span>${label}</span><input class="txt" data-nc="${k}" data-k="nc-${k}" value="${esc(N[k])}" autocomplete="off" spellcheck="false" ${extra || ''}></div>`;
   let body = '';
-  if (st === 1) body = `<div class="sgl">course</div><div class="card sgrp">${f('code', 'code', 'maxlength="10"')}${f('name', 'name', 'maxlength="40"')}</div>` + (N.code && ((data && data.setup) || []).some(x => x.code === N.code) ? `<div class="muted ncnote">${esc(N.code)} is already a course</div>` : '');
+  if (st === 1) body = `<div class="sgl">course</div><div class="card sgrp">${f('code', 'code', 'maxlength="10"')}${f('name', 'name', 'maxlength="40"')}${f('full', 'full name', 'maxlength="80"')}</div>` + (N.code && ((data && data.setup) || []).some(x => x.code === N.code) ? `<div class="muted ncnote">${esc(N.code)} is already a course</div>` : '');
   else if (st === 2) body = `<div class="sgl">credits and color</div><div class="card sgrp">${f('credits', 'credits', 'inputmode="decimal" maxlength="4"')}<div class="row"><span>color</span><div class="accs">${sw}</div></div></div>`;
   else if (st === 3) body = `<div class="sgl">how is it graded?</div><div class="card sgrp">${NC_TPL.map(([k, l]) => `<button class="row prow" data-act="nc-tpl" data-t="${k}"><span class="grow">${l}</span><span class="tick">${N.tpl === k ? TICK : ''}</span></button>`).join('')}</div>`;
   else {
@@ -1790,7 +1801,7 @@ function newCourseHtml() {
           <td><input class="txt" data-ncc="${i}.weight" data-k="ncc${i}w" value="${esc(c.weight)}" inputmode="decimal"></td><td><input class="txt" data-ncc="${i}.items" data-k="ncc${i}i" value="${esc(c.items)}" inputmode="numeric"></td>
           <td><input class="txt" data-ncc="${i}.drop" data-k="ncc${i}d" value="${esc(c.drop)}" inputmode="numeric"></td><td><button class="iconbtn x" data-act="nc-rm" data-i="${i}" aria-label="remove">${IC.x}</button></td></tr>`).join('')}</tbody></table>
         <div class="row"><button class="btn sm" data-act="nc-add">${IC.plus} category</button>${N.head['pass at'] != null ? `<span class="grow"></span><span class="muted">pass at</span><input class="txt ncpass" data-nh="pass at" data-k="nc-pass" value="${esc(N.head['pass at'])}" inputmode="decimal">` : ''}</div>`;
-    body = `<div class="sgl">review</div><div class="card sgrp"><div class="row"><span class="stile" style="background:${col};color:${inkOn(col)}">${sicon('courses')}</span><b style="color:${col}">${esc(N.code)}</b><span class="grow">${esc(N.name)}</span><span class="muted">${N.credits !== '' ? esc(N.credits) + ' cr' : ''}</span></div></div>
+    body = `<div class="sgl">review</div><div class="card sgrp"><div class="row">${picTile(N.code, N.name, 'sm')}<b style="color:${col}">${esc(N.code)}</b><span class="grow">${esc(N.name)}</span><span class="muted">${N.credits !== '' ? esc(N.credits) + ' cr' : ''}</span></div></div>
       <div class="sgl">${esc((NC_TPL.find(t => t[0] === N.tpl) || [])[1] || '')}</div><div class="card sgrp ncats">${cats}</div>`;
   }
   const ok = ncValid(st);
@@ -1801,7 +1812,7 @@ function ncRefresh() { const p = $('sxpane'); if (p && SSEC === 'courses' && NEW
 function addCourse() {
   const N = NEWC; if (!N || N.busy || !ncValid(4)) return;
   const cats = N.tpl === 'later' ? [] : N.cats.map(c => ({ name: c.name.trim(), type: c.type.trim().toUpperCase(), weight: c.weight, items: c.items, combine: N.head['grade by'] === 'points' ? 'points' : 'average', drop: c.drop }));
-  const body = { action: 'course_add', code: N.code, name: N.name.trim(), credits: N.credits, color: N.color, head: N.head || {}, cats };
+  const body = { action: 'course_add', code: N.code, name: N.name.trim(), full: N.full.trim(), credits: N.credits, color: N.color, head: N.head || {}, cats };
   N.busy = true; N.err = ''; renderAll();
   const done = () => { NEWC = null; toast('added ' + body.code); renderAll(); };
   if (DEMO) { data.setup.push({ code: body.code, layout: 'blocks', cfg: { name: body.name, credits: body.credits }, head: body.head, cats, bare: !cats.length }); (data.colors = data.colors || {})[body.code] = body.color; return done(); }
@@ -1971,7 +1982,7 @@ document.addEventListener('click', e => {
     case 'nt-open': SSEC = 'semesters'; NEWT = { name: guessTermName(), start: '', ldoc: '', exams: '' }; return renderAll();
     case 'nt-x': NEWT = null; return renderAll();
     case 'nt-go': return newTerm();
-    case 'nc-open': NEWC = { step: 1, code: '', name: '', credits: '3', color: nextColor(), tpl: '', head: {}, cats: [] }; renderAll(); setTimeout(() => { const i = document.querySelector('[data-nc=code]'); if (i) i.focus(); }, 30); return;
+    case 'nc-open': NEWC = { step: 1, code: '', name: '', full: '', credits: '3', color: nextColor(), tpl: '', head: {}, cats: [] }; renderAll(); setTimeout(() => { const i = document.querySelector('[data-nc=code]'); if (i) i.focus(); }, 30); return;
     case 'nc-x': NEWC = null; return renderAll();
     case 'nc-back': NEWC.step--; NEWC.err = ''; return renderAll();
     case 'nc-next': if (ncValid(NEWC.step)) { NEWC.step++; renderAll(); setTimeout(() => { const i = document.querySelector('#sxpane input'); if (i && NEWC && NEWC.step === 2) i.focus(); }, 30); } return;

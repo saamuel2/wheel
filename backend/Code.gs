@@ -507,6 +507,7 @@ function gradesSheet_(ss) {   // the grades tab, or a new term's empty one ("cou
   var g = ss.getSheetByName('Grades'); return g && /^course\/category$/i.test(str_(g.getRange(1, 1).getValue())) ? g : null;
 }
 var COLOR_COL = 16;   // Config!P: each course's color (set when a course is added in the app)
+var FULL_COL = 17;    // Config!Q: the course's full (official) name, for the gpa record
 function readColors_(ss) {
   var cfg = ss.getSheetByName('Config'), out = {}; if (!cfg) return out;
   cfg.getRange(2, 1, 10, COLOR_COL).getValues().forEach(function (r) { var c = str_(r[0]).toLowerCase(), col = str_(r[COLOR_COL - 1]); if (c && /^#[0-9a-f]{6}$/i.test(col)) out[c] = col.toLowerCase(); });
@@ -517,8 +518,8 @@ function readBlocks_(sh) {
   return blocksFromSheet_(sh.getRange(1, 1, last, 1).getValues(), sh.getRange(1, 4, last, 8).getValues());
 }
 function cfgInfo_(ss, code) {
-  var cfg = ss.getSheetByName('Config').getRange(2, 1, 10, 4).getValues(), c = null;
-  cfg.forEach(function (x, j) { if (str_(x[0]).toLowerCase() === code) c = { row: j + 2, name: str_(x[1]), credits: cellOut_(x[3]) }; });
+  var cfg = ss.getSheetByName('Config').getRange(2, 1, 10, FULL_COL).getValues(), c = null;
+  cfg.forEach(function (x, j) { if (str_(x[0]).toLowerCase() === code) c = { row: j + 2, name: str_(x[1]), full: str_(x[FULL_COL - 1]), credits: cellOut_(x[3]) }; });
   return c;
 }
 function setupFromBlocks_(ss, sh) {
@@ -581,6 +582,7 @@ function blockSave_(ss, sh, b) {
   if (cf && b.cfg) {
     var cfg = ss.getSheetByName('Config');
     if (b.cfg.name != null && str_(b.cfg.name)) cfg.getRange(cf.row, 2).setValue(str_(b.cfg.name));
+    if (b.cfg.full != null) cfg.getRange(cf.row, FULL_COL).setValue(str_(b.cfg.full));
     if (b.cfg.credits != null) { var cr = cellIn_(b.cfg.credits); if (!isNum(cr)) return { ok: false, error: 'credits must be a number' }; cfg.getRange(cf.row, 4).setValue(cr); }
   }
   return { ok: true };
@@ -596,7 +598,8 @@ function courseAdd_(ss, b) {
   if (!row) return { ok: false, error: 'this semester is full (10 rows on Config)' };
   cfg.getRange(row, 1, 1, 5).setValues([[code, name, code + ' ' + name, cr, false]]);
   if (/^#[0-9a-f]{6}$/.test(color)) cfg.getRange(row, COLOR_COL).setValue(color);
-  if (b.cats && b.cats.length) { var gs = gradesSheet_(ss); if (gs) { var r = blockSave_(ss, gs, { code: code, head: b.head || {}, cats: b.cats }); if (!r.ok) { cfg.getRange(row, 1, 1, 5).clearContent(); cfg.getRange(row, COLOR_COL).clearContent(); return r; } } }
+  if (str_(b.full)) cfg.getRange(row, FULL_COL).setValue(str_(b.full));
+  if (b.cats && b.cats.length) { var gs = gradesSheet_(ss); if (gs) { var r = blockSave_(ss, gs, { code: code, head: b.head || {}, cats: b.cats }); if (!r.ok) { cfg.getRange(row, 1, 1, 5).clearContent(); cfg.getRange(row, COLOR_COL).clearContent(); cfg.getRange(row, FULL_COL).clearContent(); return r; } } }
   return { ok: true, code: code };
 }
 function readCourseSetup_(ss) {
