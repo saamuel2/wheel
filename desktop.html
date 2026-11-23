@@ -386,6 +386,23 @@
   .sgl { height: 16px; } .wcard.tchart { display: flex; flex-direction: column; } .tchart .twrap { flex: 1; display: flex; align-items: center; }
   .gkeys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: .5px solid var(--sep); margin-top: 8px; padding-top: 10px; } .gkeys div { display: grid; gap: 2px; } .gkeys span { font-size: 12px; color: var(--sub); } .gkeys b { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
   html[data-theme=elegant] .gkeys b, html[data-theme=moody] .gkeys b { font-family: var(--serif); font-weight: 500; }
+  .sxdot { width: 10px; height: 10px; border-radius: 50%; flex: none; margin: 0 7px; }
+  .cstyle { display: flex; align-items: center; gap: 10px; margin: -4px 0 14px; font-size: 13px; color: var(--sub); } .cstyle .seg button { min-width: 36px; }
+  .scard { overflow: hidden; isolation: isolate; } .scard > * { position: relative; z-index: 1; } .scard .chev { position: absolute; z-index: 1; }
+  .scimg { position: absolute !important; z-index: 0 !important; top: 0; right: 0; height: 100%; object-fit: cover; pointer-events: none; }
+  /* a: compact 4 across, photo on the right 65%, fading out leftward */
+  .sc-a { grid-template-columns: repeat(4, minmax(0, 1fr)); } .ph-a { min-height: 128px; align-content: end; padding: 16px; }
+  .ph-a .scimg { width: 70%; -webkit-mask-image: linear-gradient(to left, #000 35%, transparent); mask-image: linear-gradient(to left, #000 35%, transparent); opacity: .9; }
+  /* b: wide 2 across, photo fills the right half and melts into the card */
+  .sc-b { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ph-b { min-height: 148px; padding: 22px 24px; align-content: center; }
+  .ph-b .scimg { width: 62%; -webkit-mask-image: linear-gradient(to left, #000 50%, transparent 100%); mask-image: linear-gradient(to left, #000 50%, transparent 100%); }
+  .ph-b .sccode { font-size: 22px; } .ph-b .scname { font-size: 15px; }
+  /* c: 3 across, photo across the whole card, card color washes over from the left */
+  .sc-c { grid-template-columns: repeat(3, minmax(0, 1fr)); } .ph-c { min-height: 170px; padding: 18px 20px; align-content: end; }
+  .ph-c .scimg { width: 100%; -webkit-mask-image: linear-gradient(to left, #000 10%, rgba(0,0,0,.35) 55%, transparent 85%); mask-image: linear-gradient(to left, #000 10%, rgba(0,0,0,.35) 55%, transparent 85%); }
+  .ph-c .sccode { font-size: 20px; }
+  .scard .scimg { transition: transform .6s cubic-bezier(.2,.8,.2,1); } .scard:hover .scimg { transform: scale(1.04); }
+  .scnew.ph-a, .scnew.ph-b, .scnew.ph-c { align-content: center; justify-items: start; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -506,7 +523,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.75 (11/23 12:20pm)';
+const BUILD = 'd1.76 (11/23 12:55pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1595,7 +1612,7 @@ const ACCENTS = [['#3B82F6', 'blue'], ['#3FA66B', 'green'], ['#E08A3C', 'orange'
 let ACC = store.get('desk-accent', '');
 function applyAccent() { const h = document.documentElement; if (ACC) h.style.setProperty('--tint', ACC); else h.style.removeProperty('--tint'); }
 applyAccent();
-const THEMES = [['default', 'dark', '#000', '#1C1C1E', '#0A84FF'], ['light', 'light', '#F2F2F7', '#fff', '#007AFF'], ['elegant', 'elegant', '#E5E3DF', '#F4F3F0', '#2F6B4A'], ['moody', 'moody', '#111', '#1B1B1B', '#9DB27F']];
+const THEMES = [['light', 'light', '#F2F2F7', '#fff', '#007AFF'], ['default', 'dark', '#000', '#1C1C1E', '#0A84FF'], ['elegant', 'elegant', '#E5E3DF', '#F4F3F0', '#2F6B4A'], ['moody', 'moody', '#111', '#1B1B1B', '#9DB27F']];
 const semLabel = () => { const t = termNow(); if (t) return t.name; return semLabel0(); };
 const semLabel0 = () => { const d = new Date(SEM_START + 3 * 864e5), m = d.getMonth(); return (m >= 7 ? 'fall' : m <= 4 ? 'spring' : 'summer') + ' ' + d.getFullYear(); };
 const isMac = /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
@@ -1627,7 +1644,7 @@ function setPaneHtml() {
   let h = '';
   if (SSEC === 'appearance') {
     h = rw('minmax(0,2fr) minmax(0,1fr)', grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
-        <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`), grp('accent and motion', `<div class="row"><span>accent color</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
+        <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`), grp('accent and motion', `<div class="row"><span>accent</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
         <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div><div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div>`)) + motionHtml();
   }
   function motionHtml() { return rw('1fr', grp('effects', `<div class="egrid">${MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')}</div>`)); }
@@ -1636,11 +1653,11 @@ function setPaneHtml() {
     h = rw('1fr 1fr', grp('greeting', popBody('greet')), grp('countdown', popBody('cd'))) + rw('1fr 1fr', cl.length > 1 ? grp('calendars', popBody('cal')) : '', grp('variable', popBody('var')));
   } else if (SSEC === 'courses') {
     if (NEWC) return newCourseHtml();
-    h = data && data.setup ? `<div class="scards">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
-        return `<button class="card scard" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}">${picTile(x.code, x.cfg && x.cfg.name)}
+    h = data && data.setup ? `<div class="cstyle"><span>style</span><div class="seg">${['a', 'b', 'c'].map(k => `<button class="${CSTYLE === k ? 'on' : ''}" data-act="cstyle" data-k="${k}">${k}</button>`).join('')}</div></div><div class="scards sc-${CSTYLE}">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
+        return `<button class="card scard ph-${CSTYLE}" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}">${coursePhoto(x.code) ? `<img class="scimg" src="${coursePhoto(x.code)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
           <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
           <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', x.bare ? 'grading not set up' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
-          ${data.historyOnly ? '' : `<button class="card scard scnew" data-act="nc-open"><span class="stile">${IC.plus}</span><span class="sccode">new course</span></button>`}</div>`
+          ${data.historyOnly ? '' : `<button class="card scard scnew ph-${CSTYLE}" data-act="nc-open"><span class="stile">${IC.plus}</span><span class="sccode">new course</span></button>`}</div>`
       : grp('', '<div class="row"><span class="muted">not connected</span></div>');
   } else if (SSEC === 'semesters') {
     if (NEWT) { const f = (k, label, type) => `<div class="row"><span>${label}</span><input class="txt" ${type === 'date' ? 'type="date"' : 'maxlength="30" autocomplete="off" spellcheck="false"'} data-nt="${k}" data-k="nt-${k}" value="${esc(NEWT[k] || '')}"></div>`;
@@ -1670,7 +1687,7 @@ function setSideHtml() {
   const P = data && data.profile, full = String((P && P.name) || nm).toLowerCase();
   return `<div class="card sxme"><span class="av">${P && P.photo ? `<img src="${esc(P.photo)}" alt="" referrerpolicy="no-referrer">` : full ? esc(full[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(full || '–')}</b><span>${esc(semLabel())}${cr ? ' · ' + cr + ' hours' : ''}</span></span></div>
       <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${cur(k) ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>` +
-        (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}">${picTile(x.code, x.cfg && x.cfg.name, 'sm')}<span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
+        (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><i class="sxdot" style="background:${colorFor(x.code)}"></i><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
 }
 // ---------- looking back ----------
 const termIdx = t => termList().indexOf(t);
@@ -1751,7 +1768,8 @@ function semCards() {
 function semTable() {
   const T = termList().slice().reverse(), on = data && data.term, L = live(), rows = [];
   T.forEach(t => {
-    if (t.id === on && L && !data.historyOnly) L.courses.forEach(c => rows.push([t.name, c.code, c.name || '', c.credits, c.raw, c.letter]));
+    const full = c => { const x = ((data && data.setup) || []).find(y => y.code === c.code); return (x && x.cfg && x.cfg.full) || c.name || ''; };
+    if (t.id === on && L && !data.historyOnly) L.courses.forEach(c => rows.push([t.name, c.code, full(c), c.credits, c.raw, c.letter]));
     else termReport(t).rows.forEach(r => rows.push([t.name, r.code, r.name, r.hours, r.grade, r.letter]));
   });
   if (!rows.length) return '';
@@ -1782,6 +1800,12 @@ const NC_TPL = [
   ['pf', 'pass / fail', { 'grade by': 'weights', 'pass at': 70 }, [['coursework', 'CW', 100, '', '']]],
   ['blank', 'blank', { 'grade by': 'weights' }, []],
   ['later', 'set up later', null, null]];
+const PHOTO = id => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1000&q=70`;
+const COURSE_PHOTOS = { bch351: '1748261348213-62f4c399bb72', bio240: '1460672985063-6764ac8b9c74', bsc494: '1758685848204-a170e78f1507', gn427: '1681911046053-1d2fdce39ea0',
+  gn521: '1641903202531-bfa6bf0c6419', pb421: '1766176088232-e3908549b8c9', phi325: '1764113697577-b5899b9a339d', e115: '1584949091598-c31daaaa4aa9' };
+const SUBJ_PHOTOS = { bch: 'bch351', ch: 'bch351', bio: 'bio240', zo: 'bio240', bsc: 'bsc494', gn: 'gn521', pb: 'pb421', phi: 'phi325', e: 'e115', csc: 'e115', ma: 'e115', eng: 'phi325', mus: 'bsc494' };
+function coursePhoto(code) { const k = String(code || '').toLowerCase(), id = COURSE_PHOTOS[k] || COURSE_PHOTOS[SUBJ_PHOTOS[(/^[a-z]+/.exec(k) || [''])[0]]]; return id ? PHOTO(id) : ''; }
+let CSTYLE = store.get('desk-cardstyle', 'a');   // draft card styles while Sam picks one
 const PIC_WORDS = [[/teach/, '🍎'], [/anat|phys(iol)?\b/, '🫀'], [/plant|bot/, '🌱'], [/bioinf|comput|program|cod/, '💻'], [/ethic|phil/, '⚖️'], [/gene|molgen/, '🧬'], [/biochem/, '🧪'], [/micro/, '🦠'], [/stat/, '📊'], [/calc|math/, '📐'], [/writ|engl|essay/, '✍️'], [/music|band/, '🎵'], [/chem/, '⚗️'], [/lab/, '🔬'], [/well|resil/, '🧘'], [/honor|forum/, '🎓'], [/wolf|village|ra\b/, '🏠'], [/neuro|psych/, '🧠'], [/eco|enviro/, '🌍'], [/hist/, '🏛️']];
 const PIC_SUBJ = { bch: '🧪', ch: '⚗️', bio: '🧫', gn: '🧬', pb: '🌱', phi: '⚖️', e: '💻', csc: '💻', ma: '📐', st: '📊', eng: '✍️', mus: '🎵', hon: '🎓', psy: '🧠', mb: '🦠', bsc: '🍎', lsc: '🔬', hesf: '🧘', wv: '🏠' };
 function coursePic(code, name) {
@@ -1809,7 +1833,7 @@ function newCourseHtml() {
           <td><input class="txt" data-ncc="${i}.weight" data-k="ncc${i}w" value="${esc(c.weight)}" inputmode="decimal"></td><td><input class="txt" data-ncc="${i}.items" data-k="ncc${i}i" value="${esc(c.items)}" inputmode="numeric"></td>
           <td><input class="txt" data-ncc="${i}.drop" data-k="ncc${i}d" value="${esc(c.drop)}" inputmode="numeric"></td><td><button class="iconbtn x" data-act="nc-rm" data-i="${i}" aria-label="remove">${IC.x}</button></td></tr>`).join('')}</tbody></table>
         <div class="row"><button class="btn sm" data-act="nc-add">${IC.plus} category</button>${N.head['pass at'] != null ? `<span class="grow"></span><span class="muted">pass at</span><input class="txt ncpass" data-nh="pass at" data-k="nc-pass" value="${esc(N.head['pass at'])}" inputmode="decimal">` : ''}</div>`;
-    body = `<div class="sgl">review</div><div class="card sgrp"><div class="row">${picTile(N.code, N.name, 'sm')}<b style="color:${col}">${esc(N.code)}</b><span class="grow">${esc(N.name)}</span><span class="muted">${N.credits !== '' ? esc(N.credits) + ' cr' : ''}</span></div></div>
+    body = `<div class="sgl">review</div><div class="card sgrp"><div class="row"><i class="sxdot" style="background:${col}"></i><b style="color:${col}">${esc(N.code)}</b><span class="grow">${esc(N.name)}</span><span class="muted">${N.credits !== '' ? esc(N.credits) + ' cr' : ''}</span></div></div>
       <div class="sgl">${esc((NC_TPL.find(t => t[0] === N.tpl) || [])[1] || '')}</div><div class="card sgrp ncats">${cats}</div>`;
   }
   const ok = ncValid(st);
@@ -1992,6 +2016,7 @@ document.addEventListener('click', e => {
     case 'nt-go': return newTerm();
     case 'nc-open': NEWC = { step: 1, code: '', name: '', full: '', credits: '3', color: nextColor(), tpl: '', head: {}, cats: [] }; renderAll(); setTimeout(() => { const i = document.querySelector('[data-nc=code]'); if (i) i.focus(); }, 30); return;
     case 'nc-x': NEWC = null; return renderAll();
+    case 'cstyle': CSTYLE = t.dataset.k; store.set('desk-cardstyle', CSTYLE); return renderAll();
     case 'nc-back': NEWC.step--; NEWC.err = ''; return renderAll();
     case 'nc-next': if (ncValid(NEWC.step)) { NEWC.step++; renderAll(); setTimeout(() => { const i = document.querySelector('#sxpane input'); if (i && NEWC && NEWC.step === 2) i.focus(); }, 30); } return;
     case 'nc-go': return addCourse();
