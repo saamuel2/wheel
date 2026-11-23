@@ -400,7 +400,7 @@
   /* c: 3 across, photo across the whole card, card color washes over from the left */
   .sc-c { grid-template-columns: repeat(3, minmax(0, 1fr)); } .ph-c { min-height: 170px; padding: 18px 20px; align-content: end; }
   .ph-c .scimg { width: 100%; -webkit-mask-image: linear-gradient(to left, #000 10%, rgba(0,0,0,.35) 55%, transparent 85%); mask-image: linear-gradient(to left, #000 10%, rgba(0,0,0,.35) 55%, transparent 85%); }
-  .ph-c .sccode { font-size: 20px; }
+  .ph-c .sccode { font-size: 20px; } .ph-c .scimg { filter: saturate(.82) contrast(1.04); }   /* a quieter, editorial look */
   .scard .scimg { transition: transform .6s cubic-bezier(.2,.8,.2,1); } .scard:hover .scimg { transform: scale(1.04); }
   .scnew.ph-a, .scnew.ph-b, .scnew.ph-c { align-content: center; justify-items: start; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
@@ -523,7 +523,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.76 (11/23 12:55pm)';
+const BUILD = 'd1.77 (11/23 1:25pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1653,7 +1653,7 @@ function setPaneHtml() {
     h = rw('1fr 1fr', grp('greeting', popBody('greet')), grp('countdown', popBody('cd'))) + rw('1fr 1fr', cl.length > 1 ? grp('calendars', popBody('cal')) : '', grp('variable', popBody('var')));
   } else if (SSEC === 'courses') {
     if (NEWC) return newCourseHtml();
-    h = data && data.setup ? `<div class="cstyle"><span>style</span><div class="seg">${['a', 'b', 'c'].map(k => `<button class="${CSTYLE === k ? 'on' : ''}" data-act="cstyle" data-k="${k}">${k}</button>`).join('')}</div></div><div class="scards sc-${CSTYLE}">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
+    h = data && data.setup ? `<div class="scards sc-${CSTYLE}">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
         return `<button class="card scard ph-${CSTYLE}" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}">${coursePhoto(x.code) ? `<img class="scimg" src="${coursePhoto(x.code)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
           <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
           <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', x.bare ? 'grading not set up' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
@@ -1801,11 +1801,12 @@ const NC_TPL = [
   ['blank', 'blank', { 'grade by': 'weights' }, []],
   ['later', 'set up later', null, null]];
 const PHOTO = id => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1000&q=70`;
-const COURSE_PHOTOS = { bch351: '1748261348213-62f4c399bb72', bio240: '1460672985063-6764ac8b9c74', bsc494: '1758685848204-a170e78f1507', gn427: '1681911046053-1d2fdce39ea0',
-  gn521: '1641903202531-bfa6bf0c6419', pb421: '1766176088232-e3908549b8c9', phi325: '1764113697577-b5899b9a339d', e115: '1584949091598-c31daaaa4aa9' };
+// each photo reads as its course's color: bch351 green glassware, bio240 blue x-ray, bsc494 peach, gn427 pale green lines, gn521 teal spiral, pb421 lavender leaves, phi325 gold statue, e115 lilac desk
+const COURSE_PHOTOS = { bch351: '1753357278471-f56646db80e2', bio240: '1763198302535-265c44183bcb', bsc494: '1701901492183-5f59f341c70e', gn427: '1641767600172-f7444def2aca',
+  gn521: '1651497111372-9107c1a5d9a0', pb421: '1665105649738-66da1f93c2ad', phi325: '1676208563682-634bf0875649', e115: '1660634478406-f915f5dda4c5' };
 const SUBJ_PHOTOS = { bch: 'bch351', ch: 'bch351', bio: 'bio240', zo: 'bio240', bsc: 'bsc494', gn: 'gn521', pb: 'pb421', phi: 'phi325', e: 'e115', csc: 'e115', ma: 'e115', eng: 'phi325', mus: 'bsc494' };
 function coursePhoto(code) { const k = String(code || '').toLowerCase(), id = COURSE_PHOTOS[k] || COURSE_PHOTOS[SUBJ_PHOTOS[(/^[a-z]+/.exec(k) || [''])[0]]]; return id ? PHOTO(id) : ''; }
-let CSTYLE = store.get('desk-cardstyle', 'a');   // draft card styles while Sam picks one
+const CSTYLE = 'c';   // photo across the card, the card color washing over it from the left
 const PIC_WORDS = [[/teach/, '🍎'], [/anat|phys(iol)?\b/, '🫀'], [/plant|bot/, '🌱'], [/bioinf|comput|program|cod/, '💻'], [/ethic|phil/, '⚖️'], [/gene|molgen/, '🧬'], [/biochem/, '🧪'], [/micro/, '🦠'], [/stat/, '📊'], [/calc|math/, '📐'], [/writ|engl|essay/, '✍️'], [/music|band/, '🎵'], [/chem/, '⚗️'], [/lab/, '🔬'], [/well|resil/, '🧘'], [/honor|forum/, '🎓'], [/wolf|village|ra\b/, '🏠'], [/neuro|psych/, '🧠'], [/eco|enviro/, '🌍'], [/hist/, '🏛️']];
 const PIC_SUBJ = { bch: '🧪', ch: '⚗️', bio: '🧫', gn: '🧬', pb: '🌱', phi: '⚖️', e: '💻', csc: '💻', ma: '📐', st: '📊', eng: '✍️', mus: '🎵', hon: '🎓', psy: '🧠', mb: '🦠', bsc: '🍎', lsc: '🔬', hesf: '🧘', wv: '🏠' };
 function coursePic(code, name) {
@@ -2016,7 +2017,6 @@ document.addEventListener('click', e => {
     case 'nt-go': return newTerm();
     case 'nc-open': NEWC = { step: 1, code: '', name: '', full: '', credits: '3', color: nextColor(), tpl: '', head: {}, cats: [] }; renderAll(); setTimeout(() => { const i = document.querySelector('[data-nc=code]'); if (i) i.focus(); }, 30); return;
     case 'nc-x': NEWC = null; return renderAll();
-    case 'cstyle': CSTYLE = t.dataset.k; store.set('desk-cardstyle', CSTYLE); return renderAll();
     case 'nc-back': NEWC.step--; NEWC.err = ''; return renderAll();
     case 'nc-next': if (ncValid(NEWC.step)) { NEWC.step++; renderAll(); setTimeout(() => { const i = document.querySelector('#sxpane input'); if (i && NEWC && NEWC.step === 2) i.focus(); }, 30); } return;
     case 'nc-go': return addCourse();
