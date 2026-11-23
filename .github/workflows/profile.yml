@@ -1,0 +1,31 @@
+# "assignments profile" script (backend/profile): created on the first run, updated after that (id in backend/lib/profile-id.txt).
+name: profile script
+on:
+  push:
+    branches: [main]
+    paths: ['backend/profile/**', 'backend/lib/profile-id.txt']
+  workflow_dispatch:
+jobs:
+  profile:
+    runs-on: ubuntu-24.04
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+    steps:
+      - uses: actions/checkout@v5
+      - if: env.CLASPRC_JSON != ''
+        run: |
+          echo "$CLASPRC_JSON" > ~/.clasprc.json
+          npm i -g @google/clasp@2.4.2
+          set -o pipefail
+          id=$(tr -d ' \n' < backend/lib/profile-id.txt 2>/dev/null || true)
+          dir=$(mktemp -d); cd "$dir"
+          if [ -z "$id" ]; then clasp create --type standalone --title "assignments profile" 2>&1 | tee c.log; id=$(node -e "console.log(require('./.clasp.json').scriptId)"); echo "PROFILE_SCRIPT_ID=$id";
+          else echo "{\"scriptId\":\"$id\"}" > .clasp.json; clasp pull; fi
+          cp "$GITHUB_WORKSPACE/backend/profile/Profile.gs" Profile.js
+          cat > appsscript.json <<'JSON'
+          {"timeZone":"America/New_York","exceptionLogging":"STACKDRIVER","runtimeVersion":"V8",
+           "oauthScopes":["https://www.googleapis.com/auth/spreadsheets","https://www.googleapis.com/auth/userinfo.profile","https://www.googleapis.com/auth/script.external_request","https://www.googleapis.com/auth/script.scriptapp"]}
+          JSON
+          clasp push --force 2>&1 | tee push.log
+          if grep -q "Push failed" push.log; then echo "::error::push failed"; exit 1; fi
+          echo "profile script id: $id"
