@@ -36,6 +36,30 @@ function readTerms_() {
   try { cache.put('terms_v1', JSON.stringify(out), 120); } catch (x) {}
   return out;
 }
+// finish a semester: its official letters go to the home sheet's GPA tab (one row per course, updated if it's
+// already there), and the semester is marked finished. Running it again later just corrects the rows.
+var LETTER_GP_ = { 'A+': 4.333, 'A': 4, 'A-': 3.667, 'B+': 3.333, 'B': 3, 'B-': 2.667, 'C+': 2.333, 'C': 2, 'C-': 1.667, 'D+': 1.333, 'D': 1, 'D-': 0.667, 'F': 0 };
+function gpaCode_(c) { var m = /^([a-z]+)\s*(\d+[a-z]?)$/i.exec(str_(c)); return m ? m[1].toUpperCase() + ' ' + m[2].toUpperCase() : str_(c).toUpperCase(); }
+function termFinish_(b) {
+  var t = null; readTerms_().forEach(function (x) { if (x.id === b.term) t = x; });
+  if (!t) return { ok: false, error: 'unknown semester' };
+  var rows = b.rows || [], bad = [];
+  rows.forEach(function (r) { var L = str_(r.letter).toUpperCase(); if (!(L in LETTER_GP_) && L !== 'S' && L !== 'U') bad.push(str_(r.code)); });
+  if (!rows.length) return { ok: false, error: 'no courses' };
+  if (bad.length) return { ok: false, error: 'check the letter for ' + bad.join(', ') };
+  var hs = homeSS_(), sh = hs.getSheetByName('GPA'), last = sh.getLastRow(), have = last >= 2 ? sh.getRange(2, 1, last - 1, 3).getValues() : [], term = t.gpaTerm || t.id.toUpperCase();
+  var norm = function (c) { return str_(c).replace(/\s+/g, '').toLowerCase(); };
+  rows.forEach(function (r) {
+    var L = str_(r.letter).toUpperCase(), hrs = cellIn_(r.hours), gp = LETTER_GP_[L], grade = cellIn_(r.grade);
+    var vals = [gpaCode_(r.code), str_(r.name), term, hrs === '' ? '' : hrs, grade === '' ? '' : grade, L, gp == null ? '' : gp, gp == null || hrs === '' ? 0 : Math.round(gp * hrs * 1000) / 1000];
+    var at = -1; have.forEach(function (h, i) { if (at < 0 && norm(h[0]) === norm(r.code) && str_(h[2]).toUpperCase() === term) at = i; });
+    if (at >= 0) sh.getRange(at + 2, 1, 1, 8).setValues([vals]); else { sh.appendRow(vals); have.push([vals[0], vals[1], term]); }
+  });
+  var sem = hs.getSheetByName('Semesters'), sv = sem.getRange(2, 1, Math.max(sem.getLastRow() - 1, 1), 1).getValues();
+  sv.forEach(function (x, i) { if (str_(x[0]) === t.id) sem.getRange(i + 2, 7).setValue('finished'); });
+  CacheService.getScriptCache().remove('terms_v1');
+  return { ok: true, history: readGpaHistory_(), terms: readTerms_() };
+}
 // new semester: copy the template, add its week dividers, list it on the home sheet
 function termIdFor_(name, taken) {
   var m = /^(fall|spring|summer|winter)\s*(\d?)\s+(\d{4})$/i.exec(name.trim()), base;
@@ -152,6 +176,7 @@ function write_(parse) {
     var b = parse();
     if (!token_() || b.token !== token_()) return out_({ ok: false, error: 'bad token' });
     if (b.action === 'term_new') return out_(termNew_(b));
+    if (b.action === 'term_finish') return out_(termFinish_(b));
     // feedback lives on the home sheet (one list for every semester)
     if (b.action === 'note_add') return out_(noteAdd_(homeSS_(), b));
     if (b.action === 'note_done') return out_(noteDone_(homeSS_(), b));

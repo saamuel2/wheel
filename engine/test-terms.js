@@ -32,3 +32,11 @@ const nt = vm.runInContext('termNew_({ name: "Spring 2028", start: "2028-01-06",
 ok(nt.ok && nt.term === "s28" && appended[2] === "NEWSHEET" && appended[7] === "S28", 'new semester copies the template, lists it as s28 / S28');
 ok(written.length === 18 && /end of week 1 /.test(written[0][2]) && /end of spring 2028/.test(written[17][2]) && written[0][1].getDay() === 0, 'week dividers: 17 weeks + end of spring 2028, dated Sundays (' + written.length + ')');
 ok(vm.runInContext('termNew_({ name: "fall 2026", start: "2026-08-19", ldoc: "2026-12-08" })', ctx).ok === false, 'refuses a duplicate name');
+// finish a semester
+const GPAROWS = [['Code', 'Course', 'Term', 'Hours', 'Grade', 'Letter', 'GPA', 'Points'], ['BCH 351', 'General Biochemistry', 'F26', 3, '', '', '', '']], SEMR = SEM.map(r => r.slice());
+const sheetOf = rows => ({ getLastRow: () => rows.length, getRange: (r, c, nr, nc) => ({ getValues: () => rows.slice(r - 1, r - 1 + nr).map(x => x.slice(c - 1, c - 1 + nc)), setValues: v => v.forEach((row, i) => row.forEach((x, j) => { (rows[r - 1 + i] = rows[r - 1 + i] || [])[c - 1 + j] = x; })), setValue: x => { rows[r - 1][c - 1] = x; } }), appendRow: r => rows.push(r) });
+const SEMSH = [['id']].concat(SEMR);
+ctx.SpreadsheetApp.openById = id => ({ getSheetByName: n => n === 'GPA' ? sheetOf(GPAROWS) : n === 'Semesters' ? sheetOf(SEMSH) : null });
+const fin = vm.runInContext(`termFinish_({ term: 'f26', rows: [{ code: 'bch351', name: 'General Biochemistry', hours: 3, grade: 91.19, letter: 'A-' }, { code: 'bsc494', name: 'Teaching Experience', hours: 2, grade: 100, letter: 'S' }] })`, ctx);
+ok(fin.ok && GPAROWS.length === 3 && GPAROWS[1][5] === 'A-' && GPAROWS[1][6] === 3.667 && GPAROWS[1][7] === 11.001 && GPAROWS[2][0] === 'BSC 494' && GPAROWS[2][6] === '' && SEMSH[2][6] === 'finished', 'finish: updates BCH 351 in place, adds BSC 494 as S, marks fall 2026 finished');
+ok(!vm.runInContext(`termFinish_({ term: 'f26', rows: [{ code: 'x1', letter: 'Q' }] })`, ctx).ok, 'refuses an unknown letter');

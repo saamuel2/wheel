@@ -404,6 +404,10 @@
   .ph-c .sccode { font-size: 20px; }
   .scard .scimg { transition: transform .6s cubic-bezier(.2,.8,.2,1); } .scard:hover .scimg { transform: scale(1.04); }
   .scnew.ph-a, .scnew.ph-b, .scnew.ph-c { align-content: center; justify-items: start; }
+  .fintab { margin-bottom: 18px; } .fintab td { vertical-align: middle; } .finsel { width: 86px; padding-top: 6px; padding-bottom: 6px; } .fingr { width: 80px; text-align: right; padding: 6px 10px; }
+  .fintab tr.chg td:first-child { box-shadow: inset 3px 0 0 var(--tint); }
+  .finsum { display: flex; align-items: center; gap: 28px; } .finsum > div { display: grid; gap: 2px; } .finsum span { font-size: 12px; color: var(--sub); } .finsum b { font-size: 18px; font-variant-numeric: tabular-nums; }
+  .finsum > div { position: relative; } .finsum i.up::after { content: '▲'; color: #34c759; font-size: 10px; font-style: normal; position: absolute; right: -14px; bottom: 5px; } .finsum i.down::after { content: '▼'; color: var(--red); font-size: 10px; font-style: normal; position: absolute; right: -14px; bottom: 5px; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -524,7 +528,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd2.0 (11/23 11:20am)';
+const BUILD = 'd2.1 (11/23 2:40pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1346,10 +1350,10 @@ function overallGpa(L) {
   const H = data && data.history; if (!H || !H.length) return null;
   const norm = c => String(c || '').replace(/\s+/g, '').toLowerCase(), mine = new Set(L.courses.map(c => norm(c.code)));
   const hits = {}; H.forEach(h => { if (mine.has(norm(h.code))) hits[h.term] = (hits[h.term] || 0) + 1; });   // this term = the one listing the most of this sheet's courses
-  const top = Object.keys(hits).sort((x, y) => hits[y] - hits[x])[0], cur = new Set(top ? [top] : []), by = {}, order = [];
-  H.forEach(h => { if (cur.has(h.term) || !(h.hours > 0) || h.gp == null) return; if (!by[h.term]) { by[h.term] = { term: h.term, pts: 0, hrs: 0 }; order.push(h.term); } by[h.term].pts += h.gp * h.hours; by[h.term].hrs += h.hours; });
+  const top = Object.keys(hits).sort((x, y) => hits[y] - hits[x])[0], fin = (termNow() || {}).status === 'finished', cur = new Set(top && !fin ? [top] : []), by = {}, order = [];   // once finished, the official letters count
+  H.forEach(h => { if (cur.has(h.term) || !(h.hours > 0) || h.gp == null || h.gp === '') return; if (!by[h.term]) { by[h.term] = { term: h.term, pts: 0, hrs: 0 }; order.push(h.term); } by[h.term].pts += h.gp * h.hours; by[h.term].hrs += h.hours; });
   const terms = order.map(t => by[t]), lg = L.courses.filter(c => c.gp != null && c.credits > 0);
-  if (lg.length) terms.push({ term: [...cur][0] || 'this term', live: true, pts: lg.reduce((s, c) => s + c.gp * c.credits, 0), hrs: lg.reduce((s, c) => s + c.credits, 0) });
+  if (lg.length && !fin) terms.push({ term: [...cur][0] || 'this term', live: true, pts: lg.reduce((s, c) => s + c.gp * c.credits, 0), hrs: lg.reduce((s, c) => s + c.credits, 0) });
   const pts = terms.reduce((s, t) => s + t.pts, 0), hrs = terms.reduce((s, t) => s + t.hrs, 0);
   return hrs ? { terms, pts, hrs, gpa: pts / hrs } : null;
 }
@@ -1605,7 +1609,7 @@ const themed = c => (TMAP[THEME] && TMAP[THEME][c]) || c;
 const inkOn = c => { const n = parseInt(c.slice(1), 16), l = (.299 * (n >> 16) + .587 * (n >> 8 & 255) + .114 * (n & 255)) / 255; return l > .62 ? 'rgba(0,0,0,.72)' : '#fff'; };
 const sicon = (k, sz) => `<svg viewBox="0 0 24 24" width="${sz || 15}" height="${sz || 15}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SI[k]}</svg>`;
 const stile = k => { const x = SECS.find(y => y[0] === k), c = themed(x ? x[2] : '#A6A6B1'); return `<span class="stile" style="background:${c};color:${inkOn(c)}">${sicon(k)}</span>`; };
-let RCSEL = null;   // the semester shown in the report card (null = the open one)
+let RCSEL = null, FIN = null;   // FIN: the finish-semester page while it's open   // the semester shown in the report card (null = the open one)
 let SSEC = store.get('desk-setsec', 'appearance'), SQ = '', MOX = false, REPORT = null, NEWT = null, NEWC = null;   // NEWC: the new-course steps while they're open   // NEWT: the new-semester form while it's open
 if (SSEC === 'motion') SSEC = 'appearance'; if (SSEC === 'shortcuts') SSEC = 'about'; if (!SECS.some(x => x[0] === SSEC)) SSEC = 'appearance';
 // accent: the tint color, on top of whichever theme is on
@@ -1661,6 +1665,7 @@ function setPaneHtml() {
           ${data.historyOnly ? '' : `<button class="card scard scnew ph-${CSTYLE}" data-act="nc-open"><span class="stile">${IC.plus}</span><span class="sccode">new course</span></button>`}</div>`
       : grp('', '<div class="row"><span class="muted">not connected</span></div>');
   } else if (SSEC === 'semesters') {
+    if (FIN) return finishHtml();
     if (NEWT) { const f = (k, label, type) => `<div class="row"><span>${label}</span><input class="txt" ${type === 'date' ? 'type="date"' : 'maxlength="30" autocomplete="off" spellcheck="false"'} data-nt="${k}" data-k="nt-${k}" value="${esc(NEWT[k] || '')}"></div>`;
       const ready = NEWT.name && NEWT.start && NEWT.ldoc && !NEWT.busy;
       return `<div class="rehd2"><button class="iconbtn" data-act="nt-x" aria-label="back">${IC.l}</button></div>` +
@@ -1721,7 +1726,7 @@ function gpaSeries() {
   const out = []; let P = 0, H = 0, P2 = 0; const L = live();   // P2: the same with A+ counted as 4.00
   termList().forEach(t => {
     let pts = 0, hrs = 0, pts2 = 0;
-    if (t.id === (data && data.term) && L && !data.historyOnly) L.courses.forEach(c => { const cr = +c.credits; if (cr > 0 && c.gp != null && !c.passFail) { pts += c.gp * cr; pts2 += Math.min(c.gp, 4) * cr; hrs += cr; } });
+    if (t.id === (data && data.term) && L && !data.historyOnly && t.status !== 'finished') L.courses.forEach(c => { const cr = +c.credits; if (cr > 0 && c.gp != null && !c.passFail) { pts += c.gp * cr; pts2 += Math.min(c.gp, 4) * cr; hrs += cr; } });
     else termReport(t).rows.forEach(r => { if (r.hours > 0 && r.gp != null && r.gp !== '') { pts += r.gp * r.hours; pts2 += Math.min(r.gp, 4) * r.hours; hrs += r.hours; } });
     if (!hrs) return; P += pts; H += hrs; P2 += pts2; out.push({ hours: H, name: t.name, id: t.id, term: pts / hrs, overall: P / H, unw: P2 / H, live: t.id === (data && data.term) });
   });
@@ -1756,7 +1761,7 @@ function reportWidget() {
   if (!t) return head + '<div class="card sgrp wcard"><div class="row"><span class="muted">–</span></div></div>';
   const isOpen = t.id === on && !(data && data.historyOnly);
   const body = isOpen ? reportFromL(t, live()) : t.sheet ? sheetReportHtml(t) : reportHtml(t);
-  return head + `<div class="card sgrp wcard rcw"><div class="row rchd"><b class="rcname">${esc(t.name)}</b><span class="grow"></span>${t.id !== on && t.sheet ? `<button class="btn sm" data-act="term-open" data-id="${esc(t.id)}">open semester</button>` : ''}</div>${body}</div>`;
+  return head + `<div class="card sgrp wcard rcw"><div class="row rchd"><b class="rcname">${esc(t.name)}</b><span class="grow"></span>${t.id !== on && t.sheet ? `<button class="btn sm" data-act="term-open" data-id="${esc(t.id)}">open semester</button>` : isOpen ? `<button class="btn sm${t.status === 'finished' ? '' : ' tint'}" data-act="fin-open">${t.status === 'finished' ? 'update finals' : 'finish semester'}</button>` : ''}</div>${body}</div>`;
 }
 function semCards() {
   const T = termList(), S = gpaSeries(), on = data && data.term, sel = RCSEL || on, md2 = y => y ? md(fromYmd(y)) : '';
@@ -1765,6 +1770,37 @@ function semCards() {
       return `<button class="card semcard${t.id === sel ? ' on' : ''}" data-act="term" data-id="${esc(t.id)}"><span class="smn">${esc(t.name)}</span><span class="sms">${st}${t.start && st === 'upcoming' ? ' · ' + md2(t.start) : ''}</span>
         <span class="smg"><b>${g ? g.term.toFixed(2) : '–'}</b><i>${cr ? cr + ' hours' : ''}</i></span></button>`; }).join('')}
     ${data ? `<button class="card semcard semnew" data-act="nt-open"><span class="stile">${IC.plus}</span><span class="smn">new semester</span></button>` : ''}</div>`;
+}
+// ---------- finish semester: confirm each course's official letter, then it goes to the gpa record ----------
+const LETTERS_ALL = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
+function finOpen() {
+  const t = termNow(), L = live(); if (!t || !L) return;
+  const done = {}; termReport(t).rows.forEach(r => { if (r.letter) done[String(r.code).replace(/\s+/g, '').toLowerCase()] = r; });
+  const full = c => { const x = ((data && data.setup) || []).find(y => y.code === c.code); return (x && x.cfg && x.cfg.full) || c.name || ''; };
+  FIN = { term: t.id, rows: L.courses.filter(c => +c.credits > 0).map(c => { const d = done[c.code];
+    return { code: c.code, name: full(c), hours: +c.credits, pf: !!c.passFail, raw: c.raw, calc: c.letter || '', letter: d ? d.letter : (c.letter || ''), grade: d && d.grade != null && d.grade !== '' ? d.grade : c.raw != null ? +Number(c.raw).toFixed(2) : '' }; }) };
+}
+function finGpa(rows) { let p = 0, h = 0; rows.forEach(r => { const g = GP_OF[r.letter]; if (g != null && r.hours > 0) { p += g * r.hours; h += r.hours; } }); return { p, h, gpa: h ? p / h : null }; }
+const GP_OF = Object.fromEntries(LETTER_GP);   // letter → grade points
+function finishHtml() {
+  const t = termList().find(x => x.id === FIN.term) || {}, calc = finGpa(FIN.rows.map(r => Object.assign({}, r, { letter: r.calc }))), off = finGpa(FIN.rows);
+  let P = 0, H = 0; termList().forEach(x => { if (x.id === FIN.term) return; termReport(x).rows.forEach(r => { if (r.hours > 0 && r.gp != null && r.gp !== '') { P += r.gp * r.hours; H += r.hours; } }); });
+  const ov = (a) => H + a.h ? ((P + a.p) / (H + a.h)).toFixed(3) : '–', f3 = v => v == null ? '–' : v.toFixed(3), ch = (a, b) => a === b ? 'same' : (+b > +a ? 'up' : 'down');
+  return `<div class="rehd2"><button class="iconbtn" data-act="fin-x" aria-label="back">${IC.l}</button><span class="muted" style="font-size:15px">${esc(t.name || '')}${t.ldoc ? ' · last day of classes ' + esc(md(fromYmd(t.ldoc))) : ''}</span></div>
+    <div class="card stab fintab"><table><thead><tr><th>code</th><th>course</th><th class="l hrs">credit hours</th><th class="n">calculated</th><th class="l">official</th><th class="n">grade</th></tr></thead><tbody>${FIN.rows.map((r, i) => `<tr class="${r.letter !== r.calc ? 'chg' : ''}">
+      <td><b style="color:${colorFor(r.code)}">${esc(spaceCode(r.code))}</b></td><td>${esc(r.name)}</td><td class="l hrs"><span class="hrn">${r.hours}</span></td>
+      <td class="n muted">${r.raw != null ? f2(r.raw) : '–'} · ${esc(r.calc || '–')}</td>
+      <td class="l"><select class="txt finsel" data-fin="${i}.letter" aria-label="official letter for ${esc(r.code)}">${(r.pf ? ['S', 'U'] : LETTERS_ALL).map(L => `<option${L === r.letter ? ' selected' : ''}>${L}</option>`).join('')}</select></td>
+      <td class="n"><input class="txt fingr" data-fin="${i}.grade" value="${esc(r.grade)}" inputmode="decimal" aria-label="grade for ${esc(r.code)}"></td></tr>`).join('')}</tbody></table></div>
+    <div class="finsum"><div><span>term gpa</span><b>${f3(calc.gpa)} → ${f3(off.gpa)}</b><i class="${ch(f3(calc.gpa), f3(off.gpa))}"></i></div><div><span>overall gpa</span><b>${ov(calc)} → ${ov(off)}</b><i class="${ch(ov(calc), ov(off))}"></i></div><div><span>hours</span><b>${off.h + FIN.rows.filter(r => r.pf).reduce((a, r) => a + r.hours, 0)}</b></div>
+      <span class="grow"></span>${FIN.err ? `<span class="reerr">${esc(FIN.err)}</span>` : ''}<button class="btn tint" data-act="fin-go"${FIN.busy ? ' disabled' : ''}>${FIN.busy ? 'saving…' : t.status === 'finished' ? 'save finals' : 'finish ' + esc(t.name || 'semester')}</button></div>`;
+}
+function finGo() {
+  if (!FIN || FIN.busy) return; const rows = FIN.rows.map(r => ({ code: r.code, name: r.name, hours: r.hours, grade: r.grade, letter: r.letter }));
+  FIN.busy = true; FIN.err = ''; renderAll();
+  const done = j => { const t = termList().find(x => x.id === FIN.term); if (j && j.history) data.history = j.history; if (j && j.terms) data.terms = j.terms; else if (t) t.status = 'finished'; toast((t ? t.name : 'semester') + ' finished'); FIN = null; LIVE = null; renderAll(); };
+  if (DEMO) { const t = termList().find(x => x.id === FIN.term), key = (t.gpaTerm || t.id).toUpperCase(); data.history = (data.history || []).filter(h => String(h.term).toUpperCase() !== key).concat(rows.map(r => ({ code: r.code, name: r.name, term: key, hours: r.hours, grade: r.grade, letter: r.letter, gp: GP_OF[r.letter] ?? '' }))); return done(null); }
+  post({ action: 'term_finish', term: FIN.term, rows }).then(done).catch(e => { if (FIN) { FIN.busy = false; FIN.err = String(e.message || e); } renderAll(); });
 }
 function semTable() {
   const T = termList().slice().reverse(), on = data && data.term, L = live(), rows = [];
@@ -1854,7 +1890,7 @@ function addCourse() {
     .catch(e => { if (NEWC) { NEWC.busy = false; NEWC.err = String(e.message || e); } renderAll(); });
 }
 function crumb(parts) { return parts.map((x, i) => i ? `<span class="crs">›</span><span class="crl">${x}</span>` : `<span class="cr0">${x}</span>`).join(''); }
-function setCrumbs() { const n = SECS.find(x => x[0] === SSEC); return crumb(['settings', n ? n[1] : ''].concat(NEWC && SSEC === 'courses' ? ['new course'] : NEWT && SSEC === 'semesters' ? ['new semester'] : [])); }
+function setCrumbs() { const n = SECS.find(x => x[0] === SSEC); return crumb(['settings', n ? n[1] : ''].concat(NEWC && SSEC === 'courses' ? ['new course'] : NEWT && SSEC === 'semesters' ? ['new semester'] : FIN && SSEC === 'semesters' ? ['finish ' + ((termList().find(x => x.id === FIN.term) || {}).name || '')] : [])); }
 function renderSettings(v) {
   const ae = document.activeElement; if (ae && ae.closest && ae.closest('#v-settings') && ae.tagName === 'INPUT' && !/checkbox|date|color/.test(ae.type) && v.innerHTML) return;
   v.innerHTML = `<div class="head"><h1 class="crumbs">${setCrumbs()}</h1></div><div class="sx"><div class="sxside">${setSideHtml()}</div><div class="sxpane set" id="sxpane">${setPaneHtml()}</div></div>`;
@@ -2007,7 +2043,7 @@ document.addEventListener('click', e => {
     case 'pv-go': return pasteAdd();
     case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; openPop('asg', t); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
-    case 'setsec': REPORT = null; NEWT = null; NEWC = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
+    case 'setsec': REPORT = null; NEWT = null; NEWC = null; FIN = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
     case 'term': { const tm = termList().find(x => x.id === t.dataset.id); if (!tm) return; RCSEL = tm.id === (data && data.term) ? null : tm.id; loadReport(tm); return renderAll(); }
     case 'term-open': REPORT = null; RCSEL = null; return switchTerm(t.dataset.id);
@@ -2016,6 +2052,9 @@ document.addEventListener('click', e => {
     case 'nt-open': SSEC = 'semesters'; NEWT = { name: guessTermName(), start: '', ldoc: '', exams: '' }; return renderAll();
     case 'nt-x': NEWT = null; return renderAll();
     case 'nt-go': return newTerm();
+    case 'fin-open': finOpen(); renderAll(); $('main').scrollTop = 0; return;
+    case 'fin-x': FIN = null; return renderAll();
+    case 'fin-go': return finGo();
     case 'nc-open': NEWC = { step: 1, code: '', name: '', full: '', credits: '3', color: nextColor(), tpl: '', head: {}, cats: [] }; renderAll(); setTimeout(() => { const i = document.querySelector('[data-nc=code]'); if (i) i.focus(); }, 30); return;
     case 'nc-x': NEWC = null; return renderAll();
     case 'nc-back': NEWC.step--; NEWC.err = ''; return renderAll();
@@ -2094,6 +2133,7 @@ document.addEventListener('input', e => {
   if (t.dataset.nc && NEWC) { let v = t.value; if (t.dataset.nc === 'code') { v = v.toLowerCase().replace(/\s+/g, ''); if (v !== t.value) t.value = v; } NEWC[t.dataset.nc] = v; NEWC.err = ''; return ncRefresh(); }
   if (t.dataset.ncc && NEWC) { const [i, k] = t.dataset.ncc.split('.'); NEWC.cats[+i][k] = k === 'type' ? t.value.toUpperCase() : t.value; return ncRefresh(); }
   if (t.dataset.nh && NEWC) { NEWC.head[t.dataset.nh] = t.value; return ncRefresh(); }
+  if (t.dataset.fin && FIN) { const [i, k] = t.dataset.fin.split('.'); FIN.rows[+i][k] = t.value; return; }
   if (t.dataset.nt && NEWT) { NEWT[t.dataset.nt] = t.value; NEWT.err = ''; const g = $('nt-go'); if (g) g.disabled = !(NEWT.name.trim() && NEWT.start && NEWT.ldoc); return; }
   if (t.id === 'set-q' && VIEW === 'course') { SQ = t.value; go('settings', false); const q = $('set-q'); if (q) { q.focus(); q.setSelectionRange(SQ.length, SQ.length); } return; }
   if (t.id === 'set-q') { SQ = t.value; const p = $('sxpane'); if (p) p.innerHTML = setPaneHtml(); document.querySelectorAll('.sxnav button').forEach(b => b.classList.toggle('on', !SQ.trim() && b.dataset.s === SSEC)); return; }
@@ -2122,6 +2162,7 @@ document.addEventListener('change', e => {
   }
   if (t.dataset.draft && t.dataset.df) { const d = DRAFTS.find(x => x.id === +t.dataset.draft); if (d) d.f[t.dataset.df] = t.value; if (t.dataset.df === 't') { const s = t.parentNode.querySelector('.dtxt'); if (s) s.value = t.value ? dayLabel(fromYmd(t.value)) : ''; } if (t.dataset.df === 'c') t.style.setProperty('--c', colorFor(t.value)); return; }
   if (t.dataset.rc != null) { const tm = termList().find(x => x.id === t.value); if (tm) { RCSEL = tm.id === (data && data.term) ? null : tm.id; loadReport(tm); renderAll(); } return; }
+  if (t.dataset.fin && FIN) { const [i, k] = t.dataset.fin.split('.'); FIN.rows[+i][k] = t.value; return renderAll(); }
   if (t.dataset.pv === 'cls' && PASTE) { PASTE.cls = t.value; return pasteRefresh(false); }
   if (t.dataset.pvr && PASTE && t.type === 'checkbox') { const i = +t.dataset.pvr.split('.')[0]; PASTE.rows[i].on = t.checked; t.closest('tr').classList.toggle('off', !t.checked); return pasteRefresh(false); }
   if (t.dataset.ae) { const a = asgCur(); if (!a) return; const f = t.dataset.ae;
