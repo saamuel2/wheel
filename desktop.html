@@ -347,8 +347,8 @@
   .tcross { stroke: var(--sub); stroke-width: 1; stroke-dasharray: 2 3; } .thit { fill: transparent; }
   .ttip { position: absolute; top: 0; pointer-events: none; background: var(--card2); border-radius: 8px; padding: 8px 10px; font-size: 12px; display: grid; gap: 2px; box-shadow: 0 4px 14px rgba(0,0,0,.2); white-space: nowrap; } 
   .ttip span { color: var(--sub); display: flex; gap: 12px; justify-content: space-between; } .ttip em { font-style: normal; color: var(--text); font-weight: 600; }
-  .rcats { padding: 0 0 6px 76px; } .rcats .row { min-height: 30px !important; font-size: 13px; border-top: 0 !important; padding: 2px 0; } .rcats .rlet { font-weight: 600; min-width: 48px; }
-  .rcode { min-width: 72px; } .rlet { min-width: 28px; text-align: right; } .rehd2 .iconbtn { flex: none; }
+  .rcats { padding: 0 0 6px 76px; } .rcats .row { min-height: 30px !important; font-size: 13px; border-top: 0 !important; padding: 2px 0; } .rcats .rlet { font-weight: 600; min-width: 48px; text-align: right; }
+  .rcode { min-width: 72px; } .rlet { min-width: 28px; text-align: left; } .rehd2 .iconbtn { flex: none; }
   .scnew { border: 0; align-content: start; color: var(--sub); box-shadow: inset 0 0 0 1.5px var(--sep) !important; background: transparent; } .scnew::before { display: none; } .scnew .stile { background: var(--fill); color: var(--sub); } .scnew .sccode { color: var(--sub); }
   .scnew:hover { box-shadow: inset 0 0 0 1.5px var(--tint) !important; color: var(--text); } .ncstep { margin-left: auto; font-size: 13px; } .ncnote { margin: -14px 0 18px 4px; font-size: 13px; }
   .ncfoot { display: flex; align-items: center; gap: 8px; } .ncfoot .grow, .ncfoot .reerr { flex: 1; } .ncfoot .btn:disabled { opacity: .45; cursor: default; }
@@ -368,7 +368,7 @@
   html[data-theme=elegant] .smg b, html[data-theme=moody] .smg b { font-family: var(--serif); font-weight: 500; }
   .semnew { background: transparent; box-shadow: inset 0 0 0 1.5px var(--sep) !important; color: var(--sub); align-content: start; } .semnew .stile { background: var(--fill); color: var(--sub); margin-bottom: 8px; } .semnew:hover { box-shadow: inset 0 0 0 1.5px var(--tint) !important; color: var(--text); }
   .stab { padding: 0; overflow: hidden; } .stab table { width: 100%; border-collapse: collapse; font-size: 13px; } .stab th { text-align: left; font-size: 12px; font-weight: 600; color: var(--sub); padding: 10px 16px; background: var(--card2); }
-  .stab td { padding: 10px 16px; border-top: .5px solid var(--sep); } .stab .n { text-align: right; font-variant-numeric: tabular-nums; } .stab tr:hover td { background: var(--fill); }
+  .stab td { padding: 10px 16px; border-top: .5px solid var(--sep); } .stab .n { text-align: right; font-variant-numeric: tabular-nums; } .stab .l { text-align: left; padding-left: 28px; width: 72px; } .stab tr:hover td { background: var(--fill); }
   .sxme .av { overflow: hidden; } .sxme .av img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tleg i.dash { background: linear-gradient(90deg, var(--c) 0 55%, transparent 55%) !important; background-size: 5px 100% !important; border-radius: 1px; height: 3px; width: 14px; vertical-align: 2px; } .tleg i:not(.dash) { background: var(--c); }
   .tdot { transform-box: fill-box; transform-origin: center; transition: transform .45s cubic-bezier(.34,1.9,.6,1); } .tdot.on { transform: scale(1.55); }
@@ -523,7 +523,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.79 (11/23 1:40pm)';
+const BUILD = 'd1.80 (11/23 1:45pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1755,7 +1755,7 @@ function reportWidget() {
   if (!t) return head + '<div class="card sgrp wcard"><div class="row"><span class="muted">–</span></div></div>';
   const isOpen = t.id === on && !(data && data.historyOnly);
   const body = isOpen ? reportFromL(t, live()) : t.sheet ? sheetReportHtml(t) : reportHtml(t);
-  return head + `<div class="card sgrp wcard rcw"><div class="row rchd"><b class="rcname">${esc(t.name)}</b><span class="grow"></span>${t.id !== on && t.sheet ? `<button class="btn sm" data-act="term-open" data-id="${esc(t.id)}">open semester</button>` : t.id === on ? '<span class="muted">open now</span>' : ''}</div>${body}</div>`;
+  return head + `<div class="card sgrp wcard rcw"><div class="row rchd"><b class="rcname">${esc(t.name)}</b><span class="grow"></span>${t.id !== on && t.sheet ? `<button class="btn sm" data-act="term-open" data-id="${esc(t.id)}">open semester</button>` : ''}</div>${body}</div>`;
 }
 function semCards() {
   const T = termList(), S = gpaSeries(), on = data && data.term, sel = RCSEL || on, md2 = y => y ? md(fromYmd(y)) : '';
@@ -1774,7 +1774,7 @@ function semTable() {
   });
   if (!rows.length) return '';
   const n = v => v == null || v === '' ? '–' : esc(String(v));
-  return `<div class="sgl">courses</div><div class="card stab"><table><thead><tr><th>semester</th><th>code</th><th>course</th><th class="n">credit hours</th><th class="n">grade</th><th class="n">letter</th></tr></thead><tbody>${rows.map(r => `<tr><td class="muted">${esc(r[0])}</td><td><b style="color:${colorFor(r[1])}">${esc(spaceCode(r[1]))}</b></td><td>${esc(r[2])}</td><td class="n">${n(r[3] > 0 ? r[3] : '')}</td><td class="n">${r[4] != null && r[4] !== '' && !isNaN(r[4]) ? f2(+r[4]) : '–'}</td><td class="n"><b>${n(r[5])}</b></td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="sgl">courses</div><div class="card stab"><table><thead><tr><th>semester</th><th>code</th><th>course</th><th class="n">credit hours</th><th class="n">grade</th><th class="l">letter</th></tr></thead><tbody>${rows.map(r => `<tr><td class="muted">${esc(r[0])}</td><td><b style="color:${colorFor(r[1])}">${esc(spaceCode(r[1]))}</b></td><td>${esc(r[2])}</td><td class="n">${n(r[3] > 0 ? r[3] : '')}</td><td class="n">${r[4] != null && r[4] !== '' && !isNaN(r[4]) ? f2(+r[4]) : '–'}</td><td class="l"><b>${n(r[5])}</b></td></tr>`).join('')}</tbody></table></div>`;
 }
 document.addEventListener('mouseover', e => {
   const wrap = e.target.closest && e.target.closest('.twrap'); if (!wrap) return;
