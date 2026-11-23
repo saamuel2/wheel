@@ -342,6 +342,12 @@
     background: color-mix(in srgb, var(--tint) 12%, var(--bg)); border-bottom: .5px solid var(--sep); } .termbar b { color: var(--text); } .termbar .btn { margin-left: auto; }
   .rcard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; } .rstat { padding: 14px 16px; display: grid; gap: 4px; } .rstat span { font-size: 12px; color: var(--sub); font-weight: 600; } .rstat b { font-size: 26px; font-weight: 700; }
   html[data-theme=elegant] .rstat b, html[data-theme=moody] .rstat b { font-family: var(--serif); font-weight: 500; }
+  .tchart { padding: 12px 16px 10px; } .tleg { display: flex; gap: 16px; font-size: 12px; color: var(--sub); margin-bottom: 4px; } .tleg i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+  .twrap { position: relative; } .tsvg { width: 100%; height: auto; display: block; overflow: visible; } .tgrid { stroke: var(--sep); stroke-width: .5; } .tax { font-size: 11px; fill: var(--sub); } .tval { font-size: 12px; font-weight: 600; fill: var(--text); }
+  .tcross { stroke: var(--sub); stroke-width: 1; stroke-dasharray: 2 3; } .thit { fill: transparent; }
+  .ttip { position: absolute; top: 0; pointer-events: none; background: var(--card2); border-radius: 8px; padding: 8px 10px; font-size: 12px; display: grid; gap: 2px; box-shadow: 0 4px 14px rgba(0,0,0,.2); white-space: nowrap; } .ttip[hidden] { display: none; }
+  .ttip span { color: var(--sub); display: flex; gap: 12px; justify-content: space-between; } .ttip em { font-style: normal; color: var(--text); font-weight: 600; }
+  .rcats { padding: 0 0 6px 76px; } .rcats .row { min-height: 30px !important; font-size: 13px; border-top: 0 !important; padding: 2px 0; } .rcats .rlet { font-weight: 600; min-width: 48px; }
   .rcode { min-width: 72px; } .rlet { min-width: 28px; text-align: right; } .rehd2 .iconbtn { flex: none; }
   .scnew { border: 0; align-content: start; color: var(--sub); box-shadow: inset 0 0 0 1.5px var(--sep) !important; background: transparent; } .scnew::before { display: none; } .scnew .stile { background: var(--fill); color: var(--sub); } .scnew .sccode { color: var(--sub); }
   .scnew:hover { box-shadow: inset 0 0 0 1.5px var(--tint) !important; color: var(--text); } .ncstep { margin-left: auto; font-size: 13px; } .ncnote { margin: -14px 0 18px 4px; font-size: 13px; }
@@ -468,7 +474,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd1.71 (11/22 6:50pm)';
+const BUILD = 'd1.72 (11/23 10:30am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1175,7 +1181,7 @@ function parseDateText(s) {
   return ymd(dt.getTime());
 }
 const gsEmbed = () => sheetUrl() + '?rm=minimal#gid=' + (termSheetId() === FALL26_ID ? '1498365095' : '772812577') + '&range=A1';   // Assignments tab (new terms keep the template's tab id)
-const sheetHead = () => `<div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><button class="btn${SF.gs ? ' on' : ''}" data-act="gs">google sheet</button><a class="btn ic" href="${sheetUrl()}" target="_blank" rel="noopener" aria-label="open in google sheets" title="open in google sheets">${IC.ext.replace(/width="11" height="11"/, 'width="15" height="15"')}</a><button class="btn" data-act="paste">paste schedule</button><button class="btn tint" data-act="add">add assignment</button></div></div>`;
+const sheetHead = () => `<div class="head"><h1>sheet</h1><div class="tools"><button class="btn${SF.out ? ' on' : ''}" data-act="outof">out of</button><button class="btn" data-act="paste">paste</button><button class="btn${SF.gs ? ' on' : ''}" data-act="gs">google sheet</button><a class="btn ic" href="${sheetUrl()}" target="_blank" rel="noopener" aria-label="open in google sheets" title="open in google sheets">${IC.ext.replace(/width="11" height="11"/, 'width="15" height="15"')}</a><button class="btn tint" data-act="add">add assignment</button></div></div>`;
 // embed view: the page itself stops scrolling and the sheet fills everything below the header
 // the sheet frame lives outside the page views and loads once, in the background, so showing it is instant
 function gsHost() {
@@ -1606,15 +1612,15 @@ function setPaneHtml() {
       : grp('', '<div class="row"><span class="muted">not connected</span></div>');
   } else if (SSEC === 'semesters') {
     const T = termList(), on = data && data.term, md2 = y => y ? md(fromYmd(y)) : '';
-    if (REPORT) { const t = T.find(x => x.id === REPORT); if (t) return `<div class="rehd2"><button class="iconbtn" data-act="report-x" aria-label="back">${IC.l}</button><h2 class="sxh">${esc(t.name)}</h2><span class="muted" style="font-size:15px">report card</span></div>` + reportHtml(t); }
+    if (REPORT) { const t = T.find(x => x.id === REPORT); if (t) return `<div class="rehd2"><button class="iconbtn" data-act="report-x" aria-label="back">${IC.l}</button><h2 class="sxh">${esc(t.name)}</h2><span class="muted" style="font-size:15px">report card</span>${t.sheet ? `<div class="tools"><button class="btn" data-act="term-open" data-id="${esc(t.id)}">open semester</button></div>` : ''}</div>` + (t.sheet ? sheetReportHtml(t) : reportHtml(t)); }
     if (NEWT) { const f = (k, label, type) => `<div class="row"><span>${label}</span><input class="txt" ${type === 'date' ? 'type="date"' : 'maxlength="30" autocomplete="off" spellcheck="false"'} data-nt="${k}" data-k="nt-${k}" value="${esc(NEWT[k] || '')}"></div>`;
       const ready = NEWT.name && NEWT.start && NEWT.ldoc && !NEWT.busy;
       return `<div class="rehd2"><button class="iconbtn" data-act="nt-x" aria-label="back">${IC.l}</button><h2 class="sxh">new semester</h2></div>` +
         grp('', f('name', 'name') + f('start', 'first day', 'date') + f('ldoc', 'last day of classes', 'date') + f('exams', 'last exam day', 'date')) +
         `<div class="sxact" style="margin-top:0">${NEWT.err ? `<span class="reerr" style="margin-right:auto">${esc(NEWT.err)}</span>` : ''}<button class="btn tint" data-act="nt-go" id="nt-go"${ready ? '' : ' disabled'}>${NEWT.busy ? 'creating…' : 'create'}</button></div>`; }
-    h = T.length ? grp('', T.slice().reverse().map(t => { const sub = t.status === 'current' ? 'current' : t.status === 'finished' ? 'finished' : t.start ? md2(t.start) + (t.ldoc ? ' – ' + md2(t.ldoc) : '') : '';
+    h = (gpaTrendHtml() || '') + (T.length ? grp('', T.slice().reverse().map(t => { const sub = t.status === 'current' ? 'current' : t.status === 'finished' ? 'finished' : t.start ? md2(t.start) + (t.ldoc ? ' – ' + md2(t.ldoc) : '') : '';
         return `<button class="row prow" data-act="term" data-id="${esc(t.id)}"><span class="grow">${esc(t.name)}</span><span class="muted">${esc(sub)}</span><span class="tick">${t.id === on ? TICK : ''}</span>${!t.sheet ? `<span class="chev">${IC.r}</span>` : ''}</button>`; }).join(''))
-      : grp('', '<div class="row"><span class="muted">–</span></div>');
+      : grp('', '<div class="row"><span class="muted">–</span></div>'));
     h += `<div class="sxact" style="margin-top:0"><button class="btn tint" data-act="nt-open">${IC.plus} new semester</button></div>`;
   } else if (SSEC === 'feedback') {
     const ns = notesList();
@@ -1639,6 +1645,66 @@ function setSideHtml() {
       <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${cur(k) ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>` +
         (k === 'courses' && (inCourse || SSEC === 'courses') && !SQ.trim() ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><span class="stile" style="background:${colorFor(x.code)};color:${inkOn(colorFor(x.code))}">${sicon('courses')}</span><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
 }
+// ---------- looking back ----------
+const termIdx = t => termList().indexOf(t);
+function isPastTerm(t) { const c = termCur(); if (!t.sheet) return true; if (t.status === 'finished') return true; return !!(c && t.start && c.start && t.start < c.start); }
+const REPDATA = {}, RCOPEN = {};
+function loadReport(t) {
+  if (!t.sheet || REPDATA[t.id]) return;
+  if (DEMO) { REPDATA[t.id] = Object.assign(demoData(), { term: t.id }); return; }
+  REPDATA[t.id] = { loading: true };
+  fetch(API + '?token=' + encodeURIComponent(KEY) + '&term=' + encodeURIComponent(t.id) + '&_=' + Date.now(), { cache: 'no-store' }).then(r => r.json())
+    .then(d => { REPDATA[t.id] = d.error ? { error: d.error } : d; if (REPORT === t.id) renderAll(); })
+    .catch(() => { REPDATA[t.id] = { error: 'couldn’t reach the sheet' }; if (REPORT === t.id) renderAll(); });
+}
+// grades for another semester's data, worked out the same way as the open one
+function liveFor(d) { const keepD = data, keepL = LIVE, keepT = TEST; data = d; LIVE = null; TEST = {}; let L = null; try { L = live(); } catch (e) { L = null; } data = keepD; LIVE = keepL; TEST = keepT; return L; }
+function sheetReportHtml(t) {
+  const d = REPDATA[t.id]; if (!d || d.loading) return '<div class="muted sxnone">loading…</div>'; if (d.error) return `<div class="muted sxnone">${esc(d.error)}</div>`;
+  const L = liveFor(d); if (!L) return '<div class="muted sxnone">–</div>';
+  const off = {}; termReport(t).rows.forEach(r => { if (r.letter) off[String(r.code).replace(/\s+/g, '').toLowerCase()] = r.letter; });   // official letters, once a term is finished
+  const C = L.courses, cr = C.reduce((a, c) => a + (+c.credits > 0 ? +c.credits : 0), 0);
+  return `<div class="rcard"><div class="card rstat"><span>term gpa</span><b>${L.gpa != null ? Number(L.gpa).toFixed(3) : '–'}</b></div><div class="card rstat"><span>credits</span><b>${cr || '–'}</b></div><div class="card rstat"><span>courses</span><b>${C.length || '–'}</b></div></div>` +
+    `<div class="card sgrp">${C.map(c => { const k = t.id + ':' + c.code, o = RCOPEN[k], col = colorFor(c.code), let_ = off[c.code] || c.letter || '–';
+      return `<button class="row prow" data-act="rc-x" data-k="${esc(k)}"><b class="rcode" style="color:${col}">${esc(spaceCode(c.code))}</b><span class="grow">${esc(c.name || '')}</span><span class="muted">${c.raw != null ? f2(c.raw) : '–'}</span><b class="rlet">${esc(let_)}</b><span class="chev${o ? ' dn' : ''}">${IC.r}</span></button>` +
+        (o ? `<div class="rcats">${(c.cats || []).filter(x => x.kind === 'normal' || x.pct != null).map(x => `<div class="row"><span class="grow">${esc(x.name)}</span><span class="muted">${x.share ? Math.round(x.share * 100) + '%' : ''}</span><span class="muted">${x.graded != null ? x.graded + (x.poss ? ' of ' + x.poss : '') : ''}</span><b class="rlet">${x.pct != null ? f2(x.pct) : '–'}</b></div>`).join('') || '<div class="row"><span class="muted">–</span></div>'}</div>` : ''); }).join('')}</div>`;
+}
+// term gpa and overall gpa, oldest term first: finished terms from GPA history, the open term live
+function gpaSeries() {
+  const out = []; let P = 0, H = 0; const L = live();
+  termList().forEach(t => {
+    let pts = 0, hrs = 0;
+    if (t.id === (data && data.term) && L && !data.historyOnly) L.courses.forEach(c => { const cr = +c.credits; if (cr > 0 && c.gp != null && !c.passFail) { pts += c.gp * cr; hrs += cr; } });
+    else termReport(t).rows.forEach(r => { if (r.hours > 0 && r.gp != null && r.gp !== '') { pts += r.gp * r.hours; hrs += r.hours; } });
+    if (!hrs) return; P += pts; H += hrs; out.push({ name: t.name, term: pts / hrs, overall: P / H, live: t.id === (data && data.term) });
+  });
+  return out;
+}
+function gpaTrendHtml() {
+  const S = gpaSeries(); if (S.length < 2) return '';
+  const dark = !/light|elegant/.test(THEME), cT = dark ? '#3A92E0' : '#2F8FD8', cO = dark ? '#D47040' : '#D9714A';
+  const W = 640, Hh = 190, l = 36, r = 76, top = 16, bot = 30, vals = S.flatMap(x => [x.term, x.overall]);
+  const lo = Math.min(3, Math.floor((Math.min(...vals) - .1) * 4) / 4), hi = 4.333, X = i => l + (S.length === 1 ? 0 : i * (W - l - r) / (S.length - 1)), Y = v => top + (hi - v) / (hi - lo) * (Hh - top - bot);
+  const grid = [];
+  for (let g = Math.ceil(lo * 2) / 2; g <= 4.0001; g += .5) grid.push(`<line x1="${l}" x2="${W - r}" y1="${Y(g)}" y2="${Y(g)}" class="tgrid"/><text x="${l - 8}" y="${Y(g) + 4}" class="tax" text-anchor="end">${g.toFixed(1)}</text>`);
+  const line = (k, c) => `<polyline fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="${S.map((x, i) => X(i) + ',' + Y(x[k])).join(' ')}"/>` + S.map((x, i) => `<circle cx="${X(i)}" cy="${Y(x[k])}" r="4.5" fill="${c}" stroke="var(--card)" stroke-width="2"/>`).join('');
+  const last = S[S.length - 1], ly = [Y(last.term), Y(last.overall)]; if (Math.abs(ly[0] - ly[1]) < 14) { const m = (ly[0] + ly[1]) / 2, up = last.term >= last.overall; ly[0] = m + (up ? -8 : 8); ly[1] = m + (up ? 8 : -8); }
+  const hits = S.map((x, i) => `<rect class="thit" x="${X(i) - (W - l - r) / Math.max(1, S.length - 1) / 2}" y="${top}" width="${(W - l - r) / Math.max(1, S.length - 1)}" height="${Hh - top - bot}" data-tt="${esc(x.name + (x.live ? ' (so far)' : '') + '|' + x.term.toFixed(3) + '|' + x.overall.toFixed(3))}" data-x="${X(i)}"/>`).join('');
+  return `<div class="sgl">gpa</div><div class="card sgrp tchart"><div class="tleg"><span><i style="background:${cT}"></i>term gpa</span><span><i style="background:${cO}"></i>overall gpa</span></div>
+    <div class="twrap"><svg viewBox="0 0 ${W} ${Hh}" class="tsvg" role="img" aria-label="term and overall gpa by semester">${grid.join('')}
+      ${S.map((x, i) => `<text x="${X(i)}" y="${Hh - 8}" class="tax" text-anchor="middle">${esc(x.name)}</text>`).join('')}
+      <line class="tcross" x1="0" x2="0" y1="${top}" y2="${Hh - bot}" visibility="hidden"/>${line('overall', cO)}${line('term', cT)}
+      <text x="${W - r + 10}" y="${ly[0] + 4}" class="tval">${last.term.toFixed(2)}</text><text x="${W - r + 10}" y="${ly[1] + 4}" class="tval">${last.overall.toFixed(2)}</text>${hits}</svg>
+      <div class="ttip" hidden></div></div></div>`;
+}
+document.addEventListener('mouseover', e => {
+  const h = e.target.closest && e.target.closest('.thit'), wrap = e.target.closest && e.target.closest('.twrap'); if (!wrap) return;
+  const tip = wrap.querySelector('.ttip'), cross = wrap.querySelector('.tcross'); if (!h) { tip.hidden = true; cross.setAttribute('visibility', 'hidden'); return; }
+  const [n, a, b] = h.dataset.tt.split('|'), svg = wrap.querySelector('svg'), k = svg.getBoundingClientRect().width / svg.viewBox.baseVal.width, x = +h.dataset.x;
+  cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+  tip.innerHTML = `<b>${n}</b><span>term gpa <em>${a}</em></span><span>overall gpa <em>${b}</em></span>`; tip.hidden = false;
+  tip.style.left = Math.min(Math.max(x * k - tip.offsetWidth / 2, 0), svg.getBoundingClientRect().width - tip.offsetWidth) + 'px';
+});
 function reportHtml(t) {
   const R = termReport(t);
   return `<div class="rcard"><div class="card rstat"><span>term gpa</span><b>${R.gpa != null ? R.gpa.toFixed(3) : '–'}</b></div><div class="card rstat"><span>credits</span><b>${R.total || '–'}</b></div><div class="card rstat"><span>courses</span><b>${R.rows.length || '–'}</b></div></div>` +
@@ -1809,7 +1875,7 @@ function asgBody() {
 }
 function renderPop() {
   const box = $('pop'); if (!box || !POP) return; box.classList.toggle('asg', POP === 'asg'); box.classList.toggle('paste', POP === 'paste'); const body = popBody(POP);
-  box.innerHTML = `<div class="pophd"><span>${(POP === 'asg' ? (a => a ? `<b style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}</b>` : '')(asgCur()) : ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable', new: 'what’s new', paste: 'paste a schedule' })[POP])}</span>${POP === 'asg' ? '' : '<button class="link" data-act="popdone">done</button>'}</div><div class="set popset">${body}</div>`;
+  box.innerHTML = `<div class="pophd"><span>${(POP === 'asg' ? (a => a ? `<b style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}</b>` : '')(asgCur()) : ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', var: 'variable', new: 'what’s new', paste: 'paste' })[POP])}</span>${POP === 'asg' ? '' : '<button class="link" data-act="popdone">done</button>'}</div><div class="set popset">${body}</div>`;
 }
 // ===================== events =====================
 function startAdd(after) {
@@ -1845,7 +1911,9 @@ document.addEventListener('click', e => {
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
     case 'setsec': REPORT = null; NEWT = null; NEWC = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
-    case 'term': { const tm = termList().find(x => x.id === t.dataset.id); if (!tm) return; if (!tm.sheet) { REPORT = tm.id; return renderAll(); } if (tm.id !== (data && data.term)) switchTerm(tm.id); return; }
+    case 'term': { const tm = termList().find(x => x.id === t.dataset.id); if (!tm) return; if (isPastTerm(tm) && tm.id !== (data && data.term)) { REPORT = tm.id; loadReport(tm); return renderAll(); } if (tm.id !== (data && data.term)) switchTerm(tm.id); return; }
+    case 'term-open': REPORT = null; return switchTerm(t.dataset.id);
+    case 'rc-x': { const k = t.dataset.k; RCOPEN[k] = !RCOPEN[k]; return renderAll(); }
     case 'report-x': REPORT = null; return renderAll();
     case 'nt-open': NEWT = { name: guessTermName(), start: '', ldoc: '', exams: '' }; return renderAll();
     case 'nt-x': NEWT = null; return renderAll();

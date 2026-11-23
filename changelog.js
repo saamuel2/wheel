@@ -1,5 +1,6 @@
 // what's new: newest first, one short line each (shown in settings on the phone and desktop)
 window.CHANGES = [
+  ['11/23', ['gpa trend chart in settings → semesters', 'past semesters open as a report card first', 'sheet buttons: out of, paste, google sheet']],
   ['11/22', ['desktop: add a course in four steps from settings → courses', 'desktop: paste a schedule on the sheet page', 'feedback notes shared across semesters', 'desktop: start a new semester from settings → semesters', 'semesters: switch terms and open past report cards in settings', 'apps refresh on their own when you open them', 'dashboard: click an assignment to edit, drag it to move days', 'desktop settings redesigned, with search and shortcuts', 'pick any accent color', 'course codes look the same everywhere', 'keyboard shortcuts everywhere on desktop', 'motion effects, switchable in settings', 'class grades preview as you type on the sheet']],
   ['11/20', ['phone: log an absence in one tap']],
   ['11/18', ['grades take formulas', 'editing a grade shows every decimal']],

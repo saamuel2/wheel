@@ -805,7 +805,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm2.71 (11/22 6:50pm)';
+    const BUILD = 'm2.72 (11/23 10:30am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
     const termQ = () => (appData && appData.term) || TERM;
@@ -840,6 +840,15 @@
     function termPill() { const el = $('termpill'); if (!el) return; const t = termNow(), c = termCur(), on = !!(t && c && t.id !== c.id); el.hidden = !on; if (on) el.innerHTML = `viewing <b>${esc(t.name)}</b><button id="term-back">back</button>`; }
     function switchTerm(id) { const c = termCur(); TERM = c && c.id === id ? '' : id; try { localStorage.setItem('wheel-term', TERM); } catch (e) {}
       if (DEMO) { appData.term = id; synced(); return; } fetchData(false, true); }
+    function isPastTerm(t) { const c = termCur(); return !t.sheet || t.status === 'finished' || !!(c && t.start && c.start && t.start < c.start); }
+    const REPD = {};
+    function loadRep(t) {   // a past semester's own grades, for its report card
+      if (!t.sheet || REPD[t.id]) return; if (DEMO) { REPD[t.id] = demoData(); return; }
+      REPD[t.id] = { loading: true };
+      fetch(`${API}?token=${encodeURIComponent(TOKEN)}&term=${encodeURIComponent(t.id)}&_=${Date.now()}`, { cache: 'no-store' }).then(r => r.json())
+        .then(d => { REPD[t.id] = d.error ? { error: d.error } : d; if (WPOP === 'rep' && REPID === t.id) renderWpop(); })
+        .catch(() => { REPD[t.id] = { error: 'couldn’t reach the sheet' }; if (WPOP === 'rep' && REPID === t.id) renderWpop(); });
+    }
     function termReport(t) {
       const key = (t.gpaTerm || t.id).toUpperCase(), rows = ((appData && appData.history) || []).filter(h => String(h.term).toUpperCase() === key);
       const g = rows.filter(r => r.hours > 0 && r.gp != null && r.gp !== ''), hrs = g.reduce((a, r) => a + r.hours, 0), pts = g.reduce((a, r) => a + r.gp * r.hours, 0);
@@ -1196,7 +1205,7 @@
       if (e.target.closest('#iss-copy')) { const txt = ISS.map(i => '• ' + i.x).join('\n'); try { navigator.clipboard.writeText(txt); } catch (x) {} const b = $('iss-copy'); b.textContent = 'copied'; setTimeout(() => { if (b.isConnected) b.textContent = 'copy list'; }, 1200); }
     });
     $('settings-card').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'iss-in') { e.preventDefault(); addIss(); } });
-    $('settings-card').addEventListener('click', e => { const tb = e.target.closest('[data-term]'); if (tb) { const t = termsOf().find(x => x.id === tb.dataset.term); if (t && !t.sheet) { REPID = t.id; openWpop('rep'); } else if (t && t.id !== (appData && appData.term)) switchTerm(t.id); return; } });
+    $('settings-card').addEventListener('click', e => { const tb = e.target.closest('[data-term]'); if (tb) { const t = termsOf().find(x => x.id === tb.dataset.term); if (t && t.id !== (appData && appData.term) && isPastTerm(t)) { REPID = t.id; loadRep(t); openWpop('rep'); } else if (t && t.id !== (appData && appData.term)) switchTerm(t.id); return; } });
     $('settings-card').addEventListener('click', e => { const b = e.target.closest('[data-theme-set]'); if (b) applyTheme(b.dataset.themeSet); const r = e.target.closest('[data-rules]'); if (r) openRules(r.dataset.rules); const w = e.target.closest('[data-wpop]'); if (w) openWpop(w.dataset.wpop); });
     $('settings-card').addEventListener('change', e => { if (e.target.dataset && e.target.dataset.slot2) setSlot2(e.target.checked ? 'budget' : 'weather'); });
 
@@ -1216,6 +1225,13 @@
     function renderWpop() {
       const row = (k, inner) => `<div class="task srow"><span>${k}</span>${inner}</div>`, opt = (v, l) => `<option value="${v}"${CD.mode === v ? ' selected' : ''}>${l}</option>`;
       $('w-title').textContent = ({ greet: 'greeting', cal: 'calendars', cd: 'countdown', slot: 'variable', new: 'what’s new' })[WPOP] || '';
+      if (WPOP === 'rep' && REPID && (termsOf().find(x => x.id === REPID) || {}).sheet) { const t = termsOf().find(x => x.id === REPID), d = REPD[t.id]; $('w-title').textContent = t.name;
+        if (!d || d.loading || d.error) { $('w-body').innerHTML = `<div class="group"><div class="task srow"><span class="tg">${d && d.error ? esc(d.error) : 'loading…'}</span></div></div>`; return; }
+        const G = d.grades || { courses: [] }, C = G.courses || [], cr = C.reduce((a, c) => a + (+c.credits > 0 ? +c.credits : 0), 0);
+        $('w-body').innerHTML = `<div class="group">${[['term gpa', G.gpa != null ? Number(G.gpa).toFixed(3) : '–'], ['credits', cr || '–'], ['courses', C.length || '–']].map(([k, v]) => `<div class="task srow"><span>${k}</span><span class="tg" style="color:var(--text);font-weight:700">${v}</span></div>`).join('')}</div>` +
+          (C.length ? '<div class="grp">courses</div><div class="group">' + C.map(c => `<div class="task srow"><span><b style="color:${colorFor(c.code)};margin-right:8px">${esc(c.code)}</b>${esc(c.name || '')}</span><span class="tg" style="margin-left:auto">${c.raw != null ? Number(c.raw).toFixed(2) : '–'}</span><span class="tg" style="color:var(--text);font-weight:700;min-width:28px;text-align:right">${esc(c.letter || '–')}</span></div>`).join('') + '</div>' : '') +
+          `<div class="group"><button class="lrow" id="rep-open" style="color:var(--tint)">open semester</button></div>`;
+        return; }
       if (WPOP === 'rep') { const t = termsOf().find(x => x.id === REPID); $('w-title').textContent = t ? t.name : ''; if (!t) return; const R = termReport(t);
         $('w-body').innerHTML = `<div class="group">${[['term gpa', R.gpa != null ? R.gpa.toFixed(3) : '–'], ['credits', R.total || '–'], ['courses', R.rows.length || '–']].map(([k, v]) => `<div class="task srow"><span>${k}</span><span class="tg" style="color:var(--text);font-weight:700">${v}</span></div>`).join('')}</div>` +
           (R.rows.length ? '<div class="grp">courses</div><div class="group">' + R.rows.map(r => `<div class="task srow"><span><b style="color:${colorFor(r.code)};margin-right:8px">${esc(String(r.code).replace(/\s+/g, '').toLowerCase())}</b>${esc(r.name || '')}</span><span class="tg" style="color:var(--text);font-weight:700">${esc(r.letter || '–')}</span></div>`).join('') + '</div>' : ''); return; }
@@ -1228,6 +1244,7 @@
           (CD.mode === 'custom' ? row('title', `<input class="sin" type="text" data-cd="title" maxlength="40" value="${esc(CD.title)}">`) + row('date', `<input class="sin" type="date" data-cd="date" value="${esc(CD.date)}">`) : '')) + '</div>';
     }
     $('w-done').addEventListener('click', closeWpop);
+    $('w-body').addEventListener('click', e => { if (e.target.closest('#rep-open')) { const id = REPID; closeWpop(); switchTerm(id); } });
     document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#term-back')) { const c = termCur(); if (c) switchTerm(c.id); } });
     $('w-body').addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (b) { setSlot2(b.dataset.pick); setTimeout(closeWpop, 180); } });
     $('w-body').addEventListener('change', e => {
