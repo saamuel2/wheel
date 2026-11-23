@@ -80,6 +80,8 @@ function pickTerm_(id) {
   return { list: list, term: t };
 }
 function homeSS_() { return SpreadsheetApp.openById(HOME_ID); }
+// your Google name + photo, copied to the home sheet's Profile tab by the "assignments profile" script
+function readProfile_() { var sh = homeSS_().getSheetByName('Profile'); if (!sh) return null; var v = sh.getRange(2, 1, 1, 2).getValues()[0]; return str_(v[0]) || str_(v[1]) ? { name: str_(v[0]), photo: str_(v[1]) } : null; }
 function termSheet_(t) { return SpreadsheetApp.openById(t.sheet || SHEET_ID); }
 
 function token_() { return PropertiesService.getScriptProperties().getProperty('TOKEN') || ''; }
@@ -131,6 +133,7 @@ function doGet(e) {
   try { res.colors = readColors_(ss); } catch (err) { errors.colors = String(err); }
   try { res.history = readGpaHistory_(); } catch (err) { errors.history = String(err); }
   try { var hs = homeSS_(); res.notes = readNotes_(hs); res.claude = readClaudeAsk_(hs); } catch (err) { errors.notes = String(err); }
+  try { res.profile = readProfile_(); } catch (err) { errors.profile = String(err); }
   try { res.attendance = readAttendance_(ss); } catch (err) { errors.attendance = String(err); }
   try { res.weeks = readWeeks_(ss); } catch (err) { errors.weeks = String(err); }
   try { res.ra = readRA_(ss); } catch (err) { errors.ra = String(err); }
@@ -479,7 +482,7 @@ function readGpaHistory_() {   // the home sheet's GPA tab (copied from the GPA 
   if (last < 2) return out;
   sh.getRange(2, 1, last - 1, 7).getValues().forEach(function (r) {
     var code = str_(r[0]); if (!code || str_(r[2]) === '') return;
-    out.push({ code: code, name: str_(r[1]), term: str_(r[2]), hours: numv_(r[3]), letter: str_(r[5]), gp: numv_(r[6]) });
+    out.push({ code: code, name: str_(r[1]), term: str_(r[2]), hours: numv_(r[3]), grade: numv_(r[4]), letter: str_(r[5]), gp: numv_(r[6]) });
   });
   return out;
 }
