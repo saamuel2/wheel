@@ -417,6 +417,7 @@
   .ask-scrim.on { opacity: 1; } .ask { width: 320px; background: var(--card); color: var(--text); border-radius: var(--r-card); padding: 20px; box-shadow: var(--e4); transform: scale(.96); transition: transform var(--dur) var(--ease); }
   .ask-scrim.on .ask { transform: none; } .ask-q { font-size: var(--fs-body); font-weight: 600; margin-bottom: 16px; overflow-wrap: anywhere; } .ask-b { display: flex; justify-content: flex-end; gap: 8px; }
   .btn.danger { background: var(--red); color: var(--on-tint); }
+  .how .attn { display: block; font-size: var(--fs-caption); color: var(--sub); font-weight: 400; }
   .pagefail { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 20vh; } .wfail { display: grid; place-items: center; min-height: 120px; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform var(--dur) var(--ease); }
@@ -546,7 +547,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd2.8 (11/24 12:45am)';
+const BUILD = 'd2.9 (11/24 1:15am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -809,7 +810,7 @@ function live() {
     let rule, r; try { rule = c._rule || (c._rule = revive(c.rule)); r = Engine.grade(rule, items, ctx); } catch (e) { console.error('grading ' + c.code, e); return Object.assign({}, c, { raw: null, letter: '', gp: null, cats: [], trace: ['couldn’t grade: ' + (e.message || e)] }); }
     const counted = r.cats.filter(k => k.kind === 'normal'), tot = counted.reduce((s, k) => s + (k.weight || 0), 0);
     return Object.assign({}, c, { raw: r.value, letter: r.letter || '', gp: r.gp, trace: r.trace,
-      cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes })) });
+      cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes, att: k.att || null })) });
   });
   return (LIVE = { courses, gpa: g.courses.some(c => c.rule) ? Engine.gpa(courses) : g.gpa, engine: g.engine, _tk: tk });
 }
@@ -1431,7 +1432,7 @@ function renderGrades(v) {
   if (!L) { v.innerHTML = '<div class="head"><h1>grades</h1></div><div class="ccards"><div class="card emptyw">no courses</div></div>'; return; }
   const lg = L.courses.filter(c => c.gp != null && c.credits > 0), pf = L.courses.filter(c => c.passFail);
   const pts = lg.reduce((s, c) => s + c.gp * c.credits, 0), cr = lg.reduce((s, c) => s + c.credits, 0);
-  const how = c => !(c.cats || []).length ? '' : `<div class="how">${c.cats.filter(k => k.share > 0 || k.kind !== 'normal').map(k => `<div><span class="k">${esc(k.name)}</span><span class="w">${k.share > 0 ? Math.round(k.share * 1000) / 10 + '%' : esc(k.kind === 'bonus' ? 'bonus' : k.kind === 'flat' ? '± final' : 'extra')}</span><span class="s">${k.pct != null ? f2(k.pct) : '–'}</span></div>`).join('')}</div>`;
+  const how = c => !(c.cats || []).length ? '' : `<div class="how">${c.cats.filter(k => k.share > 0 || k.kind !== 'normal').map(k => `<div${k.att ? ` title="${esc(attTxt(k.att))}"` : ''}><span class="k">${esc(k.name)}${k.att ? `<span class="attn">${esc(attTxt(k.att))}</span>` : ''}</span><span class="w">${k.share > 0 ? Math.round(k.share * 1000) / 10 + '%' : esc(k.kind === 'bonus' ? 'bonus' : k.kind === 'flat' ? '± final' : 'extra')}</span><span class="s">${k.pct != null ? f2(k.pct) : '–'}</span></div>`).join('')}</div>`;
   v.innerHTML = `<div class="head"><h1>grades</h1></div>
     <div class="ccards">${L.courses.length ? '' : '<div class="card emptyw">no courses</div>'}${L.courses.map(c => { const col = colorFor(c.code); return `<button class="cc" style="--c:${col};--ci:${ink(col)}" data-act="course" data-code="${esc(c.code)}">
       <div class="top"><span class="code">${esc(spaceCode(c.code))}</span><span class="nmx">${esc(c.name)}</span>${c.passFail ? '<span class="pf">S/U</span>' : `<span class="pf">${c.credits} cr</span>`}</div>
@@ -1449,7 +1450,7 @@ function openCourse(code) {
   const col = colorFor(code), items = engineItems(data.assignments.filter(a => a.c === code).sort((x, y) => x.t - y.t)).map(it => Object.assign(it, { real: it.grade, realOut: it.possible }));
   WI = { code, items, rule: c.rule ? (c._rule || revive(c.rule)) : null, ctx: { absences: absences() } };
   const cats = c.cats.map(k => `<tr><td><b>${esc(k.name)}</b> <span class="muted">${esc(k.abbr)}</span>${(k.notes || []).length ? `<div class="note">${esc(k.notes.join('; '))}</div>` : ''}</td>
-    <td class="n">${k.kind === 'normal' || !k.kind ? Math.round((k.share || 0) * 1000) / 10 + '%' : esc(k.kind)}</td><td class="n">${k.graded}${k.poss ? ' / ' + k.poss : ''}</td><td class="n">${k.pct != null ? f2(k.pct) : '–'}</td></tr>`).join('');
+    <td class="n">${k.kind === 'normal' || !k.kind ? Math.round((k.share || 0) * 1000) / 10 + '%' : esc(k.kind)}</td><td class="n">${k.att ? esc(attTxt(k.att)) : k.graded + (k.poss ? ' / ' + k.poss : '')}</td><td class="n">${k.pct != null ? f2(k.pct) : '–'}</td></tr>`).join('');
   $('drawer').innerHTML = `<div class="dhd"><h2 style="color:${ink(col)}">${esc(spaceCode(code))}</h2><span class="muted">${esc(c.name)}</span><button class="iconbtn x" data-act="close" aria-label="close">${IC.x}</button></div>
     <div class="kv"><div class="card"><div class="k">grade</div><div class="v">${c.raw != null ? f2(c.raw) : '–'}</div></div><div class="card"><div class="k">letter</div><div class="v" style="color:${ink(col)}">${esc(c.letter || '–')}</div></div>
       <div class="card"><div class="k">${c.passFail ? 'grading' : 'grade points'}</div><div class="v">${c.passFail ? 'S/U' : c.gp != null ? c.gp : '–'}</div></div></div>
@@ -1512,6 +1513,8 @@ function coursePreview() {
     return { g: r ? Engine.grade(r, engineItems(data.assignments), { absences: absences() }) : null };
   } catch (x) { return { err: String(x.message || x) }; }
 }
+// a category scored from the attendance tab: "3 absences, 3 free" in place of a graded count
+const attTxt = a => a.absences + ' absence' + (a.absences === 1 ? '' : 's') + ', ' + a.free + ' free';
 function catScore(g, c) {
   const k = g && g.cats.find(x => String(x.abbr).toLowerCase() === String(c.type).toLowerCase()); if (!k) return ['–', '–'];
   const extra = /^extra/.test(c.combine), n = k.graded + (k.dropped || []).length;
@@ -1519,6 +1522,7 @@ function catScore(g, c) {
   if (extra) { let add = 0, hit = false; (k.notes || []).join('; ').replace(/\+(-?[\d.]+)/g, (_, v) => { add += +v; hit = true; });
     if (!hit && k.kind === 'flat') { data.assignments.filter(a => a.c === RE.code && String(a.y).toLowerCase() === String(c.type).toLowerCase() && a.g !== '' && a.g != null).forEach(a => { const v = parseFloat(a.g); if (isFinite(v)) { add += v; hit = true; } }); }
     sc = hit ? '+' + f2(add) : '–'; }
+  if (k.att) return [sc, attTxt(k.att)];
   return [sc, c.items !== '' && c.items != null ? n + ' of ' + c.items : String(n)];
 }
 function rulesPreview() {
@@ -1788,7 +1792,7 @@ function reportFromL(t, L) {
   const C = L.courses, cr = C.reduce((a, c) => a + (+c.credits > 0 ? +c.credits : 0), 0);
   return `<div class="card sgrp">${C.map(c => { const k = t.id + ':' + c.code, o = RCOPEN[k], col = colorFor(c.code), let_ = off[c.code] || c.letter || '–';
       return `<button class="row prow" data-act="rc-x" data-k="${esc(k)}"><b class="rcode" style="color:${ink(col)}">${esc(spaceCode(c.code))}</b><span class="grow">${esc(c.name || '')}</span><span class="muted">${c.raw != null ? f2(c.raw) : '–'}</span><b class="rlet">${esc(let_)}</b><span class="chev${o ? ' dn' : ''}">${IC.r}</span></button>` +
-        (o ? `<div class="rcats">${(c.cats || []).filter(x => x.kind === 'normal' || x.pct != null).map(x => `<div class="row"><span class="grow">${esc(x.name)}</span><span class="muted">${x.share ? Math.round(x.share * 100) + '%' : ''}</span><span class="muted">${x.graded != null ? x.graded + (x.poss ? ' of ' + x.poss : '') : ''}</span><b class="rlet">${x.pct != null ? f2(x.pct) : '–'}</b></div>`).join('') || '<div class="row"><span class="muted">–</span></div>'}</div>` : ''); }).join('')}</div>`;
+        (o ? `<div class="rcats">${(c.cats || []).filter(x => x.kind === 'normal' || x.pct != null).map(x => `<div class="row"><span class="grow">${esc(x.name)}</span><span class="muted">${x.share ? Math.round(x.share * 100) + '%' : ''}</span><span class="muted">${x.att ? esc(attTxt(x.att)) : x.graded != null ? x.graded + (x.poss ? ' of ' + x.poss : '') : ''}</span><b class="rlet">${x.pct != null ? f2(x.pct) : '–'}</b></div>`).join('') || '<div class="row"><span class="muted">–</span></div>'}</div>` : ''); }).join('')}</div>`;
 }
 // term gpa and overall gpa, oldest term first: finished terms from GPA history, the open term live
 function gpaSeries() {

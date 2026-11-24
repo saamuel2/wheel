@@ -87,7 +87,7 @@ var Engine = (function () {
       }
       var cat = { abbr: c.abbr, name: c.name || c.abbr, rule: c, kind: kind === 'attendance' ? 'normal' : kind, weight: Number(c.weight) || 0,
         count: list.length, items: list, graded: list.filter(function (x) { return x.p.graded; }), dropped: [], replaced: null, notes: [] };
-      if (kind === 'attendance') cat.notes.push(list[0].name + ', ' + (c.free || 0) + ' free');
+      if (kind === 'attendance') { cat.notes.push(list[0].name + ', ' + (c.free || 0) + ' free'); cat.att = { absences: (ctx.absences && ctx.absences[norm(rule.code)]) || 0, free: c.free || 0, per: c.per || 0 }; }
       if (isNum(c.expect) && c.expect > 0) cat.count = c.expect;   // "# items" fixes the denominator: items not entered yet still count, extras (alternates) don't dilute it
       cats.push(cat); byAbbr[norm(c.abbr)] = cat;
     });
@@ -246,7 +246,7 @@ var Engine = (function () {
 
   function summary(c) {
     return { abbr: c.abbr, name: c.name, kind: c.kind, weight: c.weight, count: c.count, graded: c.graded.length,
-      pct: isNum(c.pct) ? r2(c.pct) : null, used: c.used, dropped: c.dropped.map(function (x) { return x.name; }), replaced: c.replaced, notes: c.notes };
+      pct: isNum(c.pct) ? r2(c.pct) : null, used: c.used, dropped: c.dropped.map(function (x) { return x.name; }), replaced: c.replaced, notes: c.notes, att: c.att || null };   // att: scored from the attendance tab (absences, free, per)
   }
 
   function gpa(list) {

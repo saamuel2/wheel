@@ -827,7 +827,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm3.6 (11/24 12:45am)';
+    const BUILD = 'm3.7 (11/24 1:15am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});   // opens offline from the saved copy
     let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
@@ -1504,7 +1504,7 @@
           let rule, r; try { rule = c._rule || (c._rule = rv(c.rule)); r = Engine.grade(rule, items, { absences: ab }); } catch (e) { console.error('grading ' + c.code, e); return Object.assign({}, c, { raw: null, letter: '', gp: null, cats: [] }); }   // one course failing shows – for that course only
           const cnt = r.cats.filter(k => k.kind === 'normal'), tot = cnt.reduce((s, k) => s + (k.weight || 0), 0);
           return Object.assign({}, c, { raw: r.value, letter: r.letter || '', gp: r.gp, trace: r.trace,
-            cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes })) });
+            cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes, att: k.att || null })) });
         });
         g.gpa = Engine.gpa(g.courses);
       } catch (e) { console.error('localGrades', e); }
@@ -1550,7 +1550,7 @@
         const w = k.share > 0, op = w ? OPS[i++ % OPS.length] : 1;
         const right = k.extra != null ? '+' + f2(k.extra) : (k.pct != null ? f2(k.pct) : '–');
         return `<div class="task pad static"><i class="dot" style="background:${col};opacity:${w ? op : .3}"></i><div class="tmain"><div class="tname">${esc(String(k.name).toLowerCase())}</div>` +
-          `<div class="tsub">${w ? Math.round(k.share * 100) + '% of grade' : (k.kind && k.kind !== 'normal' ? esc(k.kind === 'bonus' ? 'bonus' : k.kind === 'flat' ? '± final' : 'extra credit') : 'extra credit')}<span class="gp">${k.graded} of ${k.poss} graded</span></div>${(k.notes || []).length ? `<div class="tnote">${esc(k.notes.join('; '))}</div>` : ''}</div><span class="tg">${right}</span></div>`;
+          `<div class="tsub">${w ? Math.round(k.share * 100) + '% of grade' : (k.kind && k.kind !== 'normal' ? esc(k.kind === 'bonus' ? 'bonus' : k.kind === 'flat' ? '± final' : 'extra credit') : 'extra credit')}<span class="gp">${k.att ? 'from attendance' : k.graded + ' of ' + k.poss + ' graded'}</span></div>${(k.notes || []).length ? `<div class="tnote">${esc(k.notes.join('; '))}</div>` : ''}</div><span class="tg">${right}</span></div>`;
       }).join('');
       const left = appData.assignments.filter(a => !a.d && a.c === c.code).sort((x, y) => (x.t - y.t) || (x.r - y.r));
       const rest = left.length ? left.map(a => `<div class="task pad static"><div class="tmain"><div class="tname">${esc(a.n)}</div><div class="tsub">${[a.y ? esc(a.y) : '', dayLabel(a.t)].filter(Boolean).map(x => '<span class="gp">' + x + '</span>').join('')}</div></div></div>`).join('')
