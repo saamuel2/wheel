@@ -413,6 +413,10 @@
   .loadfail { display: flex; align-items: center; gap: 12px; margin: 0 0 20px; padding: 12px 16px; border-radius: var(--r-md); background: color-mix(in srgb, var(--red) 12%, var(--card)); } .loadfail span { flex: 1; } .loaderr { color: var(--red); font-size: var(--fs-sub); margin: -4px 0 8px; }
   .emptyw { display: grid; place-items: center; min-height: 120px; color: var(--sub); font-size: var(--fs-body); } .card > .emptyw { flex: 1; }
   .scnew.full { cursor: default; opacity: .6; }
+  .ask-scrim { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: rgba(0,0,0,.3); opacity: 0; transition: opacity var(--dur) var(--ease); }
+  .ask-scrim.on { opacity: 1; } .ask { width: 320px; background: var(--card); color: var(--text); border-radius: var(--r-card); padding: 20px; box-shadow: var(--e4); transform: scale(.96); transition: transform var(--dur) var(--ease); }
+  .ask-scrim.on .ask { transform: none; } .ask-q { font-size: var(--fs-body); font-weight: 600; margin-bottom: 16px; overflow-wrap: anywhere; } .ask-b { display: flex; justify-content: flex-end; gap: 8px; }
+  .btn.danger { background: var(--red); color: var(--on-tint); }
   .pagefail { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 20vh; } .wfail { display: grid; place-items: center; min-height: 120px; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform var(--dur) var(--ease); }
@@ -542,7 +546,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd2.7 (11/24 12:10am)';
+const BUILD = 'd2.8 (11/24 12:45am)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -580,6 +584,8 @@ function calList() {
   const m = {}, out = []; ((data && data.events) || []).forEach(e => { if (e.cal && !m[e.cal]) { m[e.cal] = 1; out.push({ name: e.cal, col: e.col, sel: true }); } }); return out;
 }
 const calOn = name => { if (name == null || name === '') return true; if (name in CALS) return !!CALS[name]; const c = calList().find(x => x.name === name); return !c || c.sel !== false; };
+// a calendar's label: your main calendar (or any email-named one) reads "personal"; the rest lowercase
+const calName = n => { const L = (data && data.calendars) || [], m = L.find(c => c.main); return (m && n === m.name) || /@/.test(String(n || '')) ? 'personal' : String(n || '').toLowerCase(); };
 function shownEv() { const seen = {}; return ((data && data.events) || []).filter(e => { if (!calOn(e.cal)) return false; const k = e.n + '|' + e.t; if (seen[k]) return false; seen[k] = 1; return true; }); }
 const fmtT = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLowerCase();
 const same = (x, y) => String(x == null ? '' : x) === String(y == null ? '' : y);
@@ -853,8 +859,20 @@ $('toast-grade').onclick = () => { if (TG && TG.open) saveToastGrade(); else ope
 const byIdx = i => data && data.assignments[+i];
 function changed() { LIVE = null; renderAll(); }
 
+// in-app confirm (instead of the browser's dialog): resolves true for the action, false for cancel
+function ask(q, okLabel) {
+  return new Promise(res => {
+    const el = document.createElement('div'); el.className = 'ask-scrim';
+    el.innerHTML = `<div class="ask" role="alertdialog" aria-modal="true" aria-label="${esc(q)}"><div class="ask-q">${esc(q)}</div><div class="ask-b"><button class="btn" data-ask="0">cancel</button><button class="btn danger" data-ask="1">${esc(okLabel)}</button></div></div>`;
+    const done = v => { document.removeEventListener('keydown', key, true); el.classList.remove('on'); setTimeout(() => el.remove(), 200); res(v); };
+    const key = e => { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); done(false); } else if (e.key === 'Enter') { e.stopPropagation(); e.preventDefault(); done(true); } };
+    el.addEventListener('click', e => { const b = e.target.closest('[data-ask]'); if (b) done(b.dataset.ask === '1'); else if (e.target === el) done(false); });
+    document.addEventListener('keydown', key, true); document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
+    setTimeout(() => { const b = el.querySelector('[data-ask="1"]'); if (b) b.focus(); }, 0);
+  });
+}
 function deleteAssignment(a, again) {
-  if (!again && !confirm('Delete “' + a.n + '” (' + a.c + ')? This clears its row in the sheet.')) return;
+  if (!again) return ask('delete ' + a.n + '?', 'delete').then(ok => { if (ok) deleteAssignment(a, true); });
   const k = kOf(a), i = data.assignments.indexOf(a); if (i < 0) return;
   DEL[k] = Date.now() + 90000; delete OV[k]; data.assignments.splice(i, 1); STAY.delete(k); changed();
   if (DEMO) { toast('deleted ' + a.n); return; }
@@ -944,7 +962,7 @@ function saveDraft(id) {
   const a = { r: 0, n: fields.name, c: fields.className, y: fields.type, t: fromYmd(fields.due), d: false, g: fields.grade === '' ? '' : (isNaN(Number(fields.grade)) ? fields.grade : Number(fields.grade)), o: fields.outOf === '' ? null : Number(fields.outOf) };
   data.assignments.push(a); setOv(a, {}, true); justAdded = a;
   DRAFTS.splice(DRAFTS.indexOf(d), 1);
-  post({ action: 'add', fields }).then(() => { if (!DEMO) setTimeout(() => load(true), 1500); }).catch(err => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; DRAFTS.push(d); changed(); toast('couldn’t add — ' + ((err && err.message) || 'try again')); });
+  post({ action: 'add', fields }).then(() => { if (!DEMO) setTimeout(() => load(true), 1500); }).catch(err => { data.assignments.splice(data.assignments.indexOf(a), 1); delete OV[kOf(a)]; DRAFTS.push(d); changed(); toast('couldn’t add: ' + ((err && err.message) || 'try again')); });
   changed(); toast('added ' + fields.name);
 }
 // ===================== render =====================
@@ -1131,19 +1149,19 @@ function wheelSvg(wk) {
 function nextUpHtml() {
   const ev = data.events, now = Date.now(), all = ev ? shownEv().filter(e => (e.e || e.t) > now) : [];
   const up = all.filter(e => !e.a).slice(0, 4);
-  const dot = e => e.col ? `<i class="cdot" style="background:${esc(e.col)}" title="${esc(e.cal || '')}"></i>` : '';
+  const dot = e => e.col ? `<i class="cdot" style="background:${esc(e.col)}" title="${esc(calName(e.cal))}"></i>` : '';
   const multi = calList().length > 1;
-  return `<div class="card up" data-act="upcoming"><div class="ct">next up</div>` + (!ev ? '<div class="muted">calendar not connected</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${dot(e)}${esc(e.n)}</div><div class="w">${e.t <= now ? 'now until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ', ' + fmtT(e.t)}${e.cal && multi ? '<span class="gp"></span><span class="gp">' + esc(e.cal) + '</span>' : ''}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') +
+  return `<div class="card up" data-act="upcoming"><div class="ct">next up</div>` + (!ev ? '<div class="muted">–</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${dot(e)}${esc(e.n)}</div><div class="w">${e.t <= now ? 'now until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ', ' + fmtT(e.t)}${e.cal && multi ? '<span class="gp"></span><span class="gp">' + esc(calName(e.cal)) + '</span>' : ''}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') +
     (ev && all.length > up.length ? `<div class="more">+${all.length - up.length} more ${IC.r}</div>` : '') + '</div>';
 }
 function upcomingBody() {
   const now = Date.now(), T = today(), list = shownEv().filter(e => (e.e || e.t) > now), cl = calList();
-  let html = cl.length > 1 ? '<div class="cchips">' + cl.map(c => `<button class="cchip${calOn(c.name) ? '' : ' off'}" style="--c:${esc(c.col || '#8E8E93')};--ci:${ink(esc(c.col || '#8E8E93'))}" data-act="calchip" data-cal="${esc(c.name)}"><i></i>${esc(c.name)}</button>`).join('') + '</div>' : '';
+  let html = cl.length > 1 ? '<div class="cchips">' + cl.map(c => `<button class="cchip${calOn(c.name) ? '' : ' off'}" style="--c:${esc(c.col || '#8E8E93')};--ci:${ink(esc(c.col || '#8E8E93'))}" data-act="calchip" data-cal="${esc(calName(c.name))}"><i></i>${esc(calName(c.name))}</button>`).join('') + '</div>' : '';
   let last = null;
   list.forEach(e => { const dk = Math.max(D0(e.t), T);
     if (dk !== last) { html += `<div class="dh">${dk === T ? 'today' : dk === T + 864e5 ? 'tomorrow' : dayLabel(dk)}</div>`; last = dk; }
     const when = e.a ? 'all day' : e.t <= now ? 'now until ' + fmtT(e.e) : fmtT(e.t) + ' – ' + fmtT(e.e);
-    html += `<div class="ev"><i class="cdot" style="background:${esc(e.col || '#8E8E93')}"></i><div><div class="n" style="white-space:normal">${esc(e.n)}</div><div class="w">${gapj(when, e.cal && cl.length > 1 ? esc(e.cal) : '')}</div></div></div>`; });
+    html += `<div class="ev"><i class="cdot" style="background:${esc(e.col || '#8E8E93')}"></i><div><div class="n" style="white-space:normal">${esc(e.n)}</div><div class="w">${gapj(when, e.cal && cl.length > 1 ? esc(calName(e.cal)) : '')}</div></div></div>`; });
   return html + (last === null ? '<div class="muted">nothing on the calendar</div>' : '');
 }
 function openUpcoming() {
@@ -1200,7 +1218,7 @@ function weatherHtml(pen) {
 }
 function budgetHtml(pen) {
   const W = data.weeks || [], T = today(), next = W.find(w => w.t >= T && w.budget != null);
-  if (!next) return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="muted">no budget targets on the sheet</div></div>`;
+  if (!next) return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="muted">–</div></div>`;
   const days = Math.round((next.t - T) / 864e5);
   return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="big">$${cnt('budget', next.budget, 2)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ', in ' + days + '\u00a0day' + (days === 1 ? '' : 's') : ''}</div></div>`;
 }
@@ -1232,15 +1250,15 @@ function countdownHtml() {
     (cdEdit ? cdForm() : `<div class="cdbody"><div class="big">${isNaN(d) ? '–' : d > 1 ? d + ' days' : d === 1 ? '1 day' : d === 0 ? 'today' : 'done'}</div><div class="muted cdsub">${CD.mode === 'exam' ? sub : `<div class="one">${esc(sub)}</div>`}</div>${bar}</div>`) + '</div>';
 }
 function dashGradesHtml() {
-  const L = live(); if (!L) return '<div class="card"><div class="ct">grades</div><div class="muted">not connected</div></div>';
+  const L = live(); if (!L) return '<div class="card"><div class="ct">grades</div><div class="muted">–</div></div>';
   if (!L.courses.length) return '<div class="card"><div class="ct">grades</div><div class="emptyw">no courses</div></div>';
   return `<div class="card gcard${showGrades ? '' : ' hid'}" data-act="eye-card"><div class="ct">grades<span class="r"><button class="eyebtn" data-act="eye" aria-label="${showGrades ? 'hide grades' : 'show grades'}">${showGrades ? EYE_OPEN : EYE_SHUT}</button></span></div>
     <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${ink(colorFor(c.code))}">${esc(spaceCode(c.code))}</b><span class="nm">${esc(c.name)}</span><span class="g">${c.raw != null ? f2(c.raw) + ' (' + esc(c.letter || '–') + ')' : '–'}</span></button>`).join('')}</div></div>`;
 }
 const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')};--ci:${ink(colorFor('wv'))}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted" style="margin-left:.4em">${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
 function raHtml(limit) {
-  const ra = data.ra; if (ra === undefined) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">not connected</div></div>';
-  if (ra === null) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">no RA tab on this sheet</div></div>';
+  const ra = data.ra; if (ra === undefined) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">–</div></div>';
+  if (ra === null) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">–</div></div>';
   let list = ra.filter(x => (showRaDone || !x.d) && !x._gone).sort((x, y) => (x.d - y.d) || (x.t == null) - (y.t == null) || (x.t || 0) - (y.t || 0));
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
   return `<div class="card"><div class="ct">ra tasks<span class="r"><button class="link" data-act="radone">${showRaDone ? 'hide done' : 'show done'}</button></span></div><div class="xlist">${list.map(raItem).join('') || '<div class="empty">no open RA tasks</div>'}</div>${more ? `<div class="muted" style="font-size: var(--fs-footnote);margin-top:6px"><button class="link" data-act="ra-all">${more} more</button></div>` : ''}</div>`;
@@ -1254,8 +1272,8 @@ function todoOrder() {
 function todoHtml(limit) {
   const td = data.todo;
   const head = `<div class="ct">to-do<span class="r"><a class="link" href="https://tasks.google.com/" target="_blank" rel="noopener">google tasks ${IC.ext}</a></span></div>`;
-  if (td === undefined) return `<div class="card">${head}<div class="muted">not connected</div></div>`;
-  if (td === null) return `<div class="card">${head}<div class="muted">not connected</div></div>`;
+  if (td === undefined) return `<div class="card">${head}<div class="muted">–</div></div>`;
+  if (td === null) return `<div class="card">${head}<div class="muted">–</div></div>`;
   let list = todoOrder().filter(x => !x.d);
   const more = limit && list.length > limit ? list.length - limit : 0; if (limit) list = list.slice(0, limit);
   return `<div class="card">${head}<div class="xlist">${list.map(x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:var(--tint)" data-act="todo" data-id="${esc(x.id)}">${CHECK}</button><span class="t">${esc(x.n)}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : ''}</span></div>`).join('') || '<div class="empty">nothing to do</div>'}</div>
@@ -1317,7 +1335,7 @@ function renderSheet(v) {
   const chip = c => { const g = L && L.courses.find(x => x.code === c), b = B && B.courses.find(x => x.code === c), typing = nTest && A.some(a => a.c === c && TEST[kOf(a)] != null);
     const dir = typing && g && b && g.raw != null && b.raw != null ? (g.raw > b.raw + 0.005 ? ' up' : g.raw < b.raw - 0.005 ? ' down' : '') : '';
     return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)};--ci:${ink(colorFor(c))}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g${typing ? ' test' : ''}${dir}">${g ? (g.raw != null ? gapj(esc(g.letter || '–'), cnt('chip-' + c, g.raw, 2)) : 'no grades') : ''}</span></button>`; };
-  const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : [], [['del', '', 40]]);
+  const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'course', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : [], [['del', '', 40]]);
   const colg = '<colgroup>' + cols.map(c => `<col${c[2] ? ` style="width:${c[2]}px"` : ''}>`).join('') + '</colgroup>';
   const th = cols.map(c => `<th class="${c[1] ? 's' : ''}${SF.sort === c[0] && c[1] ? ' on' : ''}${c[0] === 'done' ? ' w36' : ''}" ${c[1] ? `data-act="sort" data-s="${c[0]}"` : ''}>${c[1]}${SF.sort === c[0] && c[1] ? (SF.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('');
   const ncol = cols.length;
@@ -1635,7 +1653,7 @@ function renderAtt(v) {
   v.innerHTML = `<div class="head"><h1>attendance</h1></div><div class="acards">${at.length ? '' : '<div class="card emptyw">no courses</div>'}` +
     at.map(x => { const col = colorFor(x.code), g = gradeOf(x.code), linked = g && g.cats.some(k => (k.notes || []).some(n => /absence/.test(n)));
       return `<div class="card ac"><div class="ct"><b style="color:${ink(col)}">${esc(spaceCode(x.code))}</b><span style="text-transform:none;letter-spacing:0">${esc(courseName(x.code))}</span>${linked ? '<span class="r muted">counts toward grade</span>' : ''}</div>
-      <div class="n">${x.dates.length}</div><div class="rule">${esc(x.rule || 'no rule noted')}</div>
+      <div class="n">${x.dates.length}</div><div class="rule">${esc(x.rule || '–')}</div>
       <div class="dates">${x.dates.slice().sort((a, b) => a - b).map(d => `<span class="dchip">${dayLabel(d)}<button data-act="abs-rm" data-code="${esc(x.code)}" data-d="${ymd(d)}" aria-label="remove">${IC.x}</button></span>`).join('')}</div>
       <div class="bottom"><input type="date" class="txt" id="abs-${esc(x.code)}" value="${ymd(Date.now())}"><button class="btn" style="white-space:nowrap" data-act="abs-add" data-code="${esc(x.code)}">add absence</button></div></div>`; }).join('') + '</div>';
 }
@@ -1712,9 +1730,9 @@ function setPaneHtml() {
     h = data && data.setup ? `<div class="scards sc-${CSTYLE}">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
         return `<button class="card scard ph-${CSTYLE}" data-act="rules" data-code="${esc(x.code)}" style="--c:${col};--ci:${ink(col)}">${coursePhoto(x.code) ? `<img class="scimg" src="${coursePhoto(x.code)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
           <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
-          <span class="scmeta">${gapj(cr !== '' ? cr + ' cr' : '', x.bare ? 'grading not set up' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : '') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
+          <span class="scmeta">${gapj(cr !== '' ? cr + ' cr' : '', x.bare ? 'no grading rules' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : '') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
           ${data.historyOnly ? '' : courseCount() >= 8 ? `<div class="card scard scnew full ph-${CSTYLE}" title="a semester holds 8 courses"><span class="sccode">full</span><span class="scname">8 of 8 courses</span></div>` : `<button class="card scard scnew ph-${CSTYLE}" data-act="nc-open"><span class="stile">${IC.plus}</span><span class="sccode">new course</span></button>`}</div>`
-      : grp('', '<div class="row"><span class="muted">not connected</span></div>');
+      : grp('', '<div class="row"><span class="muted">–</span></div>');
   } else if (SSEC === 'semesters') {
     if (FIN) return finishHtml();
     if (NEWT) { const f = (k, label, type) => `<div class="row"><span>${label}</span><input class="txt" ${type === 'date' ? 'type="date"' : 'maxlength="30" autocomplete="off" spellcheck="false"'} data-nt="${k}" data-k="nt-${k}" value="${esc(NEWT[k] || '')}"></div>`;
@@ -1915,7 +1933,7 @@ function newCourseHtml() {
   const f = (k, label, extra) => `<div class="row"><span>${label}</span><input class="txt" data-nc="${k}" data-k="nc-${k}" value="${esc(N[k])}" autocomplete="off" spellcheck="false" ${extra || ''}></div>`;
   let body = '';
   if (st === 1) body = `<div class="sgl">course</div><div class="card sgrp">${f('code', 'code', 'maxlength="10"')}${f('name', 'name', 'maxlength="40"')}${f('full', 'full name', 'maxlength="80"')}</div>` + (N.code && ((data && data.setup) || []).some(x => x.code === N.code) ? `<div class="muted ncnote">${esc(N.code)} is already a course</div>` : '');
-  else if (st === 2) body = `<div class="sgl">credits and color</div><div class="card sgrp">${f('credits', 'credits', 'inputmode="decimal" maxlength="4"')}<div class="row"><span>color</span><div class="accs">${sw}</div></div></div>`;
+  else if (st === 2) body = `<div class="sgl">credit hours and color</div><div class="card sgrp">${f('credit hours', 'credits', 'inputmode="decimal" maxlength="4"')}<div class="row"><span>color</span><div class="accs">${sw}</div></div></div>`;
   else if (st === 3) body = `<div class="sgl">how is it graded?</div><div class="card sgrp">${NC_TPL.map(([k, l]) => `<button class="row prow" data-act="nc-tpl" data-t="${k}"><span class="grow">${l}</span><span class="tick">${N.tpl === k ? TICK : ''}</span></button>`).join('')}</div>`;
   else {
     const col = themed(N.color), cats = N.tpl === 'later' ? '<div class="row"><span>grading</span><span class="muted">–</span></div>'
@@ -1995,7 +2013,7 @@ function popBody(k) {
   return k === 'greet' ? `<div class="row"><span>randomize</span><label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label></div>
       <div class="row"><span>name</span><input class="txt" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}"></div>`
     : k === 'var' ? VOPTS.map(([k, l]) => `<button class="row prow" data-act="setslot" data-v="${k}"><span>${l}</span><span class="tick">${SLOT === k ? TICK : ''}</span></button>`).join('')
-    : k === 'cal' ? calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span><label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')
+    : k === 'cal' ? calList().map(c => `<div class="row"><span><i class="cdot" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(calName(c.name))}</span><label class="sw"><input type="checkbox" data-cal="${esc(calName(c.name))}"${calOn(c.name) ? ' checked' : ''}><i></i></label></div>`).join('')
     : `<div class="row"><span>show</span><select class="txt" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select></div>` +
       (CD.mode === 'ldoc' ? `<div class="row"><span>date</span><input class="txt" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}"></div>` : '') +
       (CD.mode === 'custom' ? `<div class="row"><span>title</span><input class="txt" data-cd="title" maxlength="40" value="${esc(CD.title)}"></div><div class="row"><span>date</span><input class="txt" type="date" data-cd="date" value="${esc(CD.date)}"></div>` : '');
@@ -2031,7 +2049,7 @@ function pasteRowsHtml() {
 function pasteGo() { const n = PASTE.rows.filter(r => r.on && r.name.trim() && r.due).length; return { n, ok: n > 0 && !!PASTE.cls && !PASTE.busy }; }
 function pasteBody() {
   const g = pasteGo();
-  return `<div class="row"><span>class</span><select class="txt" data-pv="cls"><option value=""${PASTE.cls ? '' : ' selected'}>–</option>${courseList().map(c => `<option value="${esc(c.code)}"${PASTE.cls === c.code ? ' selected' : ''}>${esc(spaceCode(c.code))}</option>`).join('')}</select></div>
+  return `<div class="row"><span>course</span><select class="txt" data-pv="cls"><option value=""${PASTE.cls ? '' : ' selected'}>–</option>${courseList().map(c => `<option value="${esc(c.code)}"${PASTE.cls === c.code ? ' selected' : ''}>${esc(spaceCode(c.code))}</option>`).join('')}</select></div>
     <div class="pvbox"><textarea class="txt" id="pv-text" data-pv="text" rows="6" spellcheck="false" aria-label="schedule">${esc(PASTE.text)}</textarea></div>
     <div id="pv-list">${pasteRowsHtml()}</div>
     <div class="aeft"><span></span><button class="btn tint" id="pv-go" data-act="pv-go"${g.ok ? '' : ' disabled'}>${PASTE.busy ? 'adding…' : g.n ? 'add ' + g.n : 'add'}</button></div>`;
@@ -2043,7 +2061,7 @@ function pasteAdd() {
   const local = () => rows.forEach((r, i) => { const a = { r: 0, n: r.name, c: cls, y: r.type, t: fromYmd(r.due), d: false, g: '', o: null }; data.assignments.push(a); setOv(a, {}, true); });
   if (DEMO) { local(); PASTE = null; closePop(); toast('added ' + rows.length); return changed(); }
   post({ action: 'add_many', rows }).then(() => { local(); PASTE = null; closePop(); toast('added ' + rows.length); changed(); setTimeout(() => load(true), 1500); })
-    .catch(e => { if (PASTE) PASTE.busy = false; renderPop(); toast('couldn’t add — ' + (e.message || e)); });
+    .catch(e => { if (PASTE) PASTE.busy = false; renderPop(); toast('couldn’t add: ' + (e.message || e)); });
 }
 function newsHtml() { return (window.CHANGES || []).map(([d, xs]) => `<div class="nwd">${esc(d)}</div>` + xs.map(x => `<div class="row nwx"><span>${esc(x)}</span></div>`).join('')).join(''); }
 // assignment editor (dashboard): every field saves as you change it, same as the sheet
@@ -2053,7 +2071,7 @@ function asgBody() {
   const a = asgCur(); if (!a) return '<div class="row"><span class="muted">–</span></div>';
   const cs = courseList().map(c => c.code).concat(EXTRA);
   return `<div class="aefm"><input class="txt aenm" data-ae="n" maxlength="120" autocomplete="off" spellcheck="false" value="${esc(a.n)}" aria-label="name">
-    <div class="row"><span>class</span><select class="txt" data-ae="c" style="color:${ink(colorFor(a.c))};font-weight:700">${classOptions(a.c)}</select></div>
+    <div class="row"><span>course</span><select class="txt" data-ae="c" style="color:${ink(colorFor(a.c))};font-weight:700">${classOptions(a.c)}</select></div>
     <div class="row"><span>type</span><input class="txt aesm" data-ae="y" maxlength="8" autocomplete="off" value="${esc(a.y || '')}" style="text-transform:uppercase"></div>
     <div class="row"><span>due</span><input class="txt" type="date" data-ae="t" value="${a.t ? ymd(a.t) : ''}"></div>
     <div class="row"><span>grade</span><span class="aeg"><input class="txt aesm" data-ae="g" autocomplete="off" value="${esc(a.gf || (a.g == null ? '' : String(a.g)))}" aria-label="grade"><i>/</i><input class="txt aesm" data-ae="o" autocomplete="off" value="${a.o == null ? '' : esc(String(a.o))}" aria-label="out of"></span></div>

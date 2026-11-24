@@ -95,6 +95,13 @@
   .wheel-frac { font-weight: 700; font-size: var(--fs-headline); color: var(--sub); margin-top: 4px; }
   
   .push { margin-left: auto; } .gap-top { margin-top: 20px; } .num { font-weight: 600; text-align: right; } .grow { flex: 1; }
+  /* in-app confirm: an action sheet from the bottom */
+  .ask-scrim { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: flex-end; background: rgba(0,0,0,.35); opacity: 0; transition: opacity var(--dur) var(--ease); }
+  .ask-scrim.on { opacity: 1; } .ask { width: 100%; padding: 8px 8px calc(env(safe-area-inset-bottom) + 8px); transform: translateY(100%); transition: transform var(--dur-slow) var(--ease); }
+  .ask-scrim.on .ask { transform: none; }
+  .ask-q { background: var(--card); color: var(--sub); text-align: center; font-size: var(--fs-sub); padding: 16px; border-radius: var(--r-card) var(--r-card) 0 0; overflow-wrap: anywhere; }
+  .ask-b { display: flex; flex-direction: column-reverse; gap: 8px; } .ask-b .btn { width: 100%; padding: 16px; border-radius: var(--r-card); font-size: var(--fs-headline); background: var(--card); color: var(--tint); }
+  .ask-b .btn.danger { border-radius: 0 0 var(--r-card) var(--r-card); color: var(--red); background: var(--card); margin-top: -8px; border-top: .5px solid var(--sep); }
   .gp + .gp, .tsub b + .gp, .grp .gp { margin-left: .6em; }
   .error-toast { color: var(--red); font-size: var(--fs-body); text-align: center; margin-top: 12px; font-weight: 600; display: none; }
   /* the same button vocabulary as desktop: .btn (plain), .btn.tint (filled), .btn.sm (small), .iconbtn (round icon) */
@@ -506,7 +513,7 @@
     <div class="sh-body">
       <div class="group">
         <div class="frow"><label for="f-name">name</label><input id="f-name" autocomplete="off"></div>
-        <div class="frow"><label for="f-class">class</label><select id="f-class"></select></div>
+        <div class="frow"><label for="f-class">course</label><select id="f-class"></select></div>
         <div class="frow"><label for="f-type">type</label><input id="f-type" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"></div>
         <div class="frow"><label for="f-due">due</label><span class="dtxt" id="f-due-txt"></span><input type="date" id="f-due"></div>
       </div>
@@ -522,7 +529,7 @@
     <div class="sh-bar"><button id="a-cancel">cancel</button><span id="a-title">new absence</span><button id="a-save">add</button></div>
     <div class="sh-body">
       <div class="group">
-        <div class="frow"><label for="a-class">class</label><select id="a-class"></select></div>
+        <div class="frow"><label for="a-class">course</label><select id="a-class"></select></div>
         <div class="frow"><label for="a-date">date</label><span class="dtxt" id="a-date-txt"></span><input type="date" id="a-date"></div>
       </div>
     </div>
@@ -820,7 +827,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm3.5 (11/24 12:10am)';
+    const BUILD = 'm3.6 (11/24 12:45am)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});   // opens offline from the saved copy
     let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
@@ -1057,8 +1064,20 @@
       pending = p; showUndo(to ? 'marked done' : 'marked not done', true); if (to) offerGrade(a);
     }
     // hold a row in the sheet tab to delete it
+    // in-app confirm (instead of the browser's dialog): resolves true for the action, false for cancel
+    function ask(q, okLabel) {
+      return new Promise(res => {
+        const el = document.createElement('div'); el.className = 'ask-scrim';
+        el.innerHTML = `<div class="ask" role="alertdialog" aria-modal="true" aria-label="${esc(q)}"><div class="ask-q">${esc(q)}</div><div class="ask-b"><button class="btn" data-ask="0">cancel</button><button class="btn danger" data-ask="1">${esc(okLabel)}</button></div></div>`;
+        const done = v => { document.removeEventListener('keydown', key, true); el.classList.remove('on'); setTimeout(() => el.remove(), 200); res(v); };
+        const key = e => { if (e.key === 'Escape') { e.stopPropagation(); e.preventDefault(); done(false); } else if (e.key === 'Enter') { e.stopPropagation(); e.preventDefault(); done(true); } };
+        el.addEventListener('click', e => { const b = e.target.closest('[data-ask]'); if (b) done(b.dataset.ask === '1'); else if (e.target === el) done(false); });
+        document.addEventListener('keydown', key, true); document.body.appendChild(el); requestAnimationFrame(() => el.classList.add('on'));
+        setTimeout(() => { const b = el.querySelector('[data-ask="1"]'); if (b) b.focus(); }, 0);
+      });
+    }
     function deleteAssignment(a, again) {
-      if (!again && !confirm('Delete “' + a.n + '” (' + a.c + ')? This clears its row in the sheet.')) return;
+      if (!again) return ask('delete ' + a.n + '?', 'delete').then(ok => { if (ok) deleteAssignment(a, true); });
       const k = kOf(a), i = appData.assignments.indexOf(a); if (i < 0) return;
       if (pending) commit(pending);
       DEL[k] = Date.now() + 90000; delete OV[k]; gradeHold.delete(k); appData.assignments.splice(i, 1); localGrades(appData); saveCache(); drawWheel(false); renderTasks(); renderGrades(); try { renderDash(); } catch (e) {}
@@ -1160,6 +1179,8 @@
       const m = {}, out = []; (EV || []).forEach(e => { if (e.cal && !m[e.cal]) { m[e.cal] = 1; out.push({ name: e.cal, col: e.col, sel: true }); } }); return out;
     }
     const calOn = name => { if (name == null || name === '') return true; if (name in CALS) return !!CALS[name]; const c = calList().find(x => x.name === name); return !c || c.sel !== false; };
+    // a calendar's label: your main calendar (or any email-named one) reads "personal"; the rest lowercase
+    const calName = n => { const L = (appData && appData.calendars) || [], m = L.find(c => c.main); return (m && n === m.name) || /@/.test(String(n || '')) ? 'personal' : String(n || '').toLowerCase(); };
     function shownEv() { const seen = {}; return (EV || []).filter(e => { if (!calOn(e.cal)) return false; const k = e.n + '|' + e.t; if (seen[k]) return false; seen[k] = 1; return true; }); }
     const demoEvents = () => { const T = new Date().setHours(0, 0, 0, 0), H = 36e5, d = (n, h, len, cal, col, a) => ({ n: a ? n : n, t: T + n_ * 864e5 + h * H, e: T + n_ * 864e5 + (h + len) * H, a: !!a, cal, col }); let n_ = 0;
       const mk = (day, h, len, name, cal, col, a) => { n_ = day; return d(name, h, len, cal, col, a); };
@@ -1168,12 +1189,12 @@
         mk(8, 10, 2, 'Floor program', 'RA', '#34A853'), mk(9, 8.75, 1, 'Exam 3 (CH 201)', 'classes', '#9B6BD3'), mk(12, 18, 2, 'Thanksgiving dinner planning', 'personal', '#4F8EF7')]; };
     function upcomingHtml() {
       const now = Date.now(), T = new Date().setHours(0, 0, 0, 0), list = shownEv().filter(e => (e.e || e.t) > now);
-      const chips = calList().length > 1 ? '<div class="chips">' + calList().map(c => `<button class="chip${calOn(c.name) ? '' : ' off'}" style="--c:${esc(c.col || '#8E8E93')};--ci:${ink(esc(c.col || '#8E8E93'))}" data-cal="${esc(c.name)}"><i></i>${esc(c.name)}</button>`).join('') + '</div>' : '';
+      const chips = calList().length > 1 ? '<div class="chips">' + calList().map(c => `<button class="chip${calOn(c.name) ? '' : ' off'}" style="--c:${esc(c.col || '#8E8E93')};--ci:${ink(esc(c.col || '#8E8E93'))}" data-cal="${esc(calName(c.name))}"><i></i>${esc(calName(c.name))}</button>`).join('') + '</div>' : '';
       let html = chips, last = null;
       list.forEach(e => { const dk = Math.max(new Date(e.t).setHours(0, 0, 0, 0), T);
         if (dk !== last) { if (last !== null) html += '</div>'; html += `<div class="grp">${dk === T ? 'today' : dk === T + 864e5 ? 'tomorrow' : dayLabel(dk)}</div><div class="group">`; last = dk; }
         const when = e.a ? 'all day' : e.t <= now ? 'now until ' + fmtT(e.e) : fmtT(e.t) + ' – ' + fmtT(e.e);
-        html += `<div class="task pad static evr"><i class="ci" style="background:${esc(e.col || '#8E8E93')}"></i><div class="tmain"><div class="tname">${esc(e.n)}</div><div class="tsub">${when}${e.cal && calList().length > 1 ? '<span class="gp">' + esc(e.cal) + '</span>' : ''}</div></div></div>`; });
+        html += `<div class="task pad static evr"><i class="ci" style="background:${esc(e.col || '#8E8E93')}"></i><div class="tmain"><div class="tname">${esc(e.n)}</div><div class="tsub">${when}${e.cal && calList().length > 1 ? '<span class="gp">' + esc(calName(e.cal)) + '</span>' : ''}</div></div></div>`; });
       return html + (last !== null ? '</div>' : '<div class="empty-row">nothing on the calendar</div>');
     }
     function openUpcoming() {
@@ -1204,7 +1225,7 @@
         : WX ? `<div class="tile wx" data-slot="1"><div class="wtxt"><div class="tv">${WX.t}°</div><div class="ts">${WXL[WX.k]}</div><div class="ts">h ${WX.hi}°  l ${WX.lo}°</div></div><div class="wxart"><svg viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div></div>`
         : `<div class="tile wx" data-slot="1"><div class="ts">${WXFAIL ? '–' : 'loading…'}</div></div>`;
       const now = Date.now(), up = EV ? shownEv().filter(e => !e.a && (e.t > now || (e.e || 0) > now)).sort((x, y) => x.t - y.t).slice(0, 2) : [];
-      const c = EV === null ? '<div class="tl">next up</div><div class="ts">calendar not connected</div>'
+      const c = EV === null ? '<div class="tl">next up</div><div class="ts">–</div>'
         : up.length ? '<div class="tl">next up</div>' + up.map(e => `<div class="ev"><div class="tn">${esc(e.n)}</div><div class="ts">${whenTxt(e, now)}</div></div>`).join('')
         : '<div class="tl">next up</div><div class="ts">nothing coming up</div>';
       const moreN = EV ? shownEv().filter(e => (e.e || e.t) > now).length - up.length : 0;
@@ -1287,16 +1308,16 @@
       if (WPOP === 'rep' && REPID && (termsOf().find(x => x.id === REPID) || {}).sheet) { const t = termsOf().find(x => x.id === REPID), d = REPD[t.id]; $('w-title').textContent = t.name;
         if (!d || d.loading || d.error) { $('w-body').innerHTML = `<div class="group"><div class="task srow"><span class="tg">${d && d.error ? esc(d.error) : 'loading…'}</span></div></div>`; return; }
         const G = d.grades || { courses: [] }, C = G.courses || [], cr = C.reduce((a, c) => a + (+c.credits > 0 ? +c.credits : 0), 0);
-        $('w-body').innerHTML = `<div class="group">${[['term gpa', G.gpa != null ? Number(G.gpa).toFixed(3) : '–'], ['credits', cr || '–'], ['courses', C.length || '–']].map(([k, v]) => `<div class="task srow"><span>${k}</span><span class="tg" style="color:var(--text);font-weight:700">${v}</span></div>`).join('')}</div>` +
+        $('w-body').innerHTML = `<div class="group">${[['term gpa', G.gpa != null ? Number(G.gpa).toFixed(3) : '–'], ['credit hours', cr || '–'], ['courses', C.length || '–']].map(([k, v]) => `<div class="task srow"><span>${k}</span><span class="tg" style="color:var(--text);font-weight:700">${v}</span></div>`).join('')}</div>` +
           (C.length ? '<div class="grp">courses</div><div class="group">' + C.map(c => `<div class="task srow"><span><b style="color:${ink(colorFor(c.code))};margin-right:8px">${esc(c.code)}</b>${esc(c.name || '')}</span><span class="push tg">${c.raw != null ? Number(c.raw).toFixed(2) : '–'}</span><span class="tg" style="color:var(--text);font-weight:700;min-width:28px;text-align:left;margin-left:12px">${esc(c.letter || '–')}</span></div>`).join('') + '</div>' : '') +
           `<div class="group"><button class="lrow" id="rep-open" style="color:var(--tint)">open semester</button></div>`;
         return; }
       if (WPOP === 'rep') { const t = termsOf().find(x => x.id === REPID); $('w-title').textContent = t ? t.name : ''; if (!t) return; const R = termReport(t);
-        $('w-body').innerHTML = `<div class="group">${[['term gpa', R.gpa != null ? R.gpa.toFixed(3) : '–'], ['credits', R.total || '–'], ['courses', R.rows.length || '–']].map(([k, v]) => `<div class="task srow"><span>${k}</span><span class="tg" style="color:var(--text);font-weight:700">${v}</span></div>`).join('')}</div>` +
+        $('w-body').innerHTML = `<div class="group">${[['term gpa', R.gpa != null ? R.gpa.toFixed(3) : '–'], ['credit hours', R.total || '–'], ['courses', R.rows.length || '–']].map(([k, v]) => `<div class="task srow"><span>${k}</span><span class="tg" style="color:var(--text);font-weight:700">${v}</span></div>`).join('')}</div>` +
           (R.rows.length ? '<div class="grp">courses</div><div class="group">' + R.rows.map(r => `<div class="task srow"><span><b style="color:${ink(colorFor(r.code))};margin-right:8px">${esc(String(r.code).replace(/\s+/g, '').toLowerCase())}</b>${esc(r.name || '')}</span><span class="tg" style="color:var(--text);font-weight:700;min-width:28px;text-align:left">${esc(r.letter || '–')}</span></div>`).join('') + '</div>' : ''); return; }
       if (WPOP === 'new') { $('w-body').innerHTML = (window.CHANGES || []).map(([d, xs]) => `<div class="grp">${esc(d)}</div><div class="group">` + xs.map(x => `<div class="task srow"><span style="white-space:normal">${esc(x)}</span></div>`).join('') + '</div>').join(''); return; }
       $('w-body').innerHTML = '<div class="group">' + (WPOP === 'greet' ? row('randomize', `<label class="sw"><input type="checkbox" data-gr="rand"${GR.rand ? ' checked' : ''}><i></i></label>`) + row('name', `<input class="sin" type="text" data-gr="name" maxlength="20" autocomplete="off" value="${esc(GR.name)}">`)
-        : WPOP === 'cal' ? calList().map(c => row(`<span style="display:flex;align-items:center"><i class="ci" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(c.name)}</span>`, `<label class="sw"><input type="checkbox" data-cal="${esc(c.name)}"${calOn(c.name) ? ' checked' : ''}><i></i></label>`)).join('')
+        : WPOP === 'cal' ? calList().map(c => row(`<span style="display:flex;align-items:center"><i class="ci" style="background:${esc(c.col || '#8E8E93')}"></i>${esc(calName(c.name))}</span>`, `<label class="sw"><input type="checkbox" data-cal="${esc(calName(c.name))}"${calOn(c.name) ? ' checked' : ''}><i></i></label>`)).join('')
         : WPOP === 'slot' ? VOPTS.map(([k, l]) => `<button class="lrow throw" data-pick="${k}">${l}<span class="tick">${SLOT2 === k ? TICK : ''}</span></button>`).join('')
         : row('show', `<select class="sel" data-cd="mode">${opt('ldoc', 'last day of classes')}${opt('exam', 'next exam')}${opt('custom', 'custom day')}</select>`) +
           (CD.mode === 'ldoc' ? row('date', `<input class="sin" type="date" data-cd="ldoc" value="${esc(CD.ldoc)}">`) : '') +
@@ -1491,13 +1512,13 @@
     function renderGrades() {
       localGrades(appData);
       const box = $('grades-box'), g = appData && appData.grades;
-      if (!g) { box.innerHTML = '<div class="empty">' + (appData ? 'grades aren’t connected yet' : 'loading…') + '</div>'; return; }
+      if (!g) { box.innerHTML = '<div class="empty">' + (appData ? 'no courses' : 'loading…') + '</div>'; return; }
       box.innerHTML = `<div class="group gpa" id="gpa-card"><div><div class="tl">gpa</div><div class="gv${gpaShown ? '' : ' eyebox'}">${gpaShown ? (g.gpa != null ? Number(g.gpa).toFixed(3) : '–') : '<svg class="eye" viewBox="2 9 20 11" width="46" height="25" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.2 3.6 5.4 5.4 9 5.4s6.8-1.8 9-5.4"/><path d="M5.2 14.6 3.5 16.6M9.2 16.4l-.9 2.4M14.8 16.4l.9 2.4M18.8 14.6l1.7 2"/></svg>'}</div></div><div class="r"><div class="tl">credit hours</div><div class="gv sm">${g.courses.length ? g.credits : '–'}</div></div></div>` +
         gpaHow(g) +
         '<div class="grp">courses</div><div class="group">' + (g.courses.length ? '' : '<div class="empty-row">no courses</div>') + g.courses.map(c => {
           const col = colorFor(c.code);
           return `<div class="task pad" data-code="${esc(c.code)}"><div class="tmain"><div class="tname"><b style="color:${ink(col)}">${esc(c.code)}</b> ${esc(cname(c))}</div>` +
-            `<div class="tsub">${c.credits} credit${c.credits === 1 ? '' : 's'}</div></div>` +
+            `<div class="tsub">${c.credits} cr</div></div>` +
             `<span class="gr">${c.raw != null ? f2(c.raw) + (c.letter ? ' <i>(' + esc(c.letter) + ')</i>' : '') : '–'}</span>${CHEV}</div>`;
         }).join('') + '</div>';
       fixGv();
@@ -1726,7 +1747,7 @@
     // --- ATTENDANCE TAB (2.12) ---
     function renderAtt() {
       const box = $('att-box'), at = appData && appData.attendance;
-      if (!at) { box.innerHTML = '<div class="empty">' + (appData ? 'attendance isn’t connected yet' : 'loading…') + '</div>'; return; }
+      if (!at) { box.innerHTML = '<div class="empty">' + (appData ? 'no courses' : 'loading…') + '</div>'; return; }
       const nm = {}; ((appData.grades && appData.grades.courses) || []).forEach(c => nm[c.code] = cname(c));
       box.innerHTML = '<div class="group">' + (at.length ? '' : '<div class="empty-row">no courses</div>') + at.map(a => `<div class="task pad" data-ac="${esc(a.code)}"><div class="tmain"><div class="tname"><b style="color:${ink(colorFor(a.code))}">${esc(a.code)}</b> ${esc(nm[a.code] || '')}</div>` +
         `<div class="tsub">${esc(a.rule || '')}</div></div><button class="iconbtn aplus" data-q="${esc(a.code)}" aria-label="add absence today">${IC.p}</button><span class="tg">${a.dates.length}</span>${CHEV}</div>`).join('') + '</div>';

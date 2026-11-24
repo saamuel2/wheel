@@ -182,7 +182,7 @@ function write_(parse) {
     if (b.action === 'note_done') return out_(noteDone_(homeSS_(), b));
     if (b.action === 'claude_ask') return out_(claudeAsk_(homeSS_(), b));
     var tk = pickTerm_(b.term).term;
-    if (tk.id && !tk.sheet) return out_({ ok: false, error: 'this term has no sheet' });
+    if (tk.id && !tk.sheet) return out_({ ok: false, error: 'this semester has no sheet' });
     var ss = termSheet_(tk);
     switch (b.action) {
       case 'done':   return out_(setDone_(ss, b, true));
@@ -348,7 +348,7 @@ function addRow_(ss, b) {
     try { if (row[k] !== '') { sh.getRange(r, k + 1).setValue(row[k]); ok++; } } catch (err2) { why.push('col ' + (k + 1) + ': ' + err2); }
   }
   if (ok >= 3) return { ok: true, row: r, warn: why.join(' | ') };
-  return { ok: false, error: 'could not write row ' + r + ' — ' + why.join(' | ') };
+  return { ok: false, error: 'couldn’t write row ' + r + ' — ' + why.join(' | ') };
 }
 
 // several assignments at once (pasted from Moodle); each { name, className, type, due, outOf }
@@ -379,7 +379,7 @@ function readRA_(ss) {
   return out;
 }
 function raDone_(ss, b) {
-  var sh = ss.getSheetByName('RA'); if (!sh) return { ok: false, error: 'no RA tab' };
+  var sh = ss.getSheetByName('RA'); if (!sh) return { ok: false, error: 'no ra tab' };
   var r = Number(b.row); if (!(r >= 2) || str_(sh.getRange(r, 2).getValue()) !== str_(b.n)) {
     var v = sh.getRange(2, 2, Math.max(sh.getLastRow() - 1, 1), 1).getValues(); r = -1;
     for (var i = 0; i < v.length; i++) if (str_(v[i][0]) === str_(b.n)) { r = i + 2; break; }
@@ -404,14 +404,14 @@ function readTodo_() {
   return out;
 }
 function taskAdd_(b) {
-  if (typeof Tasks === 'undefined') return { ok: false, error: 'Google Tasks service is off' };
+  if (typeof Tasks === 'undefined') return { ok: false, error: 'google tasks is off' };
   var title = String(b.title || '').trim(); if (!title) return { ok: false, error: 'empty task' };
   var t = { title: title }; if (b.due) t.due = b.due + 'T00:00:00.000Z';
   var made = Tasks.Tasks.insert(t, '@default');
   return { ok: true, id: made.id };
 }
 function taskDone_(b) {
-  if (typeof Tasks === 'undefined') return { ok: false, error: 'Google Tasks service is off' };
+  if (typeof Tasks === 'undefined') return { ok: false, error: 'google tasks is off' };
   Tasks.Tasks.patch(b.done ? { status: 'completed' } : { status: 'needsAction', completed: null }, '@default', String(b.id));
   return { ok: true };
 }
@@ -492,7 +492,7 @@ function readClaudeAsk_(ss) {
   return { asked: ms(v[0][0]), last: ms(v[1][0]) };
 }
 function claudeAsk_(ss, b) {
-  var sh = ss.getSheetByName('Notes'); if (!sh) return { ok: false, error: 'no Notes tab' };
+  var sh = ss.getSheetByName('Notes'); if (!sh) return { ok: false, error: 'no notes tab' };
   sh.getRange(1, 6, 2, 1).setValues([['claude asked'], ['claude last ran']]);
   sh.getRange(1, 7).setValue(b.cancel ? '' : new Date());
   return { ok: true, claude: readClaudeAsk_(ss) };
@@ -608,7 +608,7 @@ function blockSave_(ss, sh, b) {
     var cfg = ss.getSheetByName('Config');
     if (b.cfg.name != null && str_(b.cfg.name)) cfg.getRange(cf.row, 2).setValue(str_(b.cfg.name));
     if (b.cfg.full != null) cfg.getRange(cf.row, FULL_COL).setValue(str_(b.cfg.full));
-    if (b.cfg.credits != null) { var cr = cellIn_(b.cfg.credits); if (!isNum(cr)) return { ok: false, error: 'credits must be a number' }; cfg.getRange(cf.row, 4).setValue(cr); }
+    if (b.cfg.credits != null) { var cr = cellIn_(b.cfg.credits); if (!isNum(cr)) return { ok: false, error: 'credit hours must be a number' }; cfg.getRange(cf.row, 4).setValue(cr); }
   }
   return { ok: true };
 }
@@ -617,10 +617,10 @@ function courseAdd_(ss, b) {
   var code = str_(b.code).toLowerCase().replace(/\s+/g, ''), name = str_(b.name), cr = cellIn_(b.credits), color = str_(b.color).toLowerCase();
   if (!/^[a-z]{1,5}\d{2,4}[a-z]?$/.test(code)) return { ok: false, error: 'course code looks like bch351' };
   if (!name) return { ok: false, error: 'name needed' };
-  if (cr !== '' && typeof cr !== 'number') return { ok: false, error: 'credits must be a number' };
+  if (cr !== '' && typeof cr !== 'number') return { ok: false, error: 'credit hours must be a number' };
   var cfg = ss.getSheetByName('Config'), v = cfg.getRange(2, 1, 10, 1).getValues(), row = 0;
   for (var i = 0; i < v.length; i++) { var c = str_(v[i][0]).toLowerCase(); if (c === code) return { ok: false, error: code + ' is already a course' }; if (String(v[i][0]) === '' && !row) row = i + 2; }   // the divider row holds an invisible character, so only a truly empty cell counts
-  if (!row) return { ok: false, error: 'this semester is full (10 rows on Config)' };
+  if (!row) return { ok: false, error: 'this semester is full: 8 courses' };
   cfg.getRange(row, 1, 1, 5).setValues([[code, name, code + ' ' + name, cr, false]]);
   if (/^#[0-9a-f]{6}$/.test(color)) cfg.getRange(row, COLOR_COL).setValue(color);
   if (str_(b.full)) cfg.getRange(row, FULL_COL).setValue(str_(b.full));
@@ -675,7 +675,7 @@ function courseSave_(ss, b) {
   if (cur.cfg && b.cfg) {
     var cfg = ss.getSheetByName('Config');
     if (b.cfg.name != null && str_(b.cfg.name)) cfg.getRange(cur.cfg.row, 2).setValue(str_(b.cfg.name));
-    if (b.cfg.credits != null) { var cr = cellIn_(b.cfg.credits); if (!num(cr)) return { ok: false, error: 'credits must be a number' }; cfg.getRange(cur.cfg.row, 4).setValue(cr); }
+    if (b.cfg.credits != null) { var cr = cellIn_(b.cfg.credits); if (!num(cr)) return { ok: false, error: 'credit hours must be a number' }; cfg.getRange(cur.cfg.row, 4).setValue(cr); }
   }
   return { ok: true };
 }
@@ -698,7 +698,7 @@ function attRow_(sh, code) {
 }
 function absenceAdd_(ss, b) {
   var sh = ss.getSheetByName('Attendance'), r = attRow_(sh, b.className);
-  if (r < 0) return { ok: false, error: 'class not found' };
+  if (r < 0) return { ok: false, error: 'course not found' };
   var cols = Math.max(sh.getLastColumn(), 3), vals = sh.getRange(r, 3, 1, cols - 2).getValues()[0], free = -1;
   for (var i = 0; i < vals.length; i++) {
     if (cellYmd_(vals[i], ss) === b.date) return { ok: true, dup: true };
@@ -710,7 +710,7 @@ function absenceAdd_(ss, b) {
 }
 function absenceRemove_(ss, b) {
   var sh = ss.getSheetByName('Attendance'), r = attRow_(sh, b.className);
-  if (r < 0) return { ok: false, error: 'class not found' };
+  if (r < 0) return { ok: false, error: 'course not found' };
   var cols = Math.max(sh.getLastColumn(), 3), range = sh.getRange(r, 3, 1, cols - 2), vals = range.getValues()[0], keep = [], found = false;
   for (var i = 0; i < vals.length; i++) {
     if (!found && cellYmd_(vals[i], ss) === b.date) { found = true; continue; }
@@ -806,11 +806,11 @@ function readEvents_() {
     var main = c.getId() === CAL_ID, hidden = false; try { hidden = c.isHidden(); } catch (x) {}
     if (hidden && !main) return;
     var sel; if (main) sel = true; else if (only.length) sel = only.indexOf(String(c.getName()).toLowerCase()) > -1; else { try { sel = c.isSelected(); } catch (x) { sel = false; } }
-    cals.push({ cal: c, name: c.getName(), col: c.getColor(), sel: !!sel });
+    cals.push({ cal: c, name: c.getName(), col: c.getColor(), sel: !!sel, main: main });
   });
   if (!cals.length) { var m = CalendarApp.getCalendarById(CAL_ID); if (m) cals = [{ cal: m, name: m.getName(), col: m.getColor(), sel: true }]; }
   if (!cals.length) throw new Error('no calendars found for the account running this script');
-  CAL_LIST_ = cals.map(function (c) { return { name: c.name, col: c.col, sel: c.sel }; });
+  CAL_LIST_ = cals.map(function (c) { return { name: c.name, col: c.col, sel: c.sel, main: !!c.main }; });
   var now = new Date(), from = new Date(now.getTime() - 3600000), to = new Date(now.getTime() + EVENT_DAYS * 864e5), out = [], seen = {};
   cals.forEach(function (c) {
     c.cal.getEvents(from, to).forEach(function (ev) {
