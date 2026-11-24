@@ -153,9 +153,10 @@
   .day.past { opacity: .7; }
   .dh { display: flex; align-items: baseline; gap: 8px; padding: 0 2px 2px; }
   .dh .dn { font-weight: 700; text-transform: lowercase; } .dh .dd { color: var(--sub); font-size: 12px; font-weight: 600; } .dh .dc { margin-left: auto; font-size: 11px; color: var(--sub); }
-  .chip { display: flex; gap: 8px; align-items: flex-start; padding: 8px 8px; border-radius: 8px; background: var(--card2); border-left: 3px solid var(--c); transition: opacity .2s; }
+  .chip { display: flex; gap: 8px; align-items: flex-start; padding: 8px 8px; border-radius: 8px; background: var(--card2); transition: opacity .2s; }
   .chip .tx { min-width: 0; flex: 1; } .chip .nm { font-size: 13px; font-weight: 600; line-height: 1.25; overflow-wrap: break-word; }
-  .chip .mt { font-size: 11px; color: var(--sub); }
+  .chip .mt { font-size: 11px; color: var(--sub); } .chip .mt .acode { color: var(--c); font-weight: 600; }
+  .gp + .gp { margin-left: .6em; }
   .chip[data-act=asg] { cursor: pointer; } .chip[data-act=asg]:hover { background: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { background: var(--fill); }
   .chip.dragging { opacity: .35; } .day { transition: box-shadow .15s, background-color .15s; } .day.drop { box-shadow: inset 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--tint) 8%, var(--card)); }
   body.dragon .chip { cursor: grabbing; }
@@ -166,7 +167,7 @@
   .popset .aefm .txt { height: 30px; } .popset .aefm .row .txt { width: 150px; max-width: 150px; } .popset .aefm .row .aeg .txt { width: 69px; } .aefm .aesm { text-align: left; }
  .aeg { display: flex; align-items: center; gap: 6px; } .aeg i { color: var(--sub); font-style: normal; }
   .aeft { display: flex; justify-content: space-between; padding: 10px 16px 8px; } .aedel { color: var(--red); }
-  .chip.done { padding: 4px 8px 4px 4px; opacity: .55; background: transparent; align-items: center; border-left-color: transparent; }
+  .chip.done { padding: 4px 8px 4px 4px; opacity: .55; background: transparent; align-items: center; }
   .chip.done .nm { font-size: 12px; font-weight: 500; text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .chip.done .mt { display: none; } .chip.done .chk { width: 14px; height: 14px; }
   .chip .chk { margin-top: 1px; }
@@ -405,7 +406,7 @@
   .scard .scimg { transition: transform .6s cubic-bezier(.2,.8,.2,1); } .scard:hover .scimg { transform: scale(1.04); }
   .scnew.ph-a, .scnew.ph-b, .scnew.ph-c { align-content: center; justify-items: start; }
   .fintab { margin-bottom: 18px; } .fintab td { vertical-align: middle; } .finsel { width: 86px; padding-top: 6px; padding-bottom: 6px; } .fingr { width: 80px; text-align: right; padding: 6px 10px; }
-  .fintab tr.chg td:first-child { box-shadow: inset 3px 0 0 var(--tint); }
+  .fintab tr.chg .finsel { box-shadow: 0 0 0 1.5px var(--tint); }
   .finsum { display: flex; align-items: center; gap: 28px; } .finsum > div { display: grid; gap: 2px; } .finsum span { font-size: 12px; color: var(--sub); } .finsum b { font-size: 18px; font-variant-numeric: tabular-nums; }
   .finsum > div { position: relative; } .finsum i.up::after { content: '▲'; color: #34c759; font-size: 10px; font-style: normal; position: absolute; right: -14px; bottom: 5px; } .finsum i.down::after { content: '▼'; color: var(--red); font-size: 10px; font-style: normal; position: absolute; right: -14px; bottom: 5px; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
@@ -528,7 +529,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd2.1 (11/23 2:40pm)';
+const BUILD = 'd2.2 (11/23 7:50pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1017,10 +1018,11 @@ function greet() {
   return GP.text;
 }
 
+const gapj = (...p) => p.filter(x => x != null && x !== '' && x !== false).map(x => `<span class="gp">${x}</span>`).join('');   // meta parts side by side, spaced instead of dotted
 function chipHtml(a, showDay) {
-  const col = colorFor(a.c), meta = [spaceCode(a.c), a.y, showDay ? dayLabel(a.t) : '', fmtG(a.g)].filter(Boolean).join(' · ');
+  const col = colorFor(a.c), meta = gapj(`<b class="acode">${esc(spaceCode(a.c))}</b>`, esc(a.y || ''), showDay ? esc(dayLabel(a.t)) : '', esc(fmtG(a.g) || ''));
   return `<div class="chip${a.d ? ' done' : ''}" style="--c:${col}" data-i="${data.assignments.indexOf(a)}" data-act="asg" draggable="true" title="${esc(a.n)}">` +
-    `<button class="chk" data-act="done" aria-label="done">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${esc(meta)}</div></div></div>`;
+    `<button class="chk" data-act="done" aria-label="done">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${meta}</div></div></div>`;
 }
 
 // ---------- dashboard ----------
@@ -1047,7 +1049,7 @@ function renderDash(v) {
       <div class="col${SLOT === 'completion' && !slotEdit ? ' wide1' : ''}">${slotHtml()}${countdownHtml()}</div>
       ${dashGradesHtml()}
     </div>
-    ${late.length ? `<div class="overdue"><div class="weekbar"><span class="t late">overdue · ${late.length}</span></div><div class="row">${late.map(a => chipHtml(a, true)).join('')}</div></div>` : ''}
+    ${late.length ? `<div class="overdue"><div class="weekbar"><span class="t late">${late.length} overdue</span></div><div class="row">${late.map(a => chipHtml(a, true)).join('')}</div></div>` : ''}
     <div class="weekbar"><span class="t">${wn < 1 ? 'before the semester' : 'week ' + wn}</span>${weekOff ? '<button class="btn sm" data-act="wk0">this week</button>' : ''}
       <span class="r">${wk.length - done} to do<button class="iconbtn" data-act="wk-" aria-label="previous week">${IC.l}</button><button class="iconbtn" data-act="wk+" aria-label="next week">${IC.r}</button></span></div>
     <div class="days">${days}</div>
@@ -1083,7 +1085,7 @@ function nextUpHtml() {
   const up = all.filter(e => !e.a).slice(0, 4);
   const dot = e => e.col ? `<i class="cdot" style="background:${esc(e.col)}" title="${esc(e.cal || '')}"></i>` : '';
   const multi = calList().length > 1;
-  return `<div class="card up" data-act="upcoming"><div class="ct">next up</div>` + (!ev ? '<div class="muted">calendar not connected</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${dot(e)}${esc(e.n)}</div><div class="w">${e.t <= now ? 'now · until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ' · ' + fmtT(e.t)}${e.cal && multi ? ' · ' + esc(e.cal) : ''}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') +
+  return `<div class="card up" data-act="upcoming"><div class="ct">next up</div>` + (!ev ? '<div class="muted">calendar not connected</div>' : up.length ? up.map(e => `<div class="ev"><div class="n">${dot(e)}${esc(e.n)}</div><div class="w">${e.t <= now ? 'now until ' + fmtT(e.e) : (D0(e.t) === today() ? 'today' : dayLabel(e.t)) + ', ' + fmtT(e.t)}${e.cal && multi ? '<span class="gp"></span><span class="gp">' + esc(e.cal) + '</span>' : ''}</div></div>`).join('') : '<div class="muted">nothing on the calendar</div>') +
     (ev && all.length > up.length ? `<div class="more">+${all.length - up.length} more ${IC.r}</div>` : '') + '</div>';
 }
 function upcomingBody() {
@@ -1092,8 +1094,8 @@ function upcomingBody() {
   let last = null;
   list.forEach(e => { const dk = Math.max(D0(e.t), T);
     if (dk !== last) { html += `<div class="dh">${dk === T ? 'today' : dk === T + 864e5 ? 'tomorrow' : dayLabel(dk)}</div>`; last = dk; }
-    const when = e.a ? 'all day' : e.t <= now ? 'now · until ' + fmtT(e.e) : fmtT(e.t) + ' – ' + fmtT(e.e);
-    html += `<div class="ev"><i class="cdot" style="background:${esc(e.col || '#8E8E93')}"></i><div><div class="n" style="white-space:normal">${esc(e.n)}</div><div class="w">${when}${e.cal && cl.length > 1 ? ' · ' + esc(e.cal) : ''}</div></div></div>`; });
+    const when = e.a ? 'all day' : e.t <= now ? 'now until ' + fmtT(e.e) : fmtT(e.t) + ' – ' + fmtT(e.e);
+    html += `<div class="ev"><i class="cdot" style="background:${esc(e.col || '#8E8E93')}"></i><div><div class="n" style="white-space:normal">${esc(e.n)}</div><div class="w">${gapj(when, e.cal && cl.length > 1 ? esc(e.cal) : '')}</div></div></div>`; });
   return html + (last === null ? '<div class="muted">nothing on the calendar</div>' : '');
 }
 function openUpcoming() {
@@ -1146,13 +1148,13 @@ function loadWx() {
 }
 function weatherHtml(pen) {
   loadWx();
-  return `<div class="card vcard"><div class="ct">weather${pen}</div>${WX ? `<div class="wxrow"><div><div class="big">${WX.t}°</div><div class="muted">${WXL[WX.k]} · ${WX.hi}/${WX.lo}</div></div><svg class="wxart" viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div>` : '<div class="muted">loading…</div>'}</div>`;
+  return `<div class="card vcard"><div class="ct">weather${pen}</div>${WX ? `<div class="wxrow"><div><div class="big">${WX.t}°</div><div class="muted">${gapj(WXL[WX.k], WX.hi + '° / ' + WX.lo + '°')}</div></div><svg class="wxart" viewBox="0 0 100 80">${wxArt(WX.k, WX.day)}</svg></div>` : '<div class="muted">loading…</div>'}</div>`;
 }
 function budgetHtml(pen) {
   const W = data.weeks || [], T = today(), next = W.find(w => w.t >= T && w.budget != null);
   if (!next) return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="muted">no budget targets on the sheet</div></div>`;
   const days = Math.round((next.t - T) / 864e5);
-  return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="big">$${cnt('budget', next.budget, 2)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ' · ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
+  return `<div class="card vcard"><div class="ct">food budget${pen || ''}</div><div class="big">$${cnt('budget', next.budget, 2)}</div><div class="muted">should be left by ${dayLabel(next.t)}${days > 0 ? ', in ' + days + ' day' + (days === 1 ? '' : 's') : ''}</div></div>`;
 }
 let cdEdit = false;
 function cdForm() {
@@ -1169,7 +1171,7 @@ function countdownHtml() {
     const ahead = A.filter(a => !a.d && /^ex/i.test(a.y) && a.t >= T).sort((x, y) => x.t - y.t);
     title = 'next exam';
     if (ahead.length) { target = ahead[0].t; const same = ahead.filter(a => D0(a.t) === D0(target));
-      sub = same.map(a => `<div class="one">${esc(spaceCode(a.c))} · ${esc(a.n)}</div>`).join(''); }
+      sub = same.map(a => `<div class="one">${gapj(`<b style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}</b>`, esc(a.n))}</div>`).join(''); }
     else sub = 'no exams ahead';
   } else if (CD.mode === 'custom') { target = fromYmd(CD.date); title = CD.title || 'countdown'; }
   else {
@@ -1186,7 +1188,7 @@ function dashGradesHtml() {
   return `<div class="card gcard${showGrades ? '' : ' hid'}" data-act="eye-card"><div class="ct">grades<span class="r"><button class="eyebtn" data-act="eye" aria-label="${showGrades ? 'hide grades' : 'show grades'}">${showGrades ? EYE_OPEN : EYE_SHUT}</button></span></div>
     <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${colorFor(c.code)}">${esc(spaceCode(c.code))}</b><span class="nm">${esc(c.name)}</span><span class="g">${c.raw != null ? f2(c.raw) + ' (' + esc(c.letter || '–') + ')' : '–'}</span></button>`).join('')}</div></div>`;
 }
-const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted">· ${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
+const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted" style="margin-left:.4em">${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
 function raHtml(limit) {
   const ra = data.ra; if (ra === undefined) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">not connected</div></div>';
   if (ra === null) return '<div class="card"><div class="ct">ra tasks</div><div class="muted">no RA tab on this sheet</div></div>';
@@ -1265,7 +1267,7 @@ function renderSheet(v) {
   const B = nTest ? liveBase() : L;
   const chip = c => { const g = L && L.courses.find(x => x.code === c), b = B && B.courses.find(x => x.code === c), typing = nTest && A.some(a => a.c === c && TEST[kOf(a)] != null);
     const dir = typing && g && b && g.raw != null && b.raw != null ? (g.raw > b.raw + 0.005 ? ' up' : g.raw < b.raw - 0.005 ? ' down' : '') : '';
-    return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g${typing ? ' test' : ''}${dir}">${g ? (g.raw != null ? esc(g.letter || '–') + ' · ' + cnt('chip-' + c, g.raw, 2) : 'no grades') : ''}</span></button>`; };
+    return `<button class="fchip${SF.cls.includes(c) ? ' on' : ''}" style="--c:${colorFor(c)}" data-act="scls" data-c="${esc(c)}"><span class="a"><b></b>${esc(c)}</span><span class="g${typing ? ' test' : ''}${dir}">${g ? (g.raw != null ? gapj(esc(g.letter || '–'), cnt('chip-' + c, g.raw, 2)) : 'no grades') : ''}</span></button>`; };
   const cols = [['done', '', 44], ['due', 'due', 136], ['name', 'name', null], ['cls', 'class', 96], ['type', 'type', 92], ['grade', 'grade', 96]].concat(SF.out ? [['out', 'out of', 80]] : [], [['del', '', 40]]);
   const colg = '<colgroup>' + cols.map(c => `<col${c[2] ? ` style="width:${c[2]}px"` : ''}>`).join('') + '</colgroup>';
   const th = cols.map(c => `<th class="${c[1] ? 's' : ''}${SF.sort === c[0] && c[1] ? ' on' : ''}${c[0] === 'done' ? ' w36' : ''}" ${c[1] ? `data-act="sort" data-s="${c[0]}"` : ''}>${c[1]}${SF.sort === c[0] && c[1] ? (SF.dir > 0 ? ' ↑' : ' ↓') : ''}</th>`).join('');
@@ -1281,8 +1283,8 @@ function renderSheet(v) {
   let rows = DRAFTS.filter(d => d.after == null || !list.includes(byIdx(d.after))).map(draftRow).join('');
   let lastW = null;
   list.forEach(a => {
-    if (byCls) { if (a.c !== lastW) { lastW = a.c; rows += `<tr class="wkh"><td colspan="${ncol}" style="color:${colorFor(a.c)}">${esc(spaceCode(a.c))}${courseName(a.c) ? ' · ' + esc(courseName(a.c)) : ''}</td></tr>`; } }
-    else if (SF.sort === 'due') { const w = weekStart(a.t); if (w !== lastW) { lastW = w; const n = weekNo(w); rows += `<tr class="wkh"><td colspan="${ncol}">${n < 1 ? 'before the semester' : 'week ' + n}${w === ws ? ' · this week' : ''}</td></tr>`; } }
+    if (byCls) { if (a.c !== lastW) { lastW = a.c; rows += `<tr class="wkh"><td colspan="${ncol}" style="color:${colorFor(a.c)}">${gapj(esc(spaceCode(a.c)), courseName(a.c) ? '<span class="muted">' + esc(courseName(a.c)) + '</span>' : '')}</td></tr>`; } }
+    else if (SF.sort === 'due') { const w = weekStart(a.t); if (w !== lastW) { lastW = w; const n = weekNo(w); rows += `<tr class="wkh"><td colspan="${ncol}">${n < 1 ? 'before the semester' : 'week ' + n}${w === ws ? '<span style="margin-left:.6em;opacity:.7">this week</span>' : ''}</td></tr>`; } }
     const i = data.assignments.indexOf(a), col = colorFor(a.c), late = !a.d && a.t < T, k = 'r' + i + '|';
     rows += `<tr class="row${a.d ? ' done' : ''}${late ? ' late' : ''}${bigType(a.y) ? ' xp' : ''}" style="--c:${col}" data-i="${i}">
       <td class="w36"><button class="ins" data-act="insert" data-i="${i}" aria-label="add a row below">${IC.plus}</button><button class="chk${a.d ? ' on' : ''}" data-act="done">${CHECK}</button></td>
@@ -1456,8 +1458,8 @@ function rulesPreview() {
   if (!RE || VIEW !== 'course') return;
   const P = coursePreview(), g = P && P.g, now = gradeOf(RE.code), box = $('re-prev');
   if (box) box.innerHTML = P && P.err ? `<div class="card" style="grid-column:1/-1"><div class="k">with these rules</div><div class="v" style="font-size:14px;color:var(--red)">doesn’t compute: ${esc(P.err)}</div></div>`
-    : `<div class="card"><div class="k">grade</div><div class="v">${now && now.raw != null ? esc(now.letter || '–') + ' · ' + f2(now.raw) : '–'}</div></div>
-       <div class="card"><div class="k">with these rules</div><div class="v${reDirty() ? '' : ' muted'}">${g && g.value != null ? esc(g.letter || '–') + ' · ' + f2(g.value) : '–'}</div></div>
+    : `<div class="card"><div class="k">grade</div><div class="v">${now && now.raw != null ? gapj(esc(now.letter || '–'), f2(now.raw)) : '–'}</div></div>
+       <div class="card"><div class="k">with these rules</div><div class="v${reDirty() ? '' : ' muted'}">${g && g.value != null ? gapj(esc(g.letter || '–'), f2(g.value)) : '–'}</div></div>
        <div class="card"><div class="k">${now && now.passFail ? 'grading' : 'grade points'}</div><div class="v">${now && now.passFail ? 'S/U' : g && g.gp != null ? g.gp : '–'}</div></div>`;
   RE.cats.forEach((c, k) => { const [sc, gr] = catScore(g, c), a = document.querySelector(`[data-sc="${k}"]`), b = document.querySelector(`[data-gr="${k}"]`); if (a) a.textContent = sc; if (b) b.textContent = gr; });
   const tr = $('re-trace'); if (tr) tr.innerHTML = g && g.trace.length ? g.trace.map(t => `<li>${esc(t)}</li>`).join('') : '<li>–</li>';
@@ -1661,7 +1663,7 @@ function setPaneHtml() {
     h = data && data.setup ? `<div class="scards sc-${CSTYLE}">${data.setup.map(x => { const col = colorFor(x.code), cats = (x.cats || []).filter(c => !/^extra/i.test(String(c.combine || ''))), cr = x.cfg && x.cfg.credits !== '' ? x.cfg.credits : '';
         return `<button class="card scard ph-${CSTYLE}" data-act="rules" data-code="${esc(x.code)}" style="--c:${col}">${coursePhoto(x.code) ? `<img class="scimg" src="${coursePhoto(x.code)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''}
           <span class="sccode">${esc(spaceCode(x.code))}</span><span class="scname">${esc(x.cfg ? x.cfg.name : '') || '–'}</span>
-          <span class="scmeta">${[cr !== '' ? cr + ' cr' : '', x.bare ? 'grading not set up' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : ''].filter(Boolean).join(' · ') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
+          <span class="scmeta">${gapj(cr !== '' ? cr + ' cr' : '', x.bare ? 'grading not set up' : cats.length ? cats.length + (cats.length === 1 ? ' category' : ' categories') : '') || '–'}</span><span class="chev">${IC.r}</span></button>`; }).join('')}
           ${data.historyOnly ? '' : `<button class="card scard scnew ph-${CSTYLE}" data-act="nc-open"><span class="stile">${IC.plus}</span><span class="sccode">new course</span></button>`}</div>`
       : grp('', '<div class="row"><span class="muted">not connected</span></div>');
   } else if (SSEC === 'semesters') {
@@ -1691,7 +1693,7 @@ function setSideHtml() {
   const cs = (data && data.setup) || [], cr = cs.reduce((t, x) => t + (x.cfg && +x.cfg.credits || 0), 0), nm = String(GR.name || '').trim(), inCourse = VIEW === 'course';
   const cur = k => !SQ.trim() && (inCourse ? k === 'courses' && false : SSEC === k);
   const P = data && data.profile, full = String((P && P.name) || nm).toLowerCase();
-  return `<div class="card sxme"><span class="av">${P && P.photo ? `<img src="${esc(P.photo)}" alt="" referrerpolicy="no-referrer">` : full ? esc(full[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(full || '–')}</b><span>${esc(semLabel())}${cr ? ' · ' + cr + ' hours' : ''}</span></span></div>
+  return `<div class="card sxme"><span class="av">${P && P.photo ? `<img src="${esc(P.photo)}" alt="" referrerpolicy="no-referrer">` : full ? esc(full[0]) : sicon('about', 20)}</span><span class="who"><b>${esc(full || '–')}</b><span>${gapj(esc(semLabel()), cr ? cr + ' hours' : '')}</span></span></div>
       <div class="card sxnav">${SECS.map(([k, l]) => `<button class="${cur(k) ? 'on' : ''}" data-act="setsec" data-s="${k}">${stile(k)}<span>${l}</span>${k === 'feedback' && notesList().length ? `<span class="badge">${notesList().length}</span>` : ''}</button>` +
         (k === 'courses' ? cs.map(x => `<button class="sxsub${inCourse && COURSE === x.code ? ' on' : ''}" data-act="rules" data-code="${esc(x.code)}"><i class="sxdot" style="background:${colorFor(x.code)}"></i><span>${esc(spaceCode(x.code))}</span></button>`).join('') : '')).join('')}</div>`;
 }
@@ -1767,7 +1769,7 @@ function semCards() {
   const T = termList(), S = gpaSeries(), on = data && data.term, sel = RCSEL || on, md2 = y => y ? md(fromYmd(y)) : '';
   return `<div class="sgl">semesters</div><div class="semcards">${T.slice().reverse().map(t => { const g = S.find(x => x.id === t.id), st = t.id === on ? 'open' : t.status === 'current' ? 'current' : t.status === 'finished' || !t.sheet ? 'finished' : 'upcoming';
       const cr = t.id === on ? ((data && data.setup) || []).reduce((a, x) => a + (x.cfg && +x.cfg.credits || 0), 0) : termReport(t).total;
-      return `<button class="card semcard${t.id === sel ? ' on' : ''}" data-act="term" data-id="${esc(t.id)}"><span class="smn">${esc(t.name)}</span><span class="sms">${st}${t.start && st === 'upcoming' ? ' · ' + md2(t.start) : ''}</span>
+      return `<button class="card semcard${t.id === sel ? ' on' : ''}" data-act="term" data-id="${esc(t.id)}"><span class="smn">${esc(t.name)}</span><span class="sms">${t.start && st === 'upcoming' ? 'starts ' + md2(t.start) : st}</span>
         <span class="smg"><b>${g ? g.term.toFixed(2) : '–'}</b><i>${cr ? cr + ' hours' : ''}</i></span></button>`; }).join('')}
     ${data ? `<button class="card semcard semnew" data-act="nt-open"><span class="stile">${IC.plus}</span><span class="smn">new semester</span></button>` : ''}</div>`;
 }
@@ -1786,10 +1788,10 @@ function finishHtml() {
   const t = termList().find(x => x.id === FIN.term) || {}, calc = finGpa(FIN.rows.map(r => Object.assign({}, r, { letter: r.calc }))), off = finGpa(FIN.rows);
   let P = 0, H = 0; termList().forEach(x => { if (x.id === FIN.term) return; termReport(x).rows.forEach(r => { if (r.hours > 0 && r.gp != null && r.gp !== '') { P += r.gp * r.hours; H += r.hours; } }); });
   const ov = (a) => H + a.h ? ((P + a.p) / (H + a.h)).toFixed(3) : '–', f3 = v => v == null ? '–' : v.toFixed(3), ch = (a, b) => a === b ? 'same' : (+b > +a ? 'up' : 'down');
-  return `<div class="rehd2"><button class="iconbtn" data-act="fin-x" aria-label="back">${IC.l}</button><span class="muted" style="font-size:15px">${esc(t.name || '')}${t.ldoc ? ' · last day of classes ' + esc(md(fromYmd(t.ldoc))) : ''}</span></div>
+  return `<div class="rehd2"><button class="iconbtn" data-act="fin-x" aria-label="back">${IC.l}</button><span class="muted" style="font-size:15px">${gapj(esc(t.name || ''), t.ldoc ? 'last day of classes ' + esc(md(fromYmd(t.ldoc))) : '')}</span></div>
     <div class="card stab fintab"><table><thead><tr><th>code</th><th>course</th><th class="l hrs">credit hours</th><th class="n">calculated</th><th class="l">official</th><th class="n">grade</th></tr></thead><tbody>${FIN.rows.map((r, i) => `<tr class="${r.letter !== r.calc ? 'chg' : ''}">
       <td><b style="color:${colorFor(r.code)}">${esc(spaceCode(r.code))}</b></td><td>${esc(r.name)}</td><td class="l hrs"><span class="hrn">${r.hours}</span></td>
-      <td class="n muted">${r.raw != null ? f2(r.raw) : '–'} · ${esc(r.calc || '–')}</td>
+      <td class="n muted">${gapj(r.raw != null ? f2(r.raw) : '–', esc(r.calc || '–'))}</td>
       <td class="l"><select class="txt finsel" data-fin="${i}.letter" aria-label="official letter for ${esc(r.code)}">${(r.pf ? ['S', 'U'] : LETTERS_ALL).map(L => `<option${L === r.letter ? ' selected' : ''}>${L}</option>`).join('')}</select></td>
       <td class="n"><input class="txt fingr" data-fin="${i}.grade" value="${esc(r.grade)}" inputmode="decimal" aria-label="grade for ${esc(r.code)}"></td></tr>`).join('')}</tbody></table></div>
     <div class="finsum"><div><span>term gpa</span><b>${f3(calc.gpa)} → ${f3(off.gpa)}</b><i class="${ch(f3(calc.gpa), f3(off.gpa))}"></i></div><div><span>overall gpa</span><b>${ov(calc)} → ${ov(off)}</b><i class="${ch(ov(calc), ov(off))}"></i></div><div><span>hours</span><b>${off.h + FIN.rows.filter(r => r.pf).reduce((a, r) => a + r.hours, 0)}</b></div>
@@ -1908,7 +1910,7 @@ function addNote() {
 // send the open feedback to Claude: a scheduled Claude task picks it up within a few hours
 function askRow() {
   const a = data && data.claude && data.claude.asked;
-  return a ? `<div class="row"><span class="muted" style="flex:1">sent to claude · ${esc(new Date(a).toLocaleDateString([], { weekday: 'short' }).toLowerCase())} ${esc(fmtT(a))}</span><button class="btn sm" data-act="ask-cancel">cancel</button></div>`
+  return a ? `<div class="row"><span class="muted" style="flex:1">sent to claude ${esc(new Date(a).toLocaleDateString([], { weekday: 'short' }).toLowerCase())} ${esc(fmtT(a))}</span><button class="btn sm" data-act="ask-cancel">cancel</button></div>`
     : '<div class="row"><span style="flex:1"></span><button class="btn tint" data-act="ask-claude">send to claude</button></div>';
 }
 function askClaude(cancel) {
