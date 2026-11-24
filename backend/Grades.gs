@@ -1,4 +1,4 @@
-/** Grades.gs — grading engine + sheet functions. Built by engine/build.js; edit engine.js and engine/sheet-adapter.js instead. */
+/** Grades.gs — grading engine + sheet functions. Paste into Extensions → Apps Script. */
 /**
  * Grading engine (v2) — one engine for the sheet (custom functions) and the apps (API trace).
  * Pure functions, no Apps Script services: runs in Apps Script, the browser and Node.
@@ -132,10 +132,11 @@ var Engine = (function () {
     // keep the best (count − drop): only drop once more than that many are graded
     cats.forEach(function (cat) {
       var n = cat.rule.drop || 0; if (!n) return;
-      var k = Math.max(0, Math.min(n, cat.graded.length - (cat.count - n)));
+      // never more than are graded, and never the only grade left (a new course with nothing graded drops nothing)
+      var k = Math.max(0, Math.min(n, cat.graded.length - 1, cat.graded.length - (cat.count - n)));
       for (var i = 0; i < k; i++) { var low = lowest(cat.graded, 'p'); cat.graded.splice(cat.graded.indexOf(low), 1); cat.dropped.push(low); cat.notes.push('dropped ' + low.name + ' (' + fmt(low.p.pct) + '%)'); }
-      if (k < n) cat.notes.push('best ' + (cat.count - n) + ' of ' + cat.count + ' — lowest drops once ' + (cat.count - n + 1) + ' are graded');
-      cat.count -= n;
+      if (k < n && cat.count > n) cat.notes.push('best ' + (cat.count - n) + ' of ' + cat.count + ' — lowest drops once ' + (cat.count - n + 1) + ' are graded');
+      cat.count = Math.max(cat.count - n, cat.graded.length);   // the denominator never goes below what's still counted
     });
 
     // extra credit into a category: points on its score (catbonus) or extra items on top of its total (extraitems)

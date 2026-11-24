@@ -569,6 +569,8 @@
     });
 
     // --- WHEEL LOGIC (Migrated from combo.html) ---
+    // draw each part on its own: one failing leaves the others working
+    function each(...fns) { fns.forEach(f => { try { f(); } catch (e) { console.error(f.name || 'render', e); } }); }
     const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
     // the connection key lives on this device only (typed once in settings); it is never written into the app's code
     let TOKEN = (() => { try { return localStorage.getItem('wheel-key') || ''; } catch (e) { return ''; } })();
@@ -604,7 +606,7 @@
       THEME = t; try { localStorage.setItem('wheel-theme', t); } catch (e) {}
       if (t === 'default') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
       const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = ({ light: '#F2F2F7', elegant: '#E5E3DF', moody: '#111111' })[t] || '#000000';
-      drawWheel(false); renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
+      each(() => drawWheel(false), renderTasks, renderGrades, renderAtt, renderSettings, renderSide);
     }
 
     function getWeekRange() {
@@ -805,7 +807,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm3.0 (11/23 11:20am)';
+    const BUILD = 'm3.1 (11/23 8:30pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
     const termQ = () => (appData && appData.term) || TERM;
@@ -860,7 +862,7 @@
       else { if (appData.events) EV = appData.events; if (!wxLoaded) { wxLoaded = true; loadWx(); } }
       drawWheel(!wheelDone && !RESUME); wheelDone = true; syncIss();
       if (RESUME) { const rs = RESUME; RESUME = null; requestAnimationFrame(() => requestAnimationFrame(() => { const sc = $('scroll-container'); sc.scrollTop = rs.s; $('topbar').classList.toggle('show', sc.scrollTop > 34);
-        document.body.style.transition = 'opacity .3s ease'; document.body.style.opacity = ''; })); } renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
+        document.body.style.transition = 'opacity .3s ease'; document.body.style.opacity = ''; })); } each(renderTasks, renderGrades, renderAtt, renderSettings, renderSide);
     }
 
     const fmt2 = n => { const t = Number(n).toFixed(2); return t === '100.00' ? '100' : t; };
@@ -1421,7 +1423,8 @@
         const rv = o => JSON.parse(JSON.stringify(o), (k, v) => v === '-inf' ? -Infinity : v === 'inf' ? Infinity : v);
         g.courses = g.courses.map(c => {
           if (!c.rule) return c;
-          const rule = c._rule || (c._rule = rv(c.rule)), r = Engine.grade(rule, items, { absences: ab }), cnt = r.cats.filter(k => k.kind === 'normal'), tot = cnt.reduce((s, k) => s + (k.weight || 0), 0);
+          let rule, r; try { rule = c._rule || (c._rule = rv(c.rule)); r = Engine.grade(rule, items, { absences: ab }); } catch (e) { console.error('grading ' + c.code, e); return Object.assign({}, c, { raw: null, letter: '', gp: null, cats: [] }); }   // one course failing shows – for that course only
+          const cnt = r.cats.filter(k => k.kind === 'normal'), tot = cnt.reduce((s, k) => s + (k.weight || 0), 0);
           return Object.assign({}, c, { raw: r.value, letter: r.letter || '', gp: r.gp, trace: r.trace,
             cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes })) });
         });
@@ -1757,7 +1760,7 @@
         const it = document.querySelector('.nav-item[data-target="' + rs.v + '"]'); if (it && rs.v !== 'view-dashboard') it.click();
       } } catch (e) {}
     setGreeting(); drawWheel(); // draw empty skeleton immediately
-    renderTasks(); renderGrades(); renderAtt(); renderSettings(); renderSide();
+    each(renderTasks, renderGrades, renderAtt, renderSettings, renderSide);
     if (!DEMO) { try { const c = JSON.parse(localStorage.getItem('wheel-cache') || 'null'); if (c && c.data && c.data.assignments) { appData = c.data; synced(); } } catch (e) {} }
     fetchData(false, true); // load data
     window.addEventListener('pageshow', e => { if (e.persisted) fetchData(true, true); });   // reopened from the app switcher

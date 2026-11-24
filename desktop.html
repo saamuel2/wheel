@@ -409,6 +409,7 @@
   .fintab tr.chg .finsel { box-shadow: 0 0 0 1.5px var(--tint); }
   .finsum { display: flex; align-items: center; gap: 28px; } .finsum > div { display: grid; gap: 2px; } .finsum span { font-size: 12px; color: var(--sub); } .finsum b { font-size: 18px; font-variant-numeric: tabular-nums; }
   .finsum > div { position: relative; } .finsum i.up::after { content: '▲'; color: #34c759; font-size: 10px; font-style: normal; position: absolute; right: -14px; bottom: 5px; } .finsum i.down::after { content: '▼'; color: var(--red); font-size: 10px; font-style: normal; position: absolute; right: -14px; bottom: 5px; }
+  .pagefail { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 20vh; } .wfail { display: grid; place-items: center; min-height: 120px; }
   .sgrp .cdot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
   .chev.dn svg { transform: rotate(90deg); } .chev svg { transition: transform .2s var(--ease); }
   .thms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 12px 0 10px; }
@@ -529,7 +530,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd2.2 (11/23 7:50pm)';
+const BUILD = 'd2.3 (11/23 8:30pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -783,7 +784,8 @@ function live() {
   const items = engineItems(tk ? data.assignments.map(a => TEST[kOf(a)] != null ? Object.assign({}, a, { g: TEST[kOf(a)] }) : a) : data.assignments), ctx = { absences: absences() };
   const courses = g.courses.map(c => {
     if (!c.rule) return c;
-    const rule = c._rule || (c._rule = revive(c.rule)), r = Engine.grade(rule, items, ctx), counted = r.cats.filter(k => k.kind === 'normal'), tot = counted.reduce((s, k) => s + (k.weight || 0), 0);
+    let rule, r; try { rule = c._rule || (c._rule = revive(c.rule)); r = Engine.grade(rule, items, ctx); } catch (e) { console.error('grading ' + c.code, e); return Object.assign({}, c, { raw: null, letter: '', gp: null, cats: [], trace: ['couldn’t grade: ' + (e.message || e)] }); }
+    const counted = r.cats.filter(k => k.kind === 'normal'), tot = counted.reduce((s, k) => s + (k.weight || 0), 0);
     return Object.assign({}, c, { raw: r.value, letter: r.letter || '', gp: r.gp, trace: r.trace,
       cats: r.cats.map(k => ({ name: k.name, abbr: k.abbr, kind: k.kind, w: k.weight, poss: k.count, graded: k.graded, pct: k.pct, share: k.kind === 'normal' && tot ? (k.weight || 0) / tot : 0, notes: k.notes })) });
   });
@@ -968,8 +970,8 @@ function renderAll() {
     const tmp = document.createElement('div'); fn(tmp);
     if (morphKeep(v, tmp, ae)) { if (VIEW === 'course') rulesPreview(); growBars(); countUp(); return; }
     v.replaceChildren(...tmp.childNodes);
-  } else fn(v);
-  if (VIEW === 'course') rulesPreview();
+  } else { try { fn(v); } catch (e) { console.error('drawing ' + VIEW, e); v.innerHTML = `<div class="empty pagefail">couldn’t show this page<button class="btn sm" data-act="reload">reload</button></div>`; } }
+  if (VIEW === 'course') try { rulesPreview(); } catch (e) { console.error(e); }
   growBars(); countUp();
   if (keep) { const el = v.querySelector('[data-k="' + CSS.escape(keep.k) + '"]'); if (el) { el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (x) {} } }
 }
@@ -1026,6 +1028,8 @@ function chipHtml(a, showDay) {
 }
 
 // ---------- dashboard ----------
+// one widget failing shows – in its own spot; the rest of the page still draws
+function safe(f, ...a) { try { return f(...a); } catch (e) { console.error(f.name, e); return '<div class="card wfail"><span class="muted">–</span></div>'; } }
 function renderDash(v) {
   const A = data.assignments, ws = addDays(weekStart(Date.now()), weekOff * 7), we = addDays(ws, 7), T = today();
   const wk = A.filter(a => a.t >= ws && a.t < we), done = wk.filter(a => a.d).length;
@@ -1045,15 +1049,15 @@ function renderDash(v) {
       <div class="card"><div class="wk"><button class="iconbtn" data-act="wk-" aria-label="previous week">${IC.l}</button><span class="lbl">${rel}</span><button class="iconbtn" data-act="wk+" aria-label="next week">${IC.r}</button></div>
         <div class="wheel"><svg viewBox="0 0 200 200">${wheelSvg(wk)}</svg><div class="c"><div class="wpct${wk.length && done === wk.length ? ' full' : ''}">${cnt('wk' + weekOff, wk.length ? Math.round(done / wk.length * 100) : 0, 0)}%</div><div class="wfrac">${done}/${wk.length}</div></div></div>
         <div class="legend">${wheelCourses(wk).map(c => `<span><b style="background:${colorFor(c)}"></b>${esc(c)}</span>`).join('')}</div></div>
-      ${nextUpHtml()}
-      <div class="col${SLOT === 'completion' && !slotEdit ? ' wide1' : ''}">${slotHtml()}${countdownHtml()}</div>
-      ${dashGradesHtml()}
+      ${safe(nextUpHtml)}
+      <div class="col${SLOT === 'completion' && !slotEdit ? ' wide1' : ''}">${safe(slotHtml)}${safe(countdownHtml)}</div>
+      ${safe(dashGradesHtml)}
     </div>
     ${late.length ? `<div class="overdue"><div class="weekbar"><span class="t late">${late.length} overdue</span></div><div class="row">${late.map(a => chipHtml(a, true)).join('')}</div></div>` : ''}
     <div class="weekbar"><span class="t">${wn < 1 ? 'before the semester' : 'week ' + wn}</span>${weekOff ? '<button class="btn sm" data-act="wk0">this week</button>' : ''}
       <span class="r">${wk.length - done} to do<button class="iconbtn" data-act="wk-" aria-label="previous week">${IC.l}</button><button class="iconbtn" data-act="wk+" aria-label="next week">${IC.r}</button></span></div>
     <div class="days">${days}</div>
-    <div class="pair">${raHtml(raAll ? 0 : 8)}${todoHtml(tdAll ? 0 : 8)}</div>`;
+    <div class="pair">${safe(raHtml, raAll ? 0 : 8)}${safe(todoHtml, tdAll ? 0 : 8)}</div>`;
 }
 function wheelCourses(wk) { const seen = []; wk.forEach(a => { if (!seen.includes(a.c) && a.c && !blankCls(a.c)) seen.push(a.c); }); return seen.sort(); }
 // week wheel. When the same week's rings re-render with a different count (e.g. 4/6 → 5/6), only the changed ring moves, from where it was.
@@ -2054,6 +2058,7 @@ document.addEventListener('click', e => {
     case 'nt-open': SSEC = 'semesters'; NEWT = { name: guessTermName(), start: '', ldoc: '', exams: '' }; return renderAll();
     case 'nt-x': NEWT = null; return renderAll();
     case 'nt-go': return newTerm();
+    case 'reload': return location.reload();
     case 'fin-open': finOpen(); renderAll(); $('main').scrollTop = 0; return;
     case 'fin-x': FIN = null; return renderAll();
     case 'fin-go': return finGo();

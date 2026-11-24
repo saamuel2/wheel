@@ -1,0 +1,20 @@
+// Empty and near-empty courses: a new semester or a new course must grade to "–" (null), never crash.
+const E = require('./engine.js'), R = require('./rules-fall26.js');
+let ok = true; const t = (c, m) => { console.log((c ? '✓ ' : '✗ ') + m); if (!c) ok = false; };
+const drop = { code: 'x101', method: 'weighted', progressive: true, categories: [{ abbr: 'QZ', name: 'quizzes', weight: 40, drop: 1 }, { abbr: 'EX', name: 'exams', weight: 60 }] };
+const run = (rule, items) => { try { return E.grade(rule, items); } catch (e) { return { err: e.message }; } };
+let g = run(drop, []);
+t(!g.err && g.value == null, 'drop-lowest course with no assignments grades to – (was a crash)');
+g = run(drop, [{ name: 'quiz 1', cls: 'x101', type: 'QZ', grade: '' }]);
+t(!g.err && g.value == null, 'one ungraded quiz: still –');
+g = run(drop, [{ name: 'quiz 1', cls: 'x101', type: 'QZ', grade: 80 }]);
+t(!g.err && Math.abs(g.value - 80) < 1e-9, 'one graded quiz with drop 1: the only grade is kept (80)');
+g = run(drop, [{ name: 'quiz 1', cls: 'x101', type: 'QZ', grade: 80 }, { name: 'quiz 2', cls: 'x101', type: 'QZ', grade: 100 }]);
+t(!g.err && Math.abs(g.value - 100) < 1e-9 && g.cats[0].count >= 0, 'two quizzes with drop 1: lowest dropped (100), count not negative');
+const exp = { code: 'x102', method: 'weighted', progressive: true, categories: [{ abbr: 'HW', name: 'homework', weight: 100, drop: 2, expect: 10 }] };
+t(!run(exp, []).err, '"# items" set, nothing graded: no crash');
+const pts = { code: 'x103', method: 'points', categories: [{ abbr: 'HW', name: 'homework', weight: 100, drop: 1 }] };
+t(!run(pts, []).err && run(pts, []).value == null, 'points course with drop and nothing entered: –');
+R.forEach(r => { const x = run(r, []); t(!x.err, r.code + ' (real fall rules) with no assignments: ' + (x.err || 'ok')); });
+t(E.gpa([{ value: null, gp: null, credits: 3 }]) == null || isNaN(E.gpa([{ value: null, gp: null, credits: 3 }])) === false, 'term gpa with no grades does not throw');
+process.exit(ok ? 0 : 1);
