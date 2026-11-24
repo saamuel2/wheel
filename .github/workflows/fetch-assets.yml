@@ -1,0 +1,54 @@
+# One-time (re-runnable) download of outside assets into the repo, so the site doesn't depend on other servers:
+# the course photos (Unsplash) and the Newsreader serif (Google Fonts). Commits whatever changed.
+name: fetch assets
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: course photos
+        run: |
+          mkdir -p img/courses
+          while read code id; do
+            curl -fsSL "https://images.unsplash.com/photo-${id}?auto=format&fm=webp&fit=crop&w=1000&q=70" -o "img/courses/${code}.webp"
+            echo "$code $(stat -c %s img/courses/${code}.webp) bytes"
+          done <<'EOF'
+          bch351 1748261348213-62f4c399bb72
+          bio240 1460672985063-6764ac8b9c74
+          bsc494 1758685848204-a170e78f1507
+          gn427 1681911046053-1d2fdce39ea0
+          gn521 1641903202531-bfa6bf0c6419
+          pb421 1665105649738-66da1f93c2ad
+          phi325 1676208563682-634bf0875649
+          e115 1584949091598-c31daaaa4aa9
+          EOF
+      - name: newsreader font (latin, roman + italic, variable)
+        run: |
+          mkdir -p fonts
+          UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+          curl -fsSL -A "$UA" 'https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap' -o /tmp/g.css
+          python3 - <<'PY'
+          import re, urllib.request
+          css = open('/tmp/g.css').read()
+          out = []
+          for sub, block in re.findall(r'/\* ([\w-]+) \*/\s*(@font-face\s*\{[^}]*\})', css):
+              if sub != 'latin': continue
+              style = re.search(r'font-style:\s*(\w+)', block).group(1)
+              url = re.search(r'url\((https://[^)]+)\)', block).group(1)
+              name = f'newsreader-{style}.woff2'
+              urllib.request.urlretrieve(url, 'fonts/' + name)
+              out.append(block.replace(url, name))
+          assert len(out) == 2, out
+          open('fonts/newsreader.css', 'w').write('/* Newsreader (SIL Open Font License), latin, from Google Fonts; fetched by .github/workflows/fetch-assets.yml */\n' + '\n'.join(out) + '\n')
+          print(open('fonts/newsreader.css').read())
+          PY
+          ls -la fonts
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img fonts
+          git diff --cached --quiet && echo "nothing new" || (git commit -m "Fetch course photos and Newsreader font into the repo" && git push)
