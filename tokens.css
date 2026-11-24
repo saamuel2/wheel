@@ -1,0 +1,23 @@
+/* tokens.css: one scale for both apps (desktop.html and app.html). Each app may set its own --r-ctl, --r-card and --r-sheet
+   (the phone's corners are rounder, like iOS); everything else is shared. Use these instead of raw numbers. */
+:root {
+  /* type */
+  --fs-tab: 10px; --fs-caption: 11px; --fs-footnote: 12px; --fs-sub: 13px; --fs-callout: 14px; --fs-body: 15px; --fs-headline: 17px;
+  --fs-title3: 20px; --fs-title2: 22px; --fs-title1: 28px; --fs-large: 34px; --fs-display: 44px; --fs-hero: 64px;
+  /* corners */
+  --r-mark: 3px; --r-xs: 4px; --r-sm: 6px; --r-ctl: 8px; --r-md: 12px; --r-card: 14px; --r-sheet: 14px; --r-full: 999px;
+  /* motion */
+  --dur-fast: .15s; --dur: .25s; --dur-slow: .4s;
+  --ease: cubic-bezier(.32,.72,0,1); --spring: cubic-bezier(.32,.72,0,1); --bounce: cubic-bezier(.34,1.56,.64,1);
+}
+/* elevation: 1 controls and resting cards · 2 lifted things (hover, tooltips, small floating buttons) · 3 floating bars, toasts
+   · 4 popovers, sheets, drawers. The shadow color follows the theme. */
+:root {
+  --sh-1: rgba(0,0,0,.25); --sh-2: rgba(0,0,0,.25); --sh-3: rgba(0,0,0,.4); --sh-4: rgba(0,0,0,.4);
+  --e1: 0 1px 3px var(--sh-1); --e2: 0 4px 14px var(--sh-2); --e3: 0 10px 30px var(--sh-3); --e4: 0 14px 44px var(--sh-4);
+}
+html[data-theme=light] { --sh-1: rgba(0,0,0,.1); --sh-2: rgba(0,0,0,.12); --sh-3: rgba(0,0,0,.16); --sh-4: rgba(0,0,0,.16); }
+html[data-theme=elegant] { --sh-1: rgba(24,60,64,.08); --sh-2: rgba(24,60,64,.14); --sh-3: rgba(24,60,64,.2); --sh-4: rgba(24,60,64,.24); }
+/* status colors (an app's own theme may set its own --red) */
+:root { --red: #FF453A; --green: #30D158; --yellow: #FFD60A; --on-tint: #fff; }
+html[data-theme=light], html[data-theme=elegant] { --red: #FF3B30; --green: #34C759; --yellow: #FFCC00; }
