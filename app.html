@@ -444,8 +444,7 @@
     background: color-mix(in srgb, var(--card) 88%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: 0 4px 16px rgba(0,0,0,.18); white-space: nowrap; }
   .termpill[hidden] { display: none; } .termpill b { color: var(--text); } .termpill button { border: 0; border-radius: 12px; padding: 4px 10px; background: var(--fill); color: var(--text); font: inherit; font-weight: 600; }
 </style>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
+<link rel="stylesheet" href="fonts/newsreader.css">
 <script>try{var t=localStorage.getItem('wheel-theme');if(t==='light'||t==='elegant'||t==='moody')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <script src="changelog.js"></script>
 </head>
@@ -807,8 +806,9 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm3.1 (11/23 8:30pm)';
+    const BUILD = 'm3.2 (11/23 9:10pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});   // opens offline from the saved copy
     let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
     const termQ = () => (appData && appData.term) || TERM;
     let SEM_START = new Date(2026, 7, 16).getTime();   // Sunday of week 1 (classes began Wed Aug 19, 2026)
@@ -1384,7 +1384,7 @@
       scrollView = item.dataset.target;
       if (same) sc.scrollTo({ top: 0, behavior: 'smooth' }); else sc.scrollTop = scrollPos[scrollView] || 0;
       $('topbar').classList.toggle('show', sc.scrollTop > 34);
-      $('tb-title').textContent = item.dataset.target === 'view-dashboard' ? 'dashboard' : document.querySelector('#' + item.dataset.target + ' h1').textContent; $('topbar').dataset.v = item.dataset.target;
+      $('tb-title').textContent = item.dataset.target === 'view-dashboard' ? 'dashboard' : document.querySelector('#' + item.dataset.target + ' h1').textContent; document.title = item.dataset.target === 'view-dashboard' ? 'assignments' : 'assignments – ' + $('tb-title').textContent; $('topbar').dataset.v = item.dataset.target;
     }));
 
     // --- GRADES TAB + CLASS OVERVIEW ---

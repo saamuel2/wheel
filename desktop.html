@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#000000">
 <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/spreadsheets/spreadsheets-2026-v3.ico">
+<link rel="icon" type="image/svg+xml" href="favicon-desktop.svg">
+<link rel="icon" type="image/png" href="favicon-desktop.png">
 <link rel="apple-touch-icon" href="icon-ipad.png">
 <link rel="manifest" href="desktop.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,8 +14,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="assignments">
 <title>assignments</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap">
+<link rel="stylesheet" href="fonts/newsreader.css">
 <script>try{var t=localStorage.getItem('wheel-theme');t=t&&t.replace(/"/g,'');if(t==='light'||t==='elegant'||t==='moody')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <style>
   /* same tokens and themes as the phone app (2.38) */
@@ -530,7 +531,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd2.3 (11/23 8:30pm)';
+const BUILD = 'd2.4 (11/23 9:10pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -538,6 +539,7 @@ const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
 const termSheetId = () => { const t = typeof termNow === 'function' && data ? termNow() : null; return t && t.sheet && t.sheet !== 'demo' ? t.sheet : FALL26_ID; };
 const sheetUrl = () => 'https://docs.google.com/spreadsheets/d/' + termSheetId() + '/edit';
 const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});   // opens offline from the saved copy
 const store = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 let KEY = store.get('wheel-token', '');
@@ -937,7 +939,7 @@ function go(v, fade) {
   if (v === 'extra' || v === 'tasks') v = 'dash';   // the tasks page is gone; RA tasks + to-do live on the dashboard
   const inSet = x => x === 'settings' || x === 'course', quiet = inSet(v) && inSet(VIEW); if (quiet) fade = false;
   if (v !== VIEW && !quiet) spinWheel2(5);
-  VIEW = v; store.set('desk-view', v); $('main').classList.remove('gsmode'); if ($('gshost')) $('gshost').classList.remove('on');
+  VIEW = v; store.set('desk-view', v); document.title = v === 'dash' ? 'assignments' : 'assignments – ' + ({ sheet: 'sheet', grades: 'grades', att: 'attendance', settings: 'settings', course: 'settings' }[v] || v); $('main').classList.remove('gsmode'); if ($('gshost')) $('gshost').classList.remove('on');
   document.querySelectorAll('.nav').forEach(n => n.classList.toggle('on', n.dataset.view === v));
   document.querySelectorAll('.view').forEach(s => { s.classList.toggle('on', s.id === 'v-' + v); s.classList.toggle('fade', fade !== false && s.id === 'v-' + v); });
   Object.keys(CNT).forEach(k => delete CNT[k]); COUNT0 = true; renderAll(); COUNT0 = false; $('main').scrollTop = 0;
@@ -1843,12 +1845,12 @@ const NC_TPL = [
   ['pf', 'pass / fail', { 'grade by': 'weights', 'pass at': 70 }, [['coursework', 'CW', 100, '', '']]],
   ['blank', 'blank', { 'grade by': 'weights' }, []],
   ['later', 'set up later', null, null]];
-const PHOTO = id => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1000&q=70`;
+// course photos live in img/courses (fetched once from Unsplash by .github/workflows/fetch-assets.yml; ids kept for re-fetching)
 // bch351 pipette, bio240 heart model, bsc494 chalkboard, gn427 blue dna render, gn521 glowing dna, pb421 lavender buds, phi325 gold statue, e115 code
 const COURSE_PHOTOS = { bch351: '1748261348213-62f4c399bb72', bio240: '1460672985063-6764ac8b9c74', bsc494: '1758685848204-a170e78f1507', gn427: '1681911046053-1d2fdce39ea0',
   gn521: '1641903202531-bfa6bf0c6419', pb421: '1665105649738-66da1f93c2ad', phi325: '1676208563682-634bf0875649', e115: '1584949091598-c31daaaa4aa9' };
 const SUBJ_PHOTOS = { bch: 'bch351', ch: 'bch351', bio: 'bio240', zo: 'bio240', bsc: 'bsc494', gn: 'gn521', pb: 'pb421', phi: 'phi325', e: 'e115', csc: 'e115', ma: 'e115', eng: 'phi325', mus: 'bsc494' };
-function coursePhoto(code) { const k = String(code || '').toLowerCase(), id = COURSE_PHOTOS[k] || COURSE_PHOTOS[SUBJ_PHOTOS[(/^[a-z]+/.exec(k) || [''])[0]]]; return id ? PHOTO(id) : ''; }
+function coursePhoto(code) { const k = String(code || '').toLowerCase(), id = COURSE_PHOTOS[k] || COURSE_PHOTOS[SUBJ_PHOTOS[(/^[a-z]+/.exec(k) || [''])[0]]]; const key = COURSE_PHOTOS[k] ? k : SUBJ_PHOTOS[(/^[a-z]+/.exec(k) || [''])[0]]; return id && key ? `img/courses/${key}.webp` : ''; }
 const CSTYLE = 'c';   // photo across the card, the card color washing over it from the left
 const PIC_WORDS = [[/teach/, '🍎'], [/anat|phys(iol)?\b/, '🫀'], [/plant|bot/, '🌱'], [/bioinf|comput|program|cod/, '💻'], [/ethic|phil/, '⚖️'], [/gene|molgen/, '🧬'], [/biochem/, '🧪'], [/micro/, '🦠'], [/stat/, '📊'], [/calc|math/, '📐'], [/writ|engl|essay/, '✍️'], [/music|band/, '🎵'], [/chem/, '⚗️'], [/lab/, '🔬'], [/well|resil/, '🧘'], [/honor|forum/, '🎓'], [/wolf|village|ra\b/, '🏠'], [/neuro|psych/, '🧠'], [/eco|enviro/, '🌍'], [/hist/, '🏛️']];
 const PIC_SUBJ = { bch: '🧪', ch: '⚗️', bio: '🧫', gn: '🧬', pb: '🌱', phi: '⚖️', e: '💻', csc: '💻', ma: '📐', st: '📊', eng: '✍️', mus: '🎵', hon: '🎓', psy: '🧠', mb: '🦠', bsc: '🍎', lsc: '🔬', hesf: '🧘', wv: '🏠' };
