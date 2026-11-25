@@ -3,8 +3,8 @@
 // the network is down or takes longer than a few seconds. Photos, fonts and icons never change under the same name:
 // saved copy first. Only this site's own files are handled; the sheet's data (script.google.com) and everything
 // else from other sites pass straight through.
-const CACHE = 'wheel-shell-v2';
-const SHELL = ['desktop.html', 'app.html', 'engine.js', 'sheetrules.js', 'changelog.js', 'tokens.css', 'fonts/newsreader.css',
+const CACHE = 'wheel-shell-v3';
+const SHELL = ['desktop.html', 'app.html', 'engine.js', 'sheetrules.js', 'lamp.js', 'changelog.js', 'tokens.css', 'fonts/newsreader.css',
   'desktop.webmanifest', 'favicon-desktop.png', 'favicon-desktop.svg', 'icon.png', 'icon-ipad.png'];
 const WAIT_MS = 3500;
 

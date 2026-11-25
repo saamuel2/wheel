@@ -275,7 +275,8 @@
   .regrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px 12px; }
   .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 12px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
   .recat { margin-bottom: 12px; } .rehd { display: flex; gap: 8px; margin-bottom: 12px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
-  .swheel { width: 100%; height: auto; aspect-ratio: 1; padding: 0 6px; margin: 0 0 24px; display: block; flex: none; }   .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 6px 12px; font-size: var(--fs-sub); gap: 12px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; margin: 0 7.5px; }
+  .swheel { width: 100%; height: auto; aspect-ratio: 1; padding: 0 6px; margin: 0 0 24px; display: block; flex: none; }
+  .slamp { position: relative; height: clamp(300px, 52vh, 460px); margin: -8px -12px 16px; flex: none; } .slamp[hidden], .swheel[hidden] { display: none; } .slamp canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }   .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 6px 12px; font-size: var(--fs-sub); gap: 12px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; margin: 0 7.5px; }
   .cgrid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; } @media (max-width: 1100px) { .cgrid { grid-template-columns: 1fr; } }
   .recut.r12 { grid-template-columns: repeat(12, minmax(44px, 1fr)); } @media (max-width: 1000px) { .recut.r12 { grid-template-columns: repeat(6, 1fr); } }
   .tscroll { overflow-x: auto; margin: 0 -4px; } .ctab { min-width: 980px; } .ctab td { vertical-align: middle; padding: 6px 4px; } .ctab .txt { height: 32px; padding: 0 8px; width: 100%; font-size: var(--fs-sub); }
@@ -458,7 +459,7 @@
   @media (max-width: 980px) { .glance { grid-template-columns: 1fr 1fr; } .pair, .tri { grid-template-columns: 1fr; } }
   @media (max-width: 900px) {
     .app { grid-template-columns: 68px 1fr; } .side { padding: 20px 10px; align-items: center; }
-    .brand { font-size: 0; gap: 0; padding: 0 0 20px; justify-content: center; } .swheel, .subnav, .sync { display: none !important; }
+    .brand { font-size: 0; gap: 0; padding: 0 0 20px; justify-content: center; } .swheel, .slamp, .subnav, .sync { display: none !important; }
     .nav { font-size: 0; gap: 0; width: 44px; height: 44px; padding: 0; justify-content: center; } .nav svg { width: 22px; height: 22px; }
     .toolbar { flex-wrap: wrap; } .toolbar .cchips { order: 3; flex-basis: 100%; } .accs { flex-wrap: wrap; justify-content: flex-end; }
     .days { grid-template-columns: 1fr; gap: 8px; } .day { flex-direction: row; flex-wrap: wrap; align-items: flex-start; min-height: 0; padding: 12px; gap: 8px; }
@@ -516,6 +517,7 @@
   <nav class="side" id="side">
     <div class="brand"><svg class="logo" id="logo" viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><circle cx="32" cy="32" r="25" fill="none" stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-dasharray="117.81 157.08" transform="rotate(-90 32 32)"/><circle cx="32" cy="32" r="6.5" fill="currentColor"/></svg>assignments</div>
     <svg class="swheel" id="swheel" viewBox="0 0 100 100" aria-hidden="true"></svg>
+    <div class="slamp" id="slamp" hidden><canvas aria-hidden="true"></canvas></div>
     <button class="nav" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9" opacity=".3"/><circle cx="12" cy="12" r="9" stroke-dasharray="42 100" transform="rotate(-90 12 12)"/><circle cx="12" cy="12" r="5" opacity=".3"/><circle cx="12" cy="12" r="5" stroke-dasharray="20 100" transform="rotate(-90 12 12)"/></svg>dashboard</button>
     <button class="nav" data-view="sheet"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>sheet</button>
     <button class="nav" data-view="grades"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2.12-1.15V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>grades</button>
@@ -544,10 +546,11 @@
 
 <script src="engine.js"></script>
 <script src="sheetrules.js"></script>
+<script src="lamp.js"></script>
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd2.9 (11/24 1:15am)';
+const BUILD = 'd3.0 (11/25 3:20pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1577,10 +1580,18 @@ function saveRules() {
     .catch(err => { R.saving = false; R.err = String(err.message || err); rulesPreview(); });
 }
 // wheel2 (sidebar): always this week's rings, no numbers or labels; rings grow when something is checked off and spin when you scroll or change pages
+let SIDE = store.get('desk-side', 'wheel'), LAMP = null;   // what sits under the logo: the wheel, or the lava lamp
 function sideWheel() {
   const el = $('swheel'); if (!el) return;
   const A = (data && data.assignments) || [], ws = weekStart(Date.now()), we = addDays(ws, 7), wk = A.filter(a => a.t >= ws && a.t < we), cs = wheelCourses(wk);
-  el.hidden = !cs.length; if (!cs.length) return;
+  const lp = $('slamp');
+  if (lp) { const on = SIDE === 'lamp' && !!window.Lamp; lp.hidden = !on;
+    if (on) { el.toggleAttribute('hidden', true);   // an svg has no .hidden property, so set the attribute
+      if (!LAMP) LAMP = Lamp.create(lp.querySelector('canvas'));
+      // this week's graded courses only: one cell per assignment, coloured once it's done
+      const g = cs.filter(c => !EXTRA.includes(c)).map(c => { const mine = wk.filter(a => a.c === c); return { c, n: mine.length, d: mine.filter(a => a.d).length, color: colorFor(c) }; });
+      LAMP.setTheme(THEME); LAMP.setStill(!MO.all || matchMedia('(prefers-reduced-motion: reduce)').matches); LAMP.setWeek(g); return; } }
+  el.toggleAttribute('hidden', !cs.length); if (!cs.length) return;
   const R = 49, IN = 7, GAP = 1.3, th = (R - IN) / cs.length, w = Math.max(th - GAP, 1.5);
   const bg = (getComputedStyle(document.documentElement).getPropertyValue('--bg') || '').trim();
   const rings = cs.map((c, i) => { const mine = wk.filter(a => a.c === c); return { c, rad: R - i * th - th / 2, w, col: colorFor(c), p: mine.filter(a => a.d).length / mine.length }; });
@@ -1635,7 +1646,7 @@ function spinWheel2(kick) {
   SPIN.raf = requestAnimationFrame(step);
 }
 (() => { let y = 0; const m = $('main'); if (!m) return; y = m.scrollTop;
-  m.addEventListener('scroll', () => { const d = m.scrollTop - y; y = m.scrollTop; if (Math.abs(d) < 200) spinWheel2(d * .022); }, { passive: true }); })();
+  m.addEventListener('scroll', () => { const d = m.scrollTop - y; y = m.scrollTop; if (Math.abs(d) < 200) { if (LAMP && SIDE === 'lamp') LAMP.kick(Math.min(Math.abs(d), 120) / 300); else spinWheel2(d * .022); } }, { passive: true }); })();
 function brandColor() { const l = $('logo'); if (l) l.style.color = colorFor('gn427'); }   // the tab icon stays the google sheets one
 // completion bars grow from where they were, like the wheel's rings
 function growBars() {
@@ -1702,7 +1713,7 @@ const SHORTCUTS = [['anywhere', [[kb('1'), '–', kb('5')], 'switch pages'], [[k
     [[kb('F2')], 'edit inside a cell'], [[kb('esc')], 'put back what was there'], [[kb('mod', 'c'), kb('mod', 'v')], 'copy and paste cells']]];
 // one flat list of every setting, for search
 function settingsIndex() {
-  const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['motion', 'motion'], ['motion', 'all motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
+  const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['appearance', 'sidebar'], ['appearance', 'lava lamp'], ['motion', 'motion'], ['motion', 'all motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
     [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['semesters', 'semesters'], ['semesters', 'new semester'], ['semesters', 'report card'], ['about', 'what’s new'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
     ((data && data.setup) || []).map(x => ['courses', spaceCode(x.code) + ' ' + (x.cfg ? x.cfg.name : '')]),
     SHORTCUTS.flatMap(([, ...rows]) => rows.map(r => ['shortcuts', r[1]])));
@@ -1723,7 +1734,7 @@ function setPaneHtml() {
   if (SSEC === 'appearance') {
     h = rw('minmax(0,2fr) minmax(0,1fr)', grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
         <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`), grp('accent and motion', `<div class="row"><span>accent</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
-        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div><div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div>`)) + motionHtml();
+        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div><div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div><div class="row"><span>sidebar</span><div class="seg">${[['wheel', 'wheel'], ['lamp', 'lava lamp']].map(([k, l]) => `<button class="${SIDE === k ? 'on' : ''}" data-act="side" data-s="${k}" aria-pressed="${SIDE === k}">${l}</button>`).join('')}</div></div>`)) + motionHtml();
   }
   function motionHtml() { return rw('1fr', grp('effects', `<div class="egrid">${MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')}</div>`)); }
   if (SSEC === 'appearance') { /* built above */ } else if (SSEC === 'widgets') {
@@ -2142,6 +2153,7 @@ document.addEventListener('click', e => {
     case 'nc-add': NEWC.cats.push({ name: '', type: '', weight: '', items: '', drop: '' }); renderAll(); setTimeout(() => { const r = document.querySelectorAll('.nctab tbody tr'); const i = r.length && r[r.length - 1].querySelector('input'); if (i) i.focus(); }, 30); return;
     case 'nc-rm': NEWC.cats.splice(+t.dataset.i, 1); return renderAll();
     case 'term-back': { const c = termCur(); if (c) switchTerm(c.id); return; }
+    case 'side': SIDE = t.dataset.s === 'lamp' ? 'lamp' : 'wheel'; store.set('desk-side', SIDE); return renderAll();
     case 'accent': ACC = t.dataset.c || ''; store.set('desk-accent', ACC); applyAccent(); return renderAll();
     case 'setslot': SLOT = t.dataset.v; store.set('desk-slot', SLOT); renderPop(); return renderAll();
     case 'note-add': return addNote();
