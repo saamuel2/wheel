@@ -157,18 +157,16 @@
   .chip .tx { min-width: 0; flex: 1; } .chip .nm { font-size: var(--fs-sub); font-weight: 600; line-height: 1.25; hyphens: auto; -webkit-hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .chip .mt { font-size: var(--fs-caption); color: var(--sub); } .chip .mt .acode { color: var(--ci, var(--c)); font-weight: 600; }
   .gp + .gp { margin-left: .6em; }
-  .chip[data-act=asg]:hover { --cb: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { --cb: var(--card2); background: var(--cb); }
-  /* hover controls: done on the left, edit on the right, each over a soft fade so they never sit on the text */
-  .chip > .chk, .chip > .ced { position: absolute; top: 4px; bottom: 4px; height: auto; width: 26px; z-index: 2; margin: 0; padding: 0; border: 0; border-radius: max(4px, calc(var(--r-ctl) - 4px)); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transform: scale(.85); transition: opacity var(--dur-fast), transform var(--dur-fast) var(--ease), background-color var(--dur-fast); }
-  .chip > .chk { left: 4px; background: var(--c, var(--sub)); } .chip > .chk svg { opacity: 1; } .chip > .ced { right: 4px; background: color-mix(in srgb, var(--text) 8%, var(--cb)); color: var(--sub); } .chip > .ced:hover { color: var(--text); background: color-mix(in srgb, var(--text) 13%, var(--cb)); } .chip > .chk:hover { filter: brightness(1.08); }
-  .chip { overflow: hidden; } .chip .tx { transition: transform var(--dur-fast) var(--ease); }
-  .chip::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 52px; z-index: 1; opacity: 0; pointer-events: none; transition: opacity var(--dur-fast); background: linear-gradient(270deg, var(--cb) 60%, transparent); }
-  .chip:hover .tx, .chip:focus-within .tx { transform: translateX(26px); } .chip.done:hover .tx, .chip.done:focus-within .tx { transform: translateX(20px); }   /* the name slides over to make room for the check, so its start stays readable */
-  .chip:hover > .chk, .chip:focus-within > .chk, .chip:hover > .ced, .chip:focus-within > .ced { opacity: 1; pointer-events: auto; transform: none; }
-  .chip:hover::after, .chip:focus-within::after { opacity: 1; }
-  body.dragon .chip > .chk, body.dragon .chip > .ced, body.dragon .chip::after { opacity: 0 !important; } body.dragon .chip .tx { transform: none; }
-  @media (hover: none) { .chip { padding-left: 38px; padding-right: 38px; } .chip.done { padding-left: 32px; padding-right: 32px; } .chip::after { display: none; } .chip:hover .tx, .chip:focus-within .tx { transform: none !important; }
-    .chip > .chk, .chip > .ced { opacity: 1; pointer-events: auto; transform: none; } }
+  .chip[data-act=asg]:hover { --cb: color-mix(in srgb, var(--c) 10%, var(--card2)); }
+  .chip .chk { margin-top: 1px; } .chip.done .chk { width: 14px; height: 14px; margin-top: 0; }
+  /* open cards with a mouse: no circle; hovering splits the card into check (left half) and edit (right half) */
+  .chip .split { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: inherit; background: var(--cb); opacity: 0; pointer-events: none; transition: opacity var(--dur-fast); }
+  .chip .split button { border: 0; border-radius: max(4px, calc(var(--r-ctl) - 4px)); display: flex; align-items: center; justify-content: center; padding: 0; transition: background-color var(--dur-fast), filter var(--dur-fast), color var(--dur-fast); }
+  .chip .split .sk { background: var(--c, var(--sub)); } .chip .split .se { background: color-mix(in srgb, var(--text) 9%, var(--card2)); color: var(--sub); } .chip .split svg { width: 16px; height: 16px; }
+  .chip .split .sk:hover { filter: brightness(1.07); } .chip .split .se:hover { color: var(--text); background: color-mix(in srgb, var(--text) 14%, var(--card2)); }
+  @media (hover: hover) { .chip:not(.done) > .chk { display: none; } .chip:not(.done):hover .split, .chip:not(.done):focus-within .split { opacity: 1; pointer-events: auto; } }
+  .chip.done .split { display: none; } @media (hover: none) { .chip .split { display: none; } .chip { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; } }   /* touch: the circle checks it off, a hold edits it */
+  body.dragon .chip .split { opacity: 0 !important; } .chip.done[data-act=asg] { cursor: pointer; } .chip.done[data-act=asg]:hover { background: var(--fill); }
   .chip.dragging { opacity: .35; } .day { transition: box-shadow var(--dur-fast), background-color var(--dur-fast); } .day.drop { box-shadow: inset 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--tint) 8%, var(--card)); }
   body.dragon .chip { cursor: grabbing; }
   .pop.paste { width: 600px; } .pvbox { padding: 4px 16px 8px; } .popset textarea.txt { display: block; width: 100%; max-width: none; height: auto; min-height: 120px; padding: 8px 10px; resize: vertical; font: inherit; font-size: var(--fs-sub); line-height: 1.4; }
@@ -178,9 +176,9 @@
   .popset .aefm .txt { height: 30px; } .popset .aefm .row .txt { width: 150px; max-width: 150px; } .popset .aefm .row .aeg .txt { width: 69px; } .aefm .aesm { text-align: left; }
  .aeg { display: flex; align-items: center; gap: 6px; } .aeg i { color: var(--sub); font-style: normal; }
   .aeft { display: flex; justify-content: space-between; padding: 10px 16px 8px; } .aedel { color: var(--red); }
-  .chip.done { padding: 4px 8px; opacity: .55; background: transparent; align-items: center; } .chip.done:hover, .chip.done:focus-within { opacity: .85; }
+  .chip.done { padding: 4px 8px 4px 4px; opacity: .55; background: transparent; align-items: center; }
   .chip.done .nm { font-size: var(--fs-footnote); font-weight: 500; text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chip.done .mt { display: none; } .chip.done > .chk, .chip.done > .ced { top: 3px; bottom: 3px; width: 22px; } .chip.done > .chk { left: 3px; } .chip.done > .ced { right: 3px; }
+  .chip.done .mt { display: none; }
   .overdue { margin-bottom: 24px; } .overdue .row { display: flex; flex-wrap: wrap; gap: 8px; } .overdue .chip { width: 250px; }
   .late { color: var(--red); }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
@@ -562,7 +560,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd3.3 (11/25 3:35pm)';
+const BUILD = 'd3.4 (11/25 3:45pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1102,8 +1100,8 @@ function ink(c) {
 function chipHtml(a, showDay) {
   const col = colorFor(a.c), meta = gapj(`<b class="acode">${esc(spaceCode(a.c))}</b>`, esc(a.y || ''), showDay ? esc(dayLabel(a.t)) : '', esc(fmtG(a.g) || ''));
   return `<div class="chip${a.d ? ' done' : ''}" style="--c:${col};--ci:${ink(col)}" data-i="${data.assignments.indexOf(a)}" data-act="asg" draggable="true" title="${esc(a.n)}">` +
-    `<button class="chk" data-act="done" aria-label="${a.d ? 'not done' : 'done'}" title="${a.d ? 'not done' : 'done'}">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${meta}</div></div>` +
-    `<button class="iconbtn sm ced" data-act="asgedit" aria-label="edit" title="edit">${PENCIL}</button></div>`;
+    `<button class="chk" data-act="done" aria-label="${a.d ? 'not done' : 'done'}">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${meta}</div></div>` +
+    (a.d ? '' : `<div class="split"><button class="sk" data-act="done" aria-label="done" title="done">${CHECK}</button><button class="se" data-act="asgedit" aria-label="edit" title="edit">${PENCIL}</button></div>`) + `</div>`;
 }
 
 // ---------- dashboard ----------
@@ -2021,8 +2019,8 @@ function rmNote(k) {
   NOTE_RM.add(k); renderAll(); post({ action: 'note_done', text: n.x, ts: n.t }).catch(() => { NOTE_RM.delete(k); renderAll(); toast('couldn’t remove the note'); });
 }
 // small popups for the widget settings (greeting, calendars, countdown)
-let POP = null;
-function openPop(k, from) { POP = k; let w = $('popw'); if (!w) { w = document.createElement('div'); w.id = 'popw'; w.className = 'popw'; w.innerHTML = '<div class="pop" id="pop"></div>'; document.body.appendChild(w); w.addEventListener('mousedown', e => { if (e.target === w) closePop(); }); }
+let POP = null, HOLDT = 0;   // HOLDT: when a touch hold last opened something
+function openPop(k, from) { POP = k; let w = $('popw'); if (!w) { w = document.createElement('div'); w.id = 'popw'; w.className = 'popw'; w.innerHTML = '<div class="pop" id="pop"></div>'; document.body.appendChild(w); w.addEventListener('mousedown', e => { if (e.target === w && Date.now() - HOLDT > 700) closePop(); }); }   // not the lift that ends a hold
   renderPop(); w.classList.add('on');
   // sit just under (or above, if there's no room) the row that opened it, right-aligned with it
   const pop = $('pop'), r = from ? from.getBoundingClientRect() : null;
@@ -2140,7 +2138,7 @@ document.addEventListener('click', e => {
     case 'popdone': return closePop();
     case 'paste': { if (VIEW !== 'sheet') go('sheet'); PASTE = PASTE || { cls: '', text: '', rows: [] }; openPop('paste'); setTimeout(() => { const x = $('pv-text'); if (x) x.focus(); }, 30); return; }
     case 'pv-go': return pasteAdd();
-    case 'asg': return;   // the card itself: dragging only; its buttons check it off or edit it
+    case 'asg': { if (DRAGGED || !t.classList.contains('done')) return; const a = byIdx(t.dataset.i); if (a) { AEA = a; openPop('asg', t); } return; }   // open cards: the split buttons do it; a completed card opens its editor (for grades)
     case 'asgedit': { if (DRAGGED) return; const chipEl = t.closest('.chip'); const a = chipEl && byIdx(chipEl.dataset.i); if (!a) return; AEA = a; openPop('asg', chipEl); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
     case 'setsec': REPORT = null; NEWT = null; NEWC = null; FIN = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
@@ -2507,6 +2505,16 @@ document.addEventListener('dragover', e => { if (!DRAGGED) return; const d = e.t
   if (!d) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move'; d.classList.add('drop'); });
 document.addEventListener('drop', e => { const d = e.target.closest && e.target.closest('.day[data-day]'), a = DRAGGED; if (!d || !a) return; e.preventDefault();
   const to = +d.dataset.day; if (D0(a.t) !== to) { const c = document.querySelector(`.chip[data-i="${data.assignments.indexOf(a)}"]`) || document.createElement('i'); saveCell(a, 't', ymd(to), c); } });
+;(() => { let tm = 0, sx = 0, sy = 0, held = 0;
+  const stop = () => { clearTimeout(tm); tm = 0; };
+  document.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch') return; const c = e.target.closest('.chip[data-act=asg]'); if (!c || e.target.closest('.chk')) return;
+    sx = e.clientX; sy = e.clientY; stop(); tm = setTimeout(() => { tm = 0; const a = byIdx(c.dataset.i); if (!a || DRAGGED) return; held = HOLDT = Date.now(); if (navigator.vibrate) navigator.vibrate(10); AEA = a; openPop('asg', c); }, 450); });
+  document.addEventListener('pointermove', e => { if (tm && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) stop(); });
+  ['pointerup', 'pointercancel'].forEach(k => document.addEventListener(k, stop));
+  document.addEventListener('click', e => { if (Date.now() - held < 700 && e.target.closest('.chip')) { e.stopPropagation(); e.preventDefault(); held = 0; } }, true);   // the lift after a hold isn't a tap
+  document.addEventListener('dragstart', () => { stop(); if (Date.now() - held < 1500 && POP === 'asg') closePop(); });   // the hold turned into a drag
+  document.addEventListener('contextmenu', e => { if (matchMedia('(hover: none)').matches && e.target.closest('.chip')) e.preventDefault(); });
+})();
 document.addEventListener('dragend', () => { document.querySelectorAll('.day.drop, .chip.dragging').forEach(x => x.classList.remove('drop', 'dragging')); document.body.classList.remove('dragon'); setTimeout(() => { DRAGGED = null; }, 0); });
 // wheel ring focus: hovering a ring brings it forward
 document.addEventListener('mouseover', e => {

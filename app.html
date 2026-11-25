@@ -122,10 +122,10 @@
     box-shadow: var(--e2); transition: transform var(--dur-slow) var(--spring); transform: translateX(calc(100% * var(--i))); }
   .seg button { position: relative; flex: 1; border: 0; background: none; color: var(--text); font: 600 13px/32px inherit; font-family: inherit; touch-action: manipulation; }
   .grp { font-size: var(--fs-sub); color: var(--sub); margin: 24px 16px 8px; }
-  .grp.late { color: var(--red); }
+  .grp.late { color: var(--red); } .delrow { width: 100%; border: 0; background: none; color: var(--red); font: inherit; font-size: var(--fs-body); justify-content: center; cursor: pointer; } #f-delg[hidden] { display: none; }
   .group { background: var(--card); border-radius: var(--r-card); overflow: hidden; }
   #view-assignments .task:not(.gr-row) { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-  .task { position: relative; display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 16px 8px 8px; max-height: 80px;
+  .task { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; position: relative; display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 16px 8px 8px; max-height: 80px;
     transition: opacity var(--dur), max-height var(--dur-slow) var(--spring), min-height var(--dur-slow) var(--spring), padding var(--dur-slow) var(--spring), background var(--dur-fast); }
   .task:active { background: #2C2C2E; }
   .task + .task::before, .lrow + .lrow::before { content: ''; position: absolute; top: 0; left: 16px; right: 16px; height: .5px; background: var(--sep); }
@@ -521,6 +521,7 @@
         <div class="frow"><label for="f-grade">grade</label><input id="f-grade" inputmode="decimal" autocomplete="off"></div>
         <div class="frow"><label>completed</label><label class="sw"><input type="checkbox" id="f-done"><i></i></label></div>
       </div>
+      <div class="gap-top group" id="f-delg"><button class="frow delrow" id="f-del">delete</button></div>
     </div>
   </div>
 
@@ -827,7 +828,7 @@
 
     // --- PHASE 2.3: ASSIGNMENTS, DASHBOARD LIST, UNDO, SETTINGS ---
     const IC = { r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', p: '<svg class="ic" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-    const BUILD = 'm3.7 (11/24 1:15am)';
+    const BUILD = 'm3.8 (11/25 3:45pm)';
     const DEMO = /[?&]demo/.test(location.search) || !/github\.io$/.test(location.hostname);
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});   // opens offline from the saved copy
     let TERM = localStorage.getItem('wheel-term') || '';   // the semester you picked ('' = whichever is current)
@@ -1088,13 +1089,13 @@
     }
     (function () {
       let timer = null, sx = 0, sy = 0, fired = false;
-      const root = document.getElementById('view-assignments'); if (!root) return;
+      const root = document.body;   // dashboard and sheet tab alike
       const stop = () => { clearTimeout(timer); timer = null; };
       root.addEventListener('touchstart', e => {
-        const row = e.target.closest('.task[data-r]'); if (!row || e.target.closest('input')) return;
+        const row = e.target.closest('.task[data-r]'); if (!row || e.target.closest('input, .chk')) return;
         fired = false; sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-        timer = setTimeout(() => { fired = true; if (navigator.vibrate) navigator.vibrate(10);
-          const a = appData.assignments.find(x => String(x.r) === row.dataset.r && x.n === row.dataset.n && x.c === row.dataset.c); if (a) deleteAssignment(a); }, 650);
+        timer = setTimeout(() => { fired = true; if (navigator.vibrate) navigator.vibrate(10);   // hold to edit; delete lives in the editor
+          const a = appData.assignments.find(x => String(x.r) === row.dataset.r && x.n === row.dataset.n && x.c === row.dataset.c); if (a) openSheet(a); }, 500);
       }, { passive: true });
       root.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) stop(); }, { passive: true });
       root.addEventListener('touchend', e => { stop(); if (fired) { e.preventDefault(); fired = false; } });
@@ -1681,7 +1682,7 @@
       $('f-class').innerHTML = '<option value=""></option>' + Object.keys(names).sort().map(k => `<option value="${esc(k)}">${esc(names[k])}</option>`).join('');
       $('sh-title').textContent = a ? 'edit assignment' : 'new assignment'; $('sh-save').textContent = a ? 'save' : 'add';
       $('f-name').value = a ? a.n : ''; $('f-class').value = a ? a.c : ''; $('f-type').value = a ? (a.y || '') : '';
-      $('f-due').value = a ? toStr(a.t) : ''; updDue(); $('f-grade').value = a && a.g != null && a.g !== '' ? fmtG(a.g) : ''; $('f-done').checked = a ? !!a.d : false;
+      $('f-delg').hidden = !a; $('f-due').value = a ? toStr(a.t) : ''; updDue(); $('f-grade').value = a && a.g != null && a.g !== '' ? fmtG(a.g) : ''; $('f-done').checked = a ? !!a.d : false;
       formOk(); clearTimeout(shT);
       $('scrim').style.display = 'block'; $('sheet').style.display = 'flex'; void $('sheet').offsetHeight;
       $('scrim').classList.add('show'); $('sheet').classList.add('show');
@@ -1720,18 +1721,13 @@
         });
     }
     $('fab').addEventListener('click', () => $('topbar').dataset.v === 'view-attendance' ? openAbs(null) : openSheet(null));
-    $('sh-cancel').addEventListener('click', closeSheet); $('scrim').addEventListener('click', () => $('wsheet').classList.contains('show') ? closeWpop() : $('rsheet').classList.contains('show') ? closeRules() : $('asheet').classList.contains('show') ? closeAbs() : $('csheet').classList.contains('show') ? closeClass() : closeSheet()); $('sh-save').addEventListener('click', saveSheet);
+    $('sh-cancel').addEventListener('click', closeSheet); $('f-del').addEventListener('click', () => { const a = editing; if (!a) return; closeSheet(); deleteAssignment(a); }); $('scrim').addEventListener('click', () => $('wsheet').classList.contains('show') ? closeWpop() : $('rsheet').classList.contains('show') ? closeRules() : $('asheet').classList.contains('show') ? closeAbs() : $('csheet').classList.contains('show') ? closeClass() : closeSheet()); $('sh-save').addEventListener('click', saveSheet);
     ['f-name', 'f-class', 'f-due'].forEach(id => { $(id).addEventListener('input', formOk); $(id).addEventListener('change', formOk); });
     $('f-due').addEventListener('input', updDue); $('f-due').addEventListener('change', updDue);
     $('task-list').addEventListener('change', e => { const i = e.target.closest('.gin'); if (!i) return; const a = rowOf(i); if (a) setGrade(a, i.value, i); });
     $('task-list').addEventListener('focusin', e => { const i = e.target.closest && e.target.closest('.gin'); if (!i) return; const a = rowOf(i); if (a && a.g != null && a.g !== '' && i.value !== String(a.g)) i.value = String(a.g); });   // editing shows every decimal
     $('task-list').addEventListener('click', e => { const b = e.target.closest('.g100'); if (!b) return; const a = rowOf(b), i = b.previousElementSibling; if (a && i) { const f = String(fullOf(a)); i.value = f; setGrade(a, f, i); } });
-    $('task-list').addEventListener('click', e => {
-      if (e.target.closest('.chk, .gin, .g100')) return;
-      const row = e.target.closest('.task'); if (!row || !appData) return;
-      const a = appData.assignments.find(x => String(x.r) === row.dataset.r && x.n === row.dataset.n && x.c === row.dataset.c);
-      if (a) openSheet(a);
-    });
+    // a plain tap on a row does nothing: the circle checks it off, a hold edits it
     // swipe the sheet down to dismiss; lift it above the keyboard
     (function () {
       const sh = $('sheet'); let y0 = null, dy = 0;
