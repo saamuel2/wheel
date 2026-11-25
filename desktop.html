@@ -276,7 +276,9 @@
   .recut { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px 12px; } .recut .ref { text-align: center; } .recut .txt { text-align: center; }
   .recat { margin-bottom: 12px; } .rehd { display: flex; gap: 8px; margin-bottom: 12px; } .rehd .txt:first-child { flex: 1; font-weight: 700; }
   .swheel { width: 100%; height: auto; aspect-ratio: 1; padding: 0 6px; margin: 0 0 24px; display: block; flex: none; }
-  .slamp { position: relative; height: clamp(300px, 52vh, 460px); margin: -8px -12px 16px; flex: none; } .slamp[hidden], .swheel[hidden] { display: none; } .slamp canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }   .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 6px 12px; font-size: var(--fs-sub); gap: 12px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; margin: 0 7.5px; }
+  .slamp { position: relative; height: clamp(240px, 42vh, 368px); margin: 0 0 18px; flex: none; border-radius: 20px; overflow: hidden; background: var(--well); box-shadow: inset 0 2px 5px rgba(0,0,0,.16), inset 0 0 0 .5px var(--sep); }
+  .slamp::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 55% at 50% 108%, var(--bulb), transparent 70%); pointer-events: none; }   /* an opening into the lamp behind the page, lit warm from below */
+  :root { --well: color-mix(in srgb, var(--bg) 92%, #000); --bulb: rgba(255, 176, 92, .10); } html[data-theme=moody] { --well: #0A0A0A; --bulb: rgba(255, 176, 92, .07); } html:not([data-theme]) { --well: #0C0C0E; --bulb: rgba(255, 176, 92, .08); } .slamp[hidden], .swheel[hidden] { display: none; } .slamp canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }   .subnav { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 6px; } .nav.sub { padding: 6px 12px; font-size: var(--fs-sub); gap: 12px; } .nav.sub i { width: 7px; height: 7px; border-radius: 50%; flex: none; margin: 0 7.5px; }
   .cgrid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 16px; margin-bottom: 16px; } @media (max-width: 1100px) { .cgrid { grid-template-columns: 1fr; } }
   .recut.r12 { grid-template-columns: repeat(12, minmax(44px, 1fr)); } @media (max-width: 1000px) { .recut.r12 { grid-template-columns: repeat(6, 1fr); } }
   .tscroll { overflow-x: auto; margin: 0 -4px; } .ctab { min-width: 980px; } .ctab td { vertical-align: middle; padding: 6px 4px; } .ctab .txt { height: 32px; padding: 0 8px; width: 100%; font-size: var(--fs-sub); }
@@ -550,7 +552,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd3.0 (11/25 3:20pm)';
+const BUILD = 'd3.1 (11/25 3:25pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1590,7 +1592,7 @@ function sideWheel() {
       if (!LAMP) LAMP = Lamp.create(lp.querySelector('canvas'));
       // this week's graded courses only: one cell per assignment, coloured once it's done
       const g = cs.filter(c => !EXTRA.includes(c)).map(c => { const mine = wk.filter(a => a.c === c); return { c, n: mine.length, d: mine.filter(a => a.d).length, color: colorFor(c) }; });
-      LAMP.setTheme(THEME); LAMP.setStill(!MO.all || matchMedia('(prefers-reduced-motion: reduce)').matches); LAMP.setWeek(g); return; } }
+      LAMP.setTheme(THEME); LAMP.setStill(!MO.all); LAMP.setCalm(matchMedia('(prefers-reduced-motion: reduce)').matches); LAMP.setWeek(g); return; } }
   el.toggleAttribute('hidden', !cs.length); if (!cs.length) return;
   const R = 49, IN = 7, GAP = 1.3, th = (R - IN) / cs.length, w = Math.max(th - GAP, 1.5);
   const bg = (getComputedStyle(document.documentElement).getPropertyValue('--bg') || '').trim();
@@ -1713,7 +1715,7 @@ const SHORTCUTS = [['anywhere', [[kb('1'), '–', kb('5')], 'switch pages'], [[k
     [[kb('F2')], 'edit inside a cell'], [[kb('esc')], 'put back what was there'], [[kb('mod', 'c'), kb('mod', 'v')], 'copy and paste cells']]];
 // one flat list of every setting, for search
 function settingsIndex() {
-  const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['appearance', 'sidebar'], ['appearance', 'lava lamp'], ['motion', 'motion'], ['motion', 'all motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
+  const out = [['appearance', 'theme'], ['appearance', 'accent color'], ['appearance', 'sidebar'], ['appearance', 'lamp'], ['motion', 'motion'], ['motion', 'all motion']].concat(MOTION_LIST.map(([, l]) => ['motion', l]),
     [['widgets', 'greeting'], ['widgets', 'name'], ['widgets', 'calendars'], ['widgets', 'countdown'], ['widgets', 'variable'], ['feedback', 'notes'], ['semesters', 'semesters'], ['semesters', 'new semester'], ['semesters', 'report card'], ['about', 'what’s new'], ['about', 'build'], ['about', 'source'], ['about', 'last synced'], ['about', 'connection key']],
     ((data && data.setup) || []).map(x => ['courses', spaceCode(x.code) + ' ' + (x.cfg ? x.cfg.name : '')]),
     SHORTCUTS.flatMap(([, ...rows]) => rows.map(r => ['shortcuts', r[1]])));
@@ -1734,7 +1736,7 @@ function setPaneHtml() {
   if (SSEC === 'appearance') {
     h = rw('minmax(0,2fr) minmax(0,1fr)', grp('theme', `<div class="thms">${THEMES.map(([k, l, bg, card, tint]) => `<button class="thm${THEME === k ? ' on' : ''}" data-act="theme" data-t="${k}" aria-label="${l}">
         <span class="thv" style="background:${bg}"><i class="ts" style="background:${card}"></i><i class="tc" style="background:${card}"><b style="background:${ACC || tint}"></b></i><i class="tc t2" style="background:${card}"></i></span><span class="thl">${l}</span></button>`).join('')}</div>`), grp('accent and motion', `<div class="row"><span>accent</span><div class="accs"><button class="acc${!ACC ? ' on' : ''}" data-act="accent" data-c="" title="theme" aria-label="theme color" style="background:${THEMES.find(x => x[0] === THEME)[4]}"></button><i class="accsep"></i>${ACCENTS.map(([c, l]) => `<button class="acc${ACC === c ? ' on' : ''}" data-act="accent" data-c="${c}" title="${l}" aria-label="${l}" style="background:${c}"></button>`).join('')}
-        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div><div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div><div class="row"><span>sidebar</span><div class="seg">${[['wheel', 'wheel'], ['lamp', 'lava lamp']].map(([k, l]) => `<button class="${SIDE === k ? 'on' : ''}" data-act="side" data-s="${k}" aria-pressed="${SIDE === k}">${l}</button>`).join('')}</div></div>`)) + motionHtml();
+        <label class="acc any${ACC && !ACCENTS.some(x => x[0] === ACC) ? ' on' : ''}" title="any color" style="${ACC && !ACCENTS.some(x => x[0] === ACC) ? '--acc:' + ACC : ''}"><input type="color" id="acc-any" value="${ACC || '#3B82F6'}" aria-label="any color"></label></div></div><div class="row"><span>motion</span>${sw('data-mo="all"', MO.all)}</div><div class="row"><span>sidebar</span><div class="seg">${[['wheel', 'wheel'], ['lamp', 'lamp']].map(([k, l]) => `<button class="${SIDE === k ? 'on' : ''}" data-act="side" data-s="${k}" aria-pressed="${SIDE === k}">${l}</button>`).join('')}</div></div>`)) + motionHtml();
   }
   function motionHtml() { return rw('1fr', grp('effects', `<div class="egrid">${MOTION_LIST.map(([k, l]) => `<div class="row${MO.all ? '' : ' mo-sub'}"><span>${l}</span>${sw(`data-mo="${k}"`, MO[k])}</div>`).join('')}</div>`)); }
   if (SSEC === 'appearance') { /* built above */ } else if (SSEC === 'widgets') {

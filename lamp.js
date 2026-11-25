@@ -1,8 +1,8 @@
 // lava lamp for the sidebar: this week's graded assignments as wax.
 // one round cell per assignment, grey until it's submitted, then its course's colour; a slow bulb keeps the wax rising, pinching off and sinking.
-// Lamp.create(canvas) → { setWeek([{ c, n, d, color }]), setTheme('light'|'default'|'elegant'|'moody'), setStill(bool), kick(amount) }
+// Lamp.create(canvas) → { setWeek([{ c, n, d, color }]), setTheme('light'|'default'|'elegant'|'moody'), setStill(bool), setCalm(bool), kick(amount) }
 (function () {
-const LOOK = { light: { L: .68, C: .12, gL: .84 }, dark: { L: .74, C: .12, gL: .40 }, elegant: { L: .60, C: .085, gL: .81 }, moody: { L: .60, C: .085, gL: .34 } };
+const LOOK = { light: { L: .68, C: .12, gL: .93 }, dark: { L: .74, C: .12, gL: .40 }, elegant: { L: .60, C: .085, gL: .91 }, moody: { L: .60, C: .085, gL: .34 } };
 const toLin = c => (c /= 255) <= .04045 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4);
 const toSrgb = c => Math.round(255 * Math.max(0, Math.min(1, c <= .0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - .055)));
 function oklch(hex) {
@@ -29,7 +29,7 @@ const fit = () => { const r = cv.getBoundingClientRect(); if (!r.width || !r.hei
   if (ow && oh) P.forEach(p => { p.x *= W / ow; p.y *= H / oh; }); if (WANT || !BUILT) build(); else if (STILL) still(); };
 let S = 11.5, PER = 8, KR = S * 2.4;   // particle spacing; particles per cell; drawing radius (all set per week in fit to the week)
 // any week should look right: total wax grows gently with the number of assignments (4 is about 60% of 17, 40 about 140%), and each cell's size is its share of that
-function scaleFor(N) { N = Math.max(1, N); PER = N > 30 ? 6 : 8; const area = 15600 * Math.pow(N / 17, .4); S = Math.min(24, Math.sqrt(area / (N * PER * .87))); KR = S * 2.4; }
+function scaleFor(N) { N = Math.max(1, N); PER = 8; const area = Math.min(.4 * W * H, 15600 * Math.pow(N / 17, .4) * (W * H) / (216 * 460));   /* sized to the window, never more than 40% of it */ S = Math.min(24, Math.sqrt(area / (N * PER * .87))); KR = S * 2.4; }
 let P = [], CELLS = [], STAMP = 0, EMPTY = false;
 const rnd = (a, b) => a + Math.random() * (b - a);
 function addCell(k, cx, cy) { const ci = CELLS.length; CELLS.push({ k, on: false, col: 0, st: 0, pulse: 0 }); const rc = S * .6 * Math.sqrt(PER);
@@ -40,7 +40,7 @@ function colorize(k, d) { const mine = CELLS.filter(c => c.k === k), lit = mine.
   while (have < d && off.length) { const c = off.splice(Math.floor(Math.random() * off.length), 1)[0]; c.on = true; c.st = ++STAMP; c.fresh = true; have++; } }
 const REP = 420, COH = 70;
 // the invisible container: a rounded rectangle inset from the sidebar, with a soft cushion so wax curves away from it instead of lying flat
-const BOX = () => ({ hx: W / 2 - 14, hy: H / 2 - 10, r: 46 });
+const BOX = () => { const m = 5 + S * .8; return { hx: W / 2 - m, hy: H / 2 - m, r: Math.max(10, 24 - m * .3) }; };   // inset by the wax's own soft edge, so nothing touches the window's sides
 function sdf(x, y) { const b = BOX(), qx = Math.abs(x - W / 2) - (b.hx - b.r), qy = Math.abs(y - H / 2) - (b.hy - b.r);
   return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - b.r; }
 function wall(p, dt) { const s = sdf(p.x, p.y), CU = 10; if (s < -CU) return;
@@ -70,7 +70,7 @@ function step(dt, quiet) {
   // cells reaching the top: about half hang under the cap and spread before they drip, the rest turn straight round
   CELLS.forEach((c, i) => { if (!cn[i]) return; if (cy[i] < 80) { if (!c.atTop) { c.atTop = true; if (Math.random() < .5) c.hang = rnd(3, 7); } } else if (cy[i] > H * .4) c.atTop = false; });
   // the bulb: it warms wax on the pool's surface. a plain rise, a stall that only gets halfway, or (once the lamp is warm) a tall column
-  if (!quiet) { const live = Math.min(1, TIME / 45);   // calm when the page opens, fully warm after about 45 seconds
+  if (!quiet) { const live = CALM ? .3 : Math.min(1, .4 + TIME / 45);   // already moving when it appears, fully warm after about 30 seconds; calmer with reduced motion
     PLS = PLS.filter(pl => { pl.t -= dt; P.forEach(p => { if (pl.cells.has(p.c) && p.y > H * .3) p.T += (pl.tgt.get(p.c) - p.T) * dt * pl.rate; });
       if (pl.t > 0) return true; pl.cells.forEach(c => { if (pl.kind === 'stall') CELLS[c].chill = 6; }); return false; });
     if (PLS.length < (live > .6 ? 2 : 1) && (NEXT -= dt * warm * (.35 + .65 * live)) <= 0) { NEXT = rnd(5, 10); startPlume(cx, cy, live); } }
@@ -122,11 +122,11 @@ function draw() {
     d[j4 + 3] = a * 255; } }
   ctx.putImageData(img, 0, 0);
 }
-let ENERGY = 0, TIME = 0, PLS = [], NEXT = 3;
+let ENERGY = 0, TIME = 0, PLS = [], NEXT = 1.5, CALM = false;
 
 function build() {
   WANT = false; if (!W) { WANT = true; return; }
-  P = []; CELLS = []; PLS = []; NEXT = 3; const N = WEEK.reduce((s, w) => s + w.n, 0); BUILT = Math.max(1, N); scaleFor(N || 3); const order = WEEK.map((w, k) => k).sort(() => Math.random() - .5);
+  P = []; CELLS = []; PLS = []; NEXT = 1.5; const N = WEEK.reduce((s, w) => s + w.n, 0); BUILT = Math.max(1, N); scaleFor(N || 3); const order = WEEK.map((w, k) => k).sort(() => Math.random() - .5);
   EMPTY = !N; if (EMPTY) for (let i = 0; i < 3; i++) addCell(-1, W / 2 + rnd(-20, 20), H - 60 - rnd(0, 40));   // a week with nothing due still has a little grey wax, so the lamp never looks blank
   order.forEach(k => { const cx = rnd(50, W - 50); for (let i = 0; i < WEEK[k].n; i++) addCell(k, cx + rnd(-20, 20), H - 60 - rnd(0, 120)); });
   for (let i = 0; i < 400; i++) step(1 / 60, true);   // settle into a pool before it's shown
@@ -181,7 +181,8 @@ return {
   setWeek,
   setTheme(t) { THEME = t === 'default' ? 'dark' : LOOK[t] ? t : 'dark'; paint(); if (STILL && W) draw(); },
   setStill(v) { v = !!v; if (v === STILL) return; STILL = v; M.grab = null; if (STILL && W) still(); },
-  kick(a) { ENERGY = Math.min(1.5, ENERGY + Math.abs(a || 0)); },
+  setCalm(v) { CALM = !!v; },
+  kick(a) { if (!CALM) ENERGY = Math.min(1.5, ENERGY + Math.abs(a || 0)); },
 };
 }
 window.Lamp = { create };
