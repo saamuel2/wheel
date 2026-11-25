@@ -159,16 +159,16 @@
   .gp + .gp { margin-left: .6em; }
   .chip[data-act=asg]:hover { --cb: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { --cb: var(--card2); background: var(--cb); }
   /* hover controls: done on the left, edit on the right, each over a soft fade so they never sit on the text */
-  .chip > .chk, .chip > .ced { position: absolute; top: 50%; z-index: 2; margin: 0; opacity: 0; pointer-events: none; transform: translateY(-50%) scale(.8); transition: opacity var(--dur-fast), transform var(--dur-fast) var(--ease); }
-  .chip > .chk { left: 8px; width: 22px; height: 22px; background: var(--c, var(--sub)); } .chip > .chk svg { opacity: 1; } .chip > .ced { right: 6px; }
+  .chip > .chk, .chip > .ced { position: absolute; top: 4px; bottom: 4px; height: auto; width: 26px; z-index: 2; margin: 0; padding: 0; border: 0; border-radius: max(4px, calc(var(--r-ctl) - 4px)); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transform: scale(.85); transition: opacity var(--dur-fast), transform var(--dur-fast) var(--ease), background-color var(--dur-fast); }
+  .chip > .chk { left: 4px; background: var(--c, var(--sub)); } .chip > .chk svg { opacity: 1; } .chip > .ced { right: 4px; background: color-mix(in srgb, var(--text) 8%, var(--cb)); color: var(--sub); } .chip > .ced:hover { color: var(--text); background: color-mix(in srgb, var(--text) 13%, var(--cb)); } .chip > .chk:hover { filter: brightness(1.08); }
   .chip { overflow: hidden; } .chip .tx { transition: transform var(--dur-fast) var(--ease); }
-  .chip::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 46px; z-index: 1; opacity: 0; pointer-events: none; transition: opacity var(--dur-fast); background: linear-gradient(270deg, var(--cb) 55%, transparent); }
-  .chip:hover .tx, .chip:focus-within .tx { transform: translateX(24px); } .chip.done:hover .tx, .chip.done:focus-within .tx { transform: translateX(18px); }   /* the name slides over to make room for the check, so its start stays readable */
-  .chip:hover > .chk, .chip:focus-within > .chk, .chip:hover > .ced, .chip:focus-within > .ced { opacity: 1; pointer-events: auto; transform: translateY(-50%) scale(1); }
+  .chip::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 52px; z-index: 1; opacity: 0; pointer-events: none; transition: opacity var(--dur-fast); background: linear-gradient(270deg, var(--cb) 60%, transparent); }
+  .chip:hover .tx, .chip:focus-within .tx { transform: translateX(26px); } .chip.done:hover .tx, .chip.done:focus-within .tx { transform: translateX(20px); }   /* the name slides over to make room for the check, so its start stays readable */
+  .chip:hover > .chk, .chip:focus-within > .chk, .chip:hover > .ced, .chip:focus-within > .ced { opacity: 1; pointer-events: auto; transform: none; }
   .chip:hover::after, .chip:focus-within::after { opacity: 1; }
   body.dragon .chip > .chk, body.dragon .chip > .ced, body.dragon .chip::after { opacity: 0 !important; } body.dragon .chip .tx { transform: none; }
-  @media (hover: none) { .chip { padding-left: 38px; padding-right: 36px; } .chip.done { padding-left: 30px; padding-right: 32px; } .chip::after { display: none; } .chip:hover .tx, .chip:focus-within .tx { transform: none !important; }
-    .chip > .chk, .chip > .ced { opacity: 1; pointer-events: auto; transform: translateY(-50%); } }
+  @media (hover: none) { .chip { padding-left: 38px; padding-right: 38px; } .chip.done { padding-left: 32px; padding-right: 32px; } .chip::after { display: none; } .chip:hover .tx, .chip:focus-within .tx { transform: none !important; }
+    .chip > .chk, .chip > .ced { opacity: 1; pointer-events: auto; transform: none; } }
   .chip.dragging { opacity: .35; } .day { transition: box-shadow var(--dur-fast), background-color var(--dur-fast); } .day.drop { box-shadow: inset 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--tint) 8%, var(--card)); }
   body.dragon .chip { cursor: grabbing; }
   .pop.paste { width: 600px; } .pvbox { padding: 4px 16px 8px; } .popset textarea.txt { display: block; width: 100%; max-width: none; height: auto; min-height: 120px; padding: 8px 10px; resize: vertical; font: inherit; font-size: var(--fs-sub); line-height: 1.4; }
@@ -180,7 +180,7 @@
   .aeft { display: flex; justify-content: space-between; padding: 10px 16px 8px; } .aedel { color: var(--red); }
   .chip.done { padding: 4px 8px; opacity: .55; background: transparent; align-items: center; } .chip.done:hover, .chip.done:focus-within { opacity: .85; }
   .chip.done .nm { font-size: var(--fs-footnote); font-weight: 500; text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chip.done .mt { display: none; } .chip.done > .chk { width: 18px; height: 18px; left: 5px; } .chip.done > .ced { width: 20px; height: 20px; right: 4px; }
+  .chip.done .mt { display: none; } .chip.done > .chk, .chip.done > .ced { top: 3px; bottom: 3px; width: 22px; } .chip.done > .chk { left: 3px; } .chip.done > .ced { right: 3px; }
   .overdue { margin-bottom: 24px; } .overdue .row { display: flex; flex-wrap: wrap; gap: 8px; } .overdue .chip { width: 250px; }
   .late { color: var(--red); }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
@@ -562,7 +562,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd3.2 (11/25 3:30pm)';
+const BUILD = 'd3.3 (11/25 3:35pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
