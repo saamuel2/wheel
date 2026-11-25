@@ -116,9 +116,9 @@
   .ev .n { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .ev .w { color: var(--sub); font-size: var(--fs-footnote); }
   .bar { height: 6px; border-radius: var(--r-mark); background: var(--track); overflow: hidden; margin-top: 12px; } .bar i { display: block; height: 100%; background: var(--tint); border-radius: var(--r-mark); }
   .glist { display: grid; gap: 2px; }
-  .glist button { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; border: 0; background: none; padding: 4px 2px; text-align: left; border-bottom: .5px solid var(--sep); font-size: var(--fs-sub); }
+  .glist button { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto 26px; gap: 8px; align-items: baseline; border: 0; background: none; padding: 4px 2px; text-align: left; border-bottom: .5px solid var(--sep); font-size: var(--fs-sub); }
   .glist button:last-child { border-bottom: 0; } .glist button:hover { background: var(--fill); border-radius: var(--r-sm); }
-  .glist .nm { color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .glist .g { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .glist .nm { color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .glist .gn { color: var(--sub); text-align: right; font-variant-numeric: tabular-nums; } .glist .gl { text-align: left; font-weight: 700; }   /* like the report card: numbers line up on the right, letters on the left */
   .eyebtn { border: 0; background: none; color: var(--sub); padding: 2px 0; display: flex; } .eyebtn:hover { color: var(--text); }
   .iconbtn.sm { width: 24px; height: 24px; font-size: var(--fs-sub); padding: 0; color: var(--sub); }
   .btn.sm { padding: 4px 12px; font-size: var(--fs-footnote); }
@@ -560,7 +560,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd3.4 (11/25 3:45pm)';
+const BUILD = 'd3.5 (11/25 3:50pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -614,7 +614,7 @@ const saveCD = () => store.set('wheel-cd', CD);
 const EXTRA = ['wv'];   // wolf village: on the sheet, never graded
 const blankCls = c => /^\W*$/.test(String(c || '').replace(/[‎‏\s]/g, ''));
 const isExtra = c => EXTRA.includes(String(c || '').toLowerCase()) || blankCls(c);
-const bigType = y => /^(EX|PR|ES)/i.test(String(y || ''));   // exams, projects and essays stand out, like on the sheet
+const bigType = y => /^(EX|PR|ES|FI)/i.test(String(y || ''));   // exams, finals, projects and essays stand out, like on the sheet
 
 const COLORS = { bch351: '#b2e2b6', bio240: '#9ed2f6', bsc494: '#e4b39b', gn427: '#d3f1bf', gn521: '#91e3d6', pb421: '#c2c7f8', phi325: '#fbe0a3', e115: '#e2d5f8', wv: '#A6A6B1', lab: '#A6A6B1', hc: '#A6A6B1' };
 const SPARE = ['#b2e2b6', '#9ed2f6', '#e4b39b', '#d3f1bf', '#91e3d6', '#c2c7f8', '#fbe0a3', '#e2d5f8', '#f6b8c9', '#bfe6ef'];
@@ -1268,7 +1268,7 @@ function dashGradesHtml() {
   const L = live(); if (!L) return '<div class="card"><div class="ct">grades</div><div class="muted">–</div></div>';
   if (!L.courses.length) return '<div class="card"><div class="ct">grades</div><div class="emptyw">no courses</div></div>';
   return `<div class="card gcard${showGrades ? '' : ' hid'}" data-act="eye-card"><div class="ct">grades<span class="r"><button class="eyebtn" data-act="eye" aria-label="${showGrades ? 'hide grades' : 'show grades'}">${showGrades ? EYE_OPEN : EYE_SHUT}</button></span></div>
-    <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${ink(colorFor(c.code))}">${esc(spaceCode(c.code))}</b><span class="nm">${esc(c.name)}</span><span class="g">${c.raw != null ? f2(c.raw) + ' (' + esc(c.letter || '–') + ')' : '–'}</span></button>`).join('')}</div></div>`;
+    <div class="glist${showGrades ? '' : ' masked'}">${L.courses.map(c => `<button data-act="course" data-code="${esc(c.code)}"><b style="color:${ink(colorFor(c.code))}">${esc(spaceCode(c.code))}</b><span class="nm">${esc(c.name)}</span><span class="gn">${c.raw != null ? f2(c.raw) : '–'}</span><b class="gl">${c.raw != null ? esc(c.letter || '–') : ''}</b></button>`).join('')}</div></div>`;
 }
 const raItem = x => `<div class="xi${x.d ? ' done' : ''}"><button class="chk${x.d ? ' on' : ''}" style="--c:${colorFor('wv')};--ci:${ink(colorFor('wv'))}" data-act="ra" data-r="${x.r}" data-n="${esc(x.n)}">${CHECK}</button><span class="t">${esc(x.n)}${x.note ? ` <span class="muted" style="margin-left:.4em">${esc(x.note)}</span>` : ''}</span><span class="d${!x.d && x.t != null && x.t < today() ? ' late' : ''}">${x.t != null ? dayLabel(x.t) : esc(x.due)}</span></div>`;
 function raHtml(limit) {
