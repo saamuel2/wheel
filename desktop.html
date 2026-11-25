@@ -153,11 +153,22 @@
   .day.past { opacity: .7; }
   .dh { display: flex; align-items: baseline; gap: 8px; padding: 0 2px 2px; }
   .dh .dn { font-weight: 700; text-transform: lowercase; } .dh .dd { color: var(--sub); font-size: var(--fs-footnote); font-weight: 600; } .dh .dc { margin-left: auto; font-size: var(--fs-caption); color: var(--sub); white-space: nowrap; } .dh { min-width: 0; } .dh .dd { white-space: nowrap; }
-  .chip { display: flex; gap: 8px; align-items: flex-start; padding: 8px 8px; border-radius: var(--r-ctl); background: var(--card2); transition: opacity var(--dur); }
+  .chip { position: relative; display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: var(--r-ctl); --cb: var(--card2); background: var(--cb); transition: opacity var(--dur); }
   .chip .tx { min-width: 0; flex: 1; } .chip .nm { font-size: var(--fs-sub); font-weight: 600; line-height: 1.25; hyphens: auto; -webkit-hyphens: auto; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .chip .mt { font-size: var(--fs-caption); color: var(--sub); } .chip .mt .acode { color: var(--ci, var(--c)); font-weight: 600; }
   .gp + .gp { margin-left: .6em; }
-  .chip[data-act=asg] { cursor: pointer; } .chip[data-act=asg]:hover { background: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { background: var(--fill); }
+  .chip[data-act=asg]:hover { --cb: color-mix(in srgb, var(--c) 10%, var(--card2)); } .chip.done[data-act=asg]:hover { --cb: var(--card2); background: var(--cb); }
+  /* hover controls: done on the left, edit on the right, each over a soft fade so they never sit on the text */
+  .chip > .chk, .chip > .ced { position: absolute; top: 50%; z-index: 2; margin: 0; opacity: 0; pointer-events: none; transform: translateY(-50%) scale(.8); transition: opacity var(--dur-fast), transform var(--dur-fast) var(--ease); }
+  .chip > .chk { left: 8px; width: 22px; height: 22px; background: var(--c, var(--sub)); } .chip > .chk svg { opacity: 1; } .chip > .ced { right: 6px; }
+  .chip { overflow: hidden; } .chip .tx { transition: transform var(--dur-fast) var(--ease); }
+  .chip::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 46px; z-index: 1; opacity: 0; pointer-events: none; transition: opacity var(--dur-fast); background: linear-gradient(270deg, var(--cb) 55%, transparent); }
+  .chip:hover .tx, .chip:focus-within .tx { transform: translateX(24px); } .chip.done:hover .tx, .chip.done:focus-within .tx { transform: translateX(18px); }   /* the name slides over to make room for the check, so its start stays readable */
+  .chip:hover > .chk, .chip:focus-within > .chk, .chip:hover > .ced, .chip:focus-within > .ced { opacity: 1; pointer-events: auto; transform: translateY(-50%) scale(1); }
+  .chip:hover::after, .chip:focus-within::after { opacity: 1; }
+  body.dragon .chip > .chk, body.dragon .chip > .ced, body.dragon .chip::after { opacity: 0 !important; } body.dragon .chip .tx { transform: none; }
+  @media (hover: none) { .chip { padding-left: 38px; padding-right: 36px; } .chip.done { padding-left: 30px; padding-right: 32px; } .chip::after { display: none; } .chip:hover .tx, .chip:focus-within .tx { transform: none !important; }
+    .chip > .chk, .chip > .ced { opacity: 1; pointer-events: auto; transform: translateY(-50%); } }
   .chip.dragging { opacity: .35; } .day { transition: box-shadow var(--dur-fast), background-color var(--dur-fast); } .day.drop { box-shadow: inset 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--tint) 8%, var(--card)); }
   body.dragon .chip { cursor: grabbing; }
   .pop.paste { width: 600px; } .pvbox { padding: 4px 16px 8px; } .popset textarea.txt { display: block; width: 100%; max-width: none; height: auto; min-height: 120px; padding: 8px 10px; resize: vertical; font: inherit; font-size: var(--fs-sub); line-height: 1.4; }
@@ -167,10 +178,9 @@
   .popset .aefm .txt { height: 30px; } .popset .aefm .row .txt { width: 150px; max-width: 150px; } .popset .aefm .row .aeg .txt { width: 69px; } .aefm .aesm { text-align: left; }
  .aeg { display: flex; align-items: center; gap: 6px; } .aeg i { color: var(--sub); font-style: normal; }
   .aeft { display: flex; justify-content: space-between; padding: 10px 16px 8px; } .aedel { color: var(--red); }
-  .chip.done { padding: 4px 8px 4px 4px; opacity: .55; background: transparent; align-items: center; }
+  .chip.done { padding: 4px 8px; opacity: .55; background: transparent; align-items: center; } .chip.done:hover, .chip.done:focus-within { opacity: .85; }
   .chip.done .nm { font-size: var(--fs-footnote); font-weight: 500; text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chip.done .mt { display: none; } .chip.done .chk { width: 14px; height: 14px; }
-  .chip .chk { margin-top: 1px; }
+  .chip.done .mt { display: none; } .chip.done > .chk { width: 18px; height: 18px; left: 5px; } .chip.done > .ced { width: 20px; height: 20px; right: 4px; }
   .overdue { margin-bottom: 24px; } .overdue .row { display: flex; flex-wrap: wrap; gap: 8px; } .overdue .chip { width: 250px; }
   .late { color: var(--red); }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
@@ -552,7 +562,7 @@
 <script>
 'use strict';
 const IC = { plus: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>', r: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>', l: '<svg class="ic" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>', x: '<svg class="ic" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>', ext: '<svg class="ic" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 16L16 8M9 8h7v7"/></svg>' };   // one icon family (line, rounded, same stroke) instead of text glyphs
-const BUILD = 'd3.1 (11/25 3:25pm)';
+const BUILD = 'd3.2 (11/25 3:30pm)';
 // ===================== connection =====================
 const API = 'https://script.google.com/macros/s/AKfycbyE5xal4egIeVobrupwSZYgtbmTQL781t3pHox0GeEMQCsSQe7T65qXm1P4pBzDonN5/exec';
 const FALL26_ID = '1qtYm2XQwOKEK4u-cE_PcxbEWTcJYpa8EZ-6ceO_hwJ0';
@@ -1092,7 +1102,8 @@ function ink(c) {
 function chipHtml(a, showDay) {
   const col = colorFor(a.c), meta = gapj(`<b class="acode">${esc(spaceCode(a.c))}</b>`, esc(a.y || ''), showDay ? esc(dayLabel(a.t)) : '', esc(fmtG(a.g) || ''));
   return `<div class="chip${a.d ? ' done' : ''}" style="--c:${col};--ci:${ink(col)}" data-i="${data.assignments.indexOf(a)}" data-act="asg" draggable="true" title="${esc(a.n)}">` +
-    `<button class="chk" data-act="done" aria-label="done">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${meta}</div></div></div>`;
+    `<button class="chk" data-act="done" aria-label="${a.d ? 'not done' : 'done'}" title="${a.d ? 'not done' : 'done'}">${CHECK}</button><div class="tx"><div class="nm">${esc(a.n)}</div><div class="mt">${meta}</div></div>` +
+    `<button class="iconbtn sm ced" data-act="asgedit" aria-label="edit" title="edit">${PENCIL}</button></div>`;
 }
 
 // ---------- dashboard ----------
@@ -2129,7 +2140,8 @@ document.addEventListener('click', e => {
     case 'popdone': return closePop();
     case 'paste': { if (VIEW !== 'sheet') go('sheet'); PASTE = PASTE || { cls: '', text: '', rows: [] }; openPop('paste'); setTimeout(() => { const x = $('pv-text'); if (x) x.focus(); }, 30); return; }
     case 'pv-go': return pasteAdd();
-    case 'asg': { if (DRAGGED) return; const a = byIdx(t.dataset.i); if (!a) return; AEA = a; openPop('asg', t); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
+    case 'asg': return;   // the card itself: dragging only; its buttons check it off or edit it
+    case 'asgedit': { if (DRAGGED) return; const chipEl = t.closest('.chip'); const a = chipEl && byIdx(chipEl.dataset.i); if (!a) return; AEA = a; openPop('asg', chipEl); const g = document.querySelector('#pop [data-ae="g"]'); if (g) { g.focus(); g.select(); } return; }
     case 'ae-del': { const a = asgCur(); if (!a) return; closePop(); return deleteAssignment(a); }
     case 'setsec': REPORT = null; NEWT = null; NEWC = null; FIN = null; SSEC = t.dataset.s; store.set('desk-setsec', SSEC); SQ = ''; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); if (VIEW !== 'settings') return go('settings', false); renderAll(); $('main').scrollTop = 0; return;
     case 'mox': MOX = !MOX; return renderAll();
